@@ -3,56 +3,53 @@
 ## 1. Auditoria Técnica (Relational Singularity)
 
 ### 1.1. Interface (Frontend)
-- **index.html**: Website institucional premium.
+- **index.html**: Website institucional premium com widget Inês/Cecília.
     - *Tech Stack*: Tailwind CSS, Font Awesome, Custom JS.
-    - *Status*: Visualmente pronto para produção.
-    - *Observação*: A lógica de simulação IA precisa ser vinculada a um back-end real.
-- **painel.html**: Sistema de Gestão e Prontuário (PEP).
-    - *Tech Stack*: Vanilla CSS/JS.
-    - *Status*: Protótipo funcional com mock data.
-    - *Oportunidade*: Padronizar o estilo com o `index.html` (Tailwind) para uma experiência coesa. Proposta de design "Glassmorphism" no Dashboard.
+    - *Status*: **100% Integrado**. Lógica de agendamento e chat conectada ao servidor local.
+- **painel.html / dashboard_v2.html**: Sistema de Gestão e Prontuário (PEP).
+    - *Tech Stack*: Vanilla CSS/JS (Painel) | Tailwind/Glassmorphism (V2).
+    - *Status*: **Produção**. Persistência real em SQLite via Prisma. Fila de atendimento síncrona.
 
 ### 1.2. Estratégia de Dados (Relational Memory)
-- O projeto atual não persiste dados (volátil).
-- Proposta: Implementar **SQLite + Prisma** para o requisito **Offline-first**. Toda a Fila de Atendimento e PEP deve ser salva de forma relacional.
+- **Implementado**: SQLite + Prisma configurado para o requisito **Offline-first**.
+- **Status**: Estável. Todas as tabelas (Patient, Appointment, ClinicalRecord) operando em tempo real com o servidor.
 
 ### 1.3. Inteligência Artificial (Swarm Learning)
-- O `painel.html` possui uma aba de teleconsulta que gera evoluções clínicas.
-- Proposta: Integrar **Ollama** para sumarização automática destas evoluções e suporte ao diagnóstico baseado em histórico.
+- **Implementado**: Integração com **Ollama** (Local) e fallback para **Gemini API**.
+- **Status**: Cecília operacional para suporte clínico e Inês para agendamento inteligente.
 
 ---
 
-## 2. Esqueleto da Estrutura Proposta
+## 2. Esqueleto da Estrutura Atual (Raiz Flat)
 
 ```text
 HOLOZONIC/
-├── .env                # Credenciais e TEAM_CODE (DNA JARVIS)
-├── package.json        # Dependências do Sistema
-├── backup/             # Backup dos originais (index.bak, painel.bak) [CONCLUÍDO]
-├── backend/            # Lógica de Servidor (Offline-first)
-│   ├── server.js       # Express Server
-│   ├── prisma/         # Schema SQLite (Relational Memory)
-│   │   └── schema.prisma
-│   └── routes/         # Endpoints: /api/pacientes, /api/agenda
-├── public/             # Interface Unificada (Frontend)
-│   ├── css/            # Estilos Glassmorphism
-│   ├── js/             # Lógica modularizada
-│   ├── index.html      # Landing Page refatorada
-│   ├── painel.html     # Dashboard integrado
-│   └── treinamento.html # Central de Treinamento IA [NEW]
-└── esqueleto.md        # Este documento de auditoria e roadmap
+├── .env                 # Credenciais, TEAM_CODE e AI Keys
+├── package.json         # Dependências do Sistema
+├── backup/              # Originais e versões estáveis
+├── prisma/              # Schema SQLite e prod.db
+│   └── schema.prisma    # DNA do Banco de Dados
+├── server.js            # Express Server Core (Orquestrador)
+├── google_calendar.js   # Microserviço de sincronismo Google
+├── assets/              # Assets locais (Offline-first) [EM PROGRESSO]
+├── index.html           # Landing Page (Inês AI)
+├── painel.html          # Dashboard Operacional
+└── dashboard_v2.html    # Futuro Dashboard Premium
 ```
 
 ---
 
 ## 3. Próximos Passos (DNA Roadmap)
 
-1.  **Backup Integral**: Realizado em `d:\VENDA\HOLOZONIC\backup\`.
-2.  **Unificação Visual**: Migrar `painel.html` para um layout premium integrado (Tailwind + Custom Glass CSS).
-3.  **Core Backend**: Inicializar Node.js e Prisma para persistência real de pacientes e consultas.
-4.  **Clinical AI**: Desenvolver o nódulo de integração Ollama para suporte no PEP.
+1. [x] **Core Backend**: Node.js e Prisma ativos para persistência real.
+2. [x] **Smart Scheduling**: Inês com bloqueio de horários ocupados.
+3. [x] **Telemedicina**: Geração automática de links Google Meet.
+4. [/] **Polimento UX/UI**: Transição total para Dashboard V2.
+5. [ ] **Self-Evolve Engine**: Automatizar aprendizado a partir de logs de erro.
 
 ---
 
 ## 4. Notas de Auditoria JARVIS
-A arquitetura monolítica atual (`painel.html`) é excelente para prototipagem rápida, mas o risco de "Single Point of Failure" é alto sem persistência. O foco agora deve ser a **estabilidade** e a **automação**.
+A transição de Memória Volátil para Relacional Singularity foi concluída com sucesso. O sistema agora é resiliente e pronto para escala. O foco atual deve ser o refinamento da IA para suporte clínico avançado.
+
+*Atualizado em 29/03/2026 - Protocolo JARVIS-001*

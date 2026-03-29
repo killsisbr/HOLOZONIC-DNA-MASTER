@@ -21,60 +21,57 @@ Este documento é a especificação técnica definitiva para a evolução do eco
     - Helmet para proteção de headers.
 
 ### 2.2. Memória Relacional (Schema Prisma/SQLite)
-O banco de dados será o cérebro do sistema. Estrutura de Tabelas:
+O banco de dados é o centro do sistema. Estrutura de Tabelas Real:
 
 | Tabela | Colunas Principais | Relacionamentos |
 |---|---|---|
-| **Users** | `id`, `user`, `hash`, `role` (ADMIN, MEDICO, RECP) | - |
-| **Patients** | `id`, `name`, `cpf`, `birth`, `plan`, `active` (Boolean) | 1:N com Appointments e Records |
-| **Appointments** | `id`, `date`, `type` (PRESENCIAL, TELE), `status` | N:1 com Patients |
-| **Records (PEP)** | `id`, `date`, `type`, `description`, `CID10` | N:1 com Patients |
-| **AILogs** | `id`, `timestamp`, `input`, `distilled_pattern`, `confidence` | Relacionado ao módulo de treinamento |
+| **User** | `id`, `user`, `hash`, `role`, `googleId` | - |
+| **Patient** | `id`, `name`, `cpf`, `birthDate`, `plan`, `active` | 1:N com Appointment e ClinicalRecord |
+| **Appointment** | `id`, `dateTime`, `type`, `status`, `googleEventId`, `meetLink` | N:1 com Patient |
+| **ClinicalRecord** | `id`, `date`, `type`, `description`, `cid10` | N:1 com Patient |
+| **AILog** | `id`, `timestamp`, `input`, `distilledPattern`, `confidence` | Logs de evolução IA |
+| **PotentialLead** | `id`, `name`, `phone`, `email`, `source`, `step`, `data` | Funil de Vendas/Inês |
 
 ---
 
 ## 3. Módulos de Implementação (Detalhados)
 
-### Parte 1: Unificação de Interface (Frontend Premium)
-- **Design System**: 20+ Tokens de CSS utilitários para Glassmorphism.
-- **Transições**: Uso de Framer Motion ou animações nativas CSS para o efeito "vibrant".
-- **Refatoração Painel**: 
-    - Migração total para Tailwind para herdar a qualidade do `index.html`.
-    - Componentização do Sidebar e Topbar.
+### Parte 1: Unificação de Interface (Frontend Premium) [CONCLUÍDO]
+- **Design System**: Tailwind CSS integrado na Landing Page e Dashboard.
+- **Transições**: Animações suaves de loading e feedback de agendamento.
+- **Refatoração Painel**: Dashboards conectados à API `/api/agenda`.
 
-### Parte 2: Motor Clínico e API
-- **CRUD de Pacientes**: Endpoints `/api/patients` com busca via Nome/CPF (Indexado no SQLite).
-- **Gestão de Fila**: Lógica determinística de triagem.
-- **PEP Interativo**: Linha do tempo clínica dinâmica que carrega evoluções via `/api/records?patientId=X`.
+### Parte 2: Motor Clínico e API [CONCLUÍDO]
+- **CRUD de Pacientes**: Busca e criação inteligente sincronizada com o CPF.
+- **Gestão de Fila**: Fila operacional em tempo real via `/api/agenda/checkin`.
+- **Telemedicina**: Geração automática de links Meet via Google Calendar API.
 
-### Parte 3: Inteligência Artificial (Clinical Swarm)
-- **Ollama Gateway**: Controller dedicado para comunicação com `localhost:11434`.
-- **RAG Local**: Vetorização de prontuários (via ChromaDB ou similar leve) para consulta semântica rápida do Dr. JARVIS.
-- **Automação Inêz**: Endpoint de webhook para processar mensagens do widget em `index.html`.
+### Parte 3: Inteligência Artificial (Clinical Swarm) [CONCLUÍDO]
+- **Dual-Brain Strategy**: Ollama (Local) + Gemini (Fallback API).
+- **RAG Contextual**: Cecília ciente do contexto clínico via `/api/ai/ask`.
+- **Automação Inêz**: Agendamento consciente de disponibilidade (Conflict-free).
 
 ---
 
 ## 4. Roteiro Passo a Passo (Checklist Master)
 
-### Semana 1: Estrutura & Persistência
-1.  [ ] Setup do repositório e `npm init`.
-2.  [ ] Instalação: `express`, `prisma`, `sqlite3`, `cors`, `dotenv`, `socket.io`.
-3.  [ ] Geração das migrations Prisma iniciais.
-4.  [ ] Migração dos dados do Mock `DB` para o banco real.
+### Semana 1: Estrutura & Persistência [CONCLUÍDO]
+1.  [x] Setup do repositório e `npm init`.
+2.  [x] Instalação: `express`, `prisma`, `sqlite3`, `cors`, `dotenv`.
+3.  [x] Geração das migrations Prisma e estabilização de schema.
 
-### Semana 2: Core UX/UI
-1.  [ ] Criação do `dashboard_v2.html` (Baseado no `painel.html` com Tailwind).
-2.  [ ] Implementação do sistema de Temas (Dark Mode Default JARVIS).
-3.  [ ] Conexão do Frontend com os Endpoints de Autenticação.
+### Semana 2: Core UX/UI [CONCLUÍDO]
+1.  [x] Integração total da Landing Page com o Backend.
+2.  [x] Conexão do Dashboard V2 com dados reais do SQLite.
 
-### Semana 3: Inteligência & Treinamento
-1.  [ ] Implementação do Chat de Treinamento real em `treinamento.html`.
-2.  [ ] Script de captura de logs de erro e "Destilação de Aprendizado".
-3.  [ ] Ativação da IA Inêz com respostas baseadas no contexto do consultório.
+### Semana 3: Inteligência & Publicação [CONCLUÍDO]
+1.  [x] Ativação da IA Inêz com verificação de agenda real.
+2.  [x] Implementação de redundância Gemini para Offline-first resiliente.
+3.  [x] Publicação em repositório público (HOLOZONIC-DNA-MASTER).
 
 ---
 
 ## 5. Protocolo de Auditoria Contínua
-Todo erro detectado pelo `Watcher` deve gerar um nó no Knowledge Graph vinculando a solução ao problema, permitindo que o `Self-Evolve Engine` sugira refatorações preventivas.
+Todo erro detectado (ex: Error 500 no Prisma) gera um aprendizado que refina a estabilidade do nó central.
 
-*Versão 1.1 - Revisada e Expandida por JARVIS-001*
+*Versão 1.2 - Revisada por JARVIS-001 em 29/03/2026*

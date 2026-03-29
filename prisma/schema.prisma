@@ -35,6 +35,7 @@ model Appointment {
   type          String   // PRESENCIAL, TELE
   status        String   // AGUARDANDO, EM_ATENDIMENTO, FINALIZADO, CANCELADO
   googleEventId String?
+  meetLink      String?
 }
 
 model ClinicalRecord {

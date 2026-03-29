@@ -314,8 +314,30 @@ app.post('/api/ai/ask', async (req, res) => {
     
     res.json({ response: result });
   } catch (error) {
-    console.error('JARVIS: Ollama Error:', error.message);
-    res.json({ response: "Estou em modo de manutenção offline. Como posso te ajudar com o básico?" });
+    console.warn('JARVIS: Ollama Offline. Tentando Fallback Gemini...', error.message);
+    
+    // JARVIS 4.1 - Gemini Fallback Strategy
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      try {
+        const fetch = (await import('node-fetch')).default;
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `${systemPrompt}\n\nUsuário: ${prompt}\nCecília:` }] }]
+          })
+        });
+        const geminiData = await geminiRes.json();
+        const geminiResult = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "Estou em manutenção profunda.";
+        
+        return res.json({ response: geminiResult + " (Modo Fallback Gemini)" });
+      } catch (geminiErr) {
+        console.error('JARVIS: Gemini Fallback Error:', geminiErr.message);
+      }
+    }
+
+    res.json({ response: "Estou em modo de manutenção offline. Verifique se o Ollama está rodando ou configure GEMINI_API_KEY no .env." });
   }
 });
 
