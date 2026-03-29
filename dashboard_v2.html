@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Holozonic — Dashboard V2</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="assets/js/tailwind.js"></script>
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui"],
+            display: ["Plus Jakarta Sans", "Inter", "ui-sans-serif"]
+          },
+          colors: {
+            mint: {
+              50: '#F0FDF8',
+              100: '#CCFBF1',
+              200: '#99F6E4',
+              300: '#5EEAD4',
+              400: '#2DD4BF',
+              500: '#14B8A6',
+              600: '#0D9488',
+              700: '#0F766E',
+              800: '#115E59',
+              900: '#134E4A',
+              DEFAULT: '#4DBE94'
+            },
+            dark: {
+              DEFAULT: '#000000',
+              surface: '#0A0A0A',
+              card: 'rgba(20, 20, 20, 0.7)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --mint: #4DBE94;
+      --mint-glow: rgba(77, 190, 148, 0.3);
+    }
+    
+    .glass {
+      background: rgba(15, 15, 15, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-mint {
+      background: rgba(77, 190, 148, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(77, 190, 148, 0.2);
+    }
+
+    .sidebar-active {
+      background: linear-gradient(90deg, var(--mint-glow), transparent);
+      border-left: 4px solid var(--mint);
+    }
+
+    body {
+      background: radial-gradient(circle at top right, #0F172A, #000000);
+      color: #E2E8F0;
+      min-height: 100vh;
+    }
+
+    /* Scrollbar Custom */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--mint); }
+
+    .animate-fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media print {
+      @page { margin: 0; }
+      aside, #view-title-area, #page-actions, #btnAiOpen, #aiChatWindow, .nav-button, #view-documentos .glass:first-child {
+        display: none !important;
+      }
+      body { background: white !important; color: black !important; margin: 0 !important; }
+      main { padding: 0 !important; }
+      #app-container { display: block !important; }
+      .view-section { display: none !important; }
+      #view-documentos { display: block !important; padding: 0 !important; }
+      #docPreviewNode {
+        position: relative;
+        left: 0;
+        top: 0;
+        width: 100%;
+        min-height: 100vh;
+        margin: 0 !important;
+        padding: 2.5cm !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: white !important;
+        color: black !important;
+        opacity: 1 !important;
+        mix-blend-mode: normal !important;
+        visibility: visible !important;
+      }
+    }
+  </style>
+</head>
+<body class="font-sans antialiased">
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black">
+    <div class="absolute inset-0 bg-no-repeat bg-cover opacity-20" style="background-image: url('image.png'); filter: grayscale(1) brightness(0.5);"></div>
+    <div class="relative glass p-10 rounded-[32px] w-full max-w-md border border-white/10 shadow-2xl animate-fade-in">
+      <div class="text-center mb-8">
+        <h2 class="text-4xl font-extrabold font-display bg-gradient-to-r from-mint to-mint-400 bg-clip-text text-transparent">HOLOZONIC</h2>
+        <p class="text-gray-400 mt-2 font-medium">Acesso Restrito — JARVIS-001 Protocols</p>
+      </div>
+      
+      <div class="space-y-5">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Nível de Acesso</label>
+          <select id="loginRole" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint transition-all">
+            <option value="admin" class="bg-dark">Administrador (Master)</option>
+            <option value="medico" class="bg-dark">Médico / Especialista</option>
+            <option value="atendente" class="bg-dark">Recepção / Atendente</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Usuário</label>
+          <input type="text" id="loginUser" value="admin" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint transition-all">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Senha</label>
+          <input type="password" id="loginPass" value="1234" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint transition-all">
+        </div>
+        
+        <button onclick="doLogin()" class="w-full bg-mint hover:bg-mint-600 text-black font-extrabold py-4 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(77,190,148,0.4)]">
+          AUTENTICAR SESSÃO
+        </button>
+
+        <div class="pt-4 text-center">
+            <a href="/auth/google" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+                <i class="fab fa-google"></i> Login via Hub Google
+            </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="app-container" class="hidden grid-cols-[280px_1fr] h-screen overflow-hidden">
+    
+    <!-- SIDEBAR -->
+    <aside class="glass border-r border-white/5 flex flex-col p-6 overflow-y-auto">
+      <div class="mb-10 px-2">
+        <h2 class="text-2xl font-black font-display tracking-tighter text-white">HOLOZONIC</h2>
+        <span class="text-[10px] uppercase font-bold text-mint tracking-[3px]">Clinical Ecosystem</span>
+      </div>
+
+      <nav id="navMenu" class="space-y-2 flex-1">
+        <!-- Generative Menu -->
+      </nav>
+
+      <div class="mt-auto pt-6 border-t border-white/10">
+        <div class="flex items-center gap-4">
+          <div id="lblAvatar" class="w-10 h-10 rounded-full bg-gradient-to-br from-mint to-mint-700 flex items-center justify-center text-black font-bold text-lg">A</div>
+          <div class="flex-1 overflow-hidden">
+            <div id="lblUserName" class="text-sm font-bold text-white truncate">Administrador</div>
+            <div id="lblUserRole" class="text-xs text-gray-400 font-medium">Sessão Segura</div>
+          </div>
+          <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition-colors p-2">
+            <i class="fas fa-sign-out-alt text-lg"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="overflow-y-auto p-8 relative">
+      <div id="view-title-area" class="flex justify-between items-end mb-8">
+        <div>
+          <h1 id="page-title" class="text-3xl font-black font-display text-white">Painel de Monitoramento</h1>
+          <p id="page-subtitle" class="text-gray-400 mt-1 font-medium">Visão global de operação, alertas e agendamentos.</p>
+        </div>
+        <div id="page-actions" class="flex gap-4"></div>
+      </div>
+
+      <!-- DASHBOARD VIEW -->
+      <section id="view-dashboard" class="view-section active animate-fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="glass p-6 rounded-[24px] group hover:border-mint/30 transition-all">
+            <div class="flex justify-between items-start mb-4">
+              <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Pacientes Ativos</span>
+              <div class="w-8 h-8 rounded-lg bg-mint/10 flex items-center justify-center text-mint">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+            <div id="dashKpiBase" class="text-4xl font-black text-white">0</div>
+            <div class="text-xs text-mint mt-2 font-bold">+2.4% vs mês anterior</div>
+          </div>
+          <div class="glass p-6 rounded-[24px] group hover:border-mint/30 transition-all">
+              <div class="flex justify-between items-start mb-4">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Consultas Hoje</span>
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                  <i class="fas fa-calendar-check text-sm"></i>
+                </div>
+              </div>
+              <div id="dashKpiConsulta" class="text-4xl font-black text-white">0</div>
+              <div class="text-xs text-gray-400 mt-2">Presenciais registradas</div>
+          </div>
+          <div class="glass p-6 rounded-[24px] group hover:border-mint/30 transition-all">
+              <div class="flex justify-between items-start mb-4">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Teleconsultas</span>
+                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
+                  <i class="fas fa-video text-sm"></i>
+                </div>
+              </div>
+              <div id="dashKpiTele" class="text-4xl font-black text-white">0</div>
+              <div class="text-xs text-gray-400 mt-2">Sessões digitais ativas</div>
+          </div>
+          <div class="glass p-6 rounded-[24px] border border-red-500/20">
+              <div class="flex justify-between items-start mb-4">
+                <span class="text-xs font-bold text-red-400 uppercase tracking-wider">Alertas Críticos</span>
+                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 animate-pulse">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+              </div>
+              <div class="text-4xl font-black text-white">0</div>
+              <div class="text-xs text-red-400 mt-2 font-bold">Tempo de espera excedido</div>
+          </div>
+        </div>
+
+        <div class="glass rounded-[32px] overflow-hidden border border-white/5">
+          <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+            <h3 class="font-bold text-white flex items-center gap-2">
+              <i class="fas fa-stream text-mint"></i> Fluxo de Atendimento Real-Time
+            </h3>
+            <span class="text-[10px] font-black bg-mint text-black px-2 py-1 rounded">LIVE</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="bg-black/40 text-[10px] uppercase font-black text-gray-500 tracking-widest">
+                <tr>
+                  <th class="px-6 py-4">Paciente</th>
+                  <th class="px-6 py-4">Procedimento</th>
+                  <th class="px-6 py-4">Status</th>
+                  <th class="px-6 py-4">Hora Entrada</th>
+                </tr>
+              </thead>
+              <tbody id="dashFilaTable" class="divide-y divide-white/5 text-sm font-medium">
+                <!-- Data via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- CADASTRO SECTION -->
+      <section id="view-cadastro" class="view-section hidden animate-fade-in shadow-2xl">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-1 glass p-8 rounded-[32px] flex flex-col gap-6 h-fit sticky top-0">
+                  <h3 class="text-xl font-bold text-white border-l-4 border-mint pl-4">Novo Cadastro</h3>
+                  <div class="space-y-4">
+                      <div>
+                          <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Nome Completo</label>
+                          <input type="text" id="cadNome" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint">
+                      </div>
+                      <div>
+                          <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">CPF</label>
+                          <input type="text" id="cadCpf" placeholder="000.000.000-00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint">
+                      </div>
+                      <div>
+                          <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Data Nascimento</label>
+                          <input type="date" id="cadNasc" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint invert">
+                      </div>
+                      <div>
+                          <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Plano de Saúde</label>
+                          <select id="cadPlano" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint">
+                              <option class="bg-dark">Particular</option>
+                              <option class="bg-dark">Unimed</option>
+                              <option class="bg-dark">Bradesco Saúde</option>
+                          </select>
+                      </div>
+                      <button onclick="cadastrarPaciente()" class="w-full bg-mint text-black font-black py-4 rounded-xl mt-4 hover:scale-[1.02] transition-transform">
+                          REGISTRAR NO DNA
+                      </button>
+                  </div>
+              </div>
+              <div class="lg:col-span-2 glass rounded-[32px] overflow-hidden">
+                  <div class="p-6 border-b border-white/5 bg-white/5 font-bold">Base de Pacientes Conectada</div>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-black/40 text-[10px] uppercase font-black text-gray-500">
+                            <tr>
+                                <th class="px-6 py-4">ID</th>
+                                <th class="px-6 py-4">Nome</th>
+                                <th class="px-6 py-4">CPF</th>
+                                <th class="px-6 py-4">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cadTableBody" class="divide-y divide-white/5 text-sm"></tbody>
+                    </table>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+      <!-- FILA / AGENDA MIX -->
+      <section id="view-agenda" class="view-section hidden animate-fade-in">
+          <div class="glass rounded-[32px] overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-black/40 text-[10px] uppercase font-black text-gray-500">
+                    <tr>
+                        <th class="px-6 py-4">Hora</th>
+                        <th class="px-6 py-4">Paciente</th>
+                        <th class="px-6 py-4">Tipo</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="agendaTableBody" class="divide-y divide-white/5 text-sm"></tbody>
+            </table>
+          </div>
+      </section>
+
+      <!-- PEP SECTION (The Clinical Core) -->
+      <section id="view-pep" class="view-section hidden animate-fade-in shadow-2xl">
+          <div class="flex gap-8 h-[75vh]">
+              <!-- PEP Sidebar -->
+              <div class="w-1/3 glass p-6 rounded-[32px] flex flex-col gap-4 overflow-hidden">
+                  <div class="relative">
+                      <select id="pepPatientSelect" onchange="carregarPEP()" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 outline-none focus:border-mint appearance-none">
+                          <option value="">Buscar Paciente...</option>
+                      </select>
+                      <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+                  </div>
+                  <div id="pepTreeContainer" class="hidden flex-1 overflow-y-auto space-y-2 mt-4">
+                      <button onclick="setPepTab('dados')" class="w-full text-left p-3 rounded-xl bg-white/5 hover:bg-mint/10 transition-colors flex items-center gap-3">
+                          <i class="fas fa-id-card text-mint w-5 text-center"></i> Dados Básicos
+                      </button>
+                      <button onclick="setPepTab('timeline')" class="w-full text-left p-3 rounded-xl bg-white/5 hover:bg-mint/10 transition-colors flex items-center gap-3">
+                          <i class="fas fa-history text-mint w-5 text-center"></i> Linha do Tempo
+                      </button>
+                      <button onclick="setPepTab('exames')" class="w-full text-left p-3 rounded-xl bg-white/5 hover:bg-mint/10 transition-colors flex items-center gap-3">
+                          <i class="fas fa-microscope text-mint w-5 text-center"></i> Exames
+                      </button>
+                      <button onclick="setPepTab('receitas')" class="w-full text-left p-3 rounded-xl bg-white/5 hover:bg-mint/10 transition-colors flex items-center gap-3">
+                        <i class="fas fa-pills text-mint w-4 text-center"></i> Receitas
+                    </button>
+                  </div>
+              </div>
+              <!-- PEP Content -->
+              <div class="flex-1 glass p-8 rounded-[32px] overflow-y-auto" id="pepContentArea">
+                  <div class="h-full flex flex-col items-center justify-center text-gray-500 text-center">
+                      <i class="fas fa-folder-open text-6xl mb-4 opacity-10"></i>
+                      <p class="font-bold">Selecione um prontuário ao lado para carregar o histórico clínico.</p>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+      <!-- TELE SECTION -->
+      <section id="view-teleconsulta" class="view-section hidden animate-fade-in">
+          <div id="teleAuthBlock" class="glass rounded-[32px] p-20 text-center animate-pulse">
+              <i class="fas fa-video-slash text-6xl text-gray-700 mb-6"></i>
+              <h3 class="text-xl font-bold text-gray-500">Aguardando seleção de sessão...</h3>
+              <p class="text-sm text-gray-600 mt-2">Inicie uma teleconsulta através da agenda ou monitor de fila.</p>
+          </div>
+
+          <div id="teleActiveBlock" class="hidden grid-cols-1 lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 relative glass rounded-[40px] overflow-hidden aspect-video group">
+                  <div class="absolute inset-0 bg-black flex items-center justify-center">
+                    <div class="text-center">
+                        <div id="lblTeleNome" class="text-2xl font-black text-white mb-2">Paciente</div>
+                        <div class="text-mint text-[10px] font-black uppercase tracking-widest bg-mint/10 px-4 py-1 rounded-full">Sessão Criptografada P2P</div>
+                    </div>
+                  </div>
+                  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 glass-mint p-4 rounded-full">
+                      <button class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"><i class="fas fa-microphone"></i></button>
+                      <button class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"><i class="fas fa-video"></i></button>
+                      <button onclick="finalizarTeleconsulta()" class="w-12 h-12 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white transition-all shadow-lg"><i class="fas fa-phone-slash"></i></button>
+                  </div>
+                  <div class="absolute top-6 right-6 w-48 h-32 glass border border-white/20 rounded-2xl overflow-hidden">
+                      <div class="w-full h-full bg-gray-900 flex items-center justify-center text-gray-600 font-bold italic">Sua Cam</div>
+                  </div>
+              </div>
+              <div class="glass p-8 rounded-[40px] flex flex-col gap-6">
+                  <div class="border-l-4 border-mint pl-4">
+                      <h3 class="font-bold text-white">Prontuário Rápido</h3>
+                      <p class="text-[10px] text-gray-500 uppercase font-black">Evolução de Telediagnóstico</p>
+                  </div>
+                  <textarea id="teleNotas" class="flex-1 bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-mint text-sm leading-relaxed" placeholder="Digite as queixas e observações do paciente em tempo real..."></textarea>
+                  <button onclick="finalizarTeleconsulta()" class="w-full bg-mint text-black font-black py-4 rounded-2xl">FINALIZAR E SALVAR</button>
+              </div>
+          </div>
+      </section>
+
+      <!-- LEADS SECTION -->
+      <section id="view-leads" class="view-section hidden animate-fade-in shadow-2xl">
+          <div class="glass rounded-[32px] overflow-hidden">
+              <div class="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                  <h3 class="font-bold text-white">Captação Inêz & Marketing AI</h3>
+                  <div class="flex gap-2">
+                      <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-[10px] font-black uppercase">Ollama RAG Ativo</span>
+                  </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-black/40 text-[10px] uppercase font-black text-gray-500">
+                        <tr>
+                            <th class="px-6 py-4">Lead / Nome</th>
+                            <th class="px-6 py-4">Contato</th>
+                            <th class="px-6 py-4">Origem</th>
+                            <th class="px-6 py-4">Interesse / Contexto</th>
+                            <th class="px-6 py-4">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsTableBody" class="divide-y divide-white/5 text-sm font-medium"></tbody>
+                </table>
+              </div>
+          </div>
+      </section>
+
+      <!-- DOCS SECTION -->
+      <section id="view-documentos" class="view-section hidden animate-fade-in font-display">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div class="glass p-8 rounded-[32px] space-y-6">
+                  <h3 class="font-bold text-white mb-4">Gerador de Documentos</h3>
+                  <div class="space-y-4">
+                      <div>
+                          <label class="text-[10px] font-black text-gray-500 uppercase">Tipo</label>
+                          <select id="docTipo" onchange="alterarTemplateDoc()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1">
+                            <option value="receituario">Receituário Simples</option>
+                            <option value="declaracao">Declaração de Comparecimento</option>
+                            <option value="atestado">Atestado Médico</option>
+                            <option value="encaminhamento">Encaminhamento Especializado</option>
+                            <option value="solicitacao">Solicitação de Exames</option>
+                          </select>
+                      </div>
+                      <div>
+                        <label class="text-[10px] font-black text-gray-500 uppercase">Paciente</label>
+                        <select id="docPacSelect" onchange="updateDocName()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1"></select>
+                      </div>
+                      <div>
+                        <label class="text-[10px] font-black text-gray-500 uppercase">Nome no Documento</label>
+                        <input type="text" id="docPacNomeManual" oninput="gerarDocumento()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1">
+                      </div>
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <label class="text-[10px] font-black text-gray-500 uppercase">Cidade / Local</label>
+                          <input type="text" id="docLocalManual" value="Lages/SC" oninput="gerarDocumento()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1">
+                        </div>
+                        <div>
+                          <label class="text-[10px] font-black text-gray-500 uppercase">Data</label>
+                          <input type="text" id="docDataManual" oninput="gerarDocumento()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1">
+                        </div>
+                      </div>
+                      <div id="docFieldsBox" oninput="gerarDocumento()"></div>
+                      <div>
+                        <label class="text-[10px] font-black text-gray-500 uppercase">Assinatura</label>
+                        <input type="text" id="docAssinatura" value="Dr. Jarvis - CRM 12345/SC" oninput="gerarDocumento()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1">
+                      </div>
+                      <button onclick="gerarDocumento()" class="w-full bg-mint text-black font-black py-4 rounded-xl">GERAR PRÉ-VISUALIZAÇÃO</button>
+                  </div>
+              </div>
+              <div class="lg:col-span-2 glass rounded-[32px] p-10 min-h-[600px] flex flex-col">
+                  <div class="flex justify-between items-center mb-10">
+                      <div class="text-xs font-black text-gray-500 tracking-[3px] uppercase">Official Medical Record Export</div>
+                      <button onclick="window.print()" class="text-mint hover:text-white transition-colors"><i class="fas fa-print"></i></button>
+                  </div>
+                  <div id="docPreviewNode" class="flex-1 bg-white text-black p-12 rounded shadow-2xl font-serif text-lg leading-relaxed mix-blend-screen opacity-90">
+                      Preencha os dados à esquerda para gerar o documento.
+                  </div>
+              </div>
+          </div>
+      </section>
+      <!-- FINANCEIRO SECTION -->
+      <section id="view-financeiro" class="view-section hidden animate-fade-in">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+              <div class="glass p-6 rounded-[32px] border border-mint/20">
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Receita Bruta (Mês)</span>
+                  <div class="text-3xl font-black text-white mt-1">R$ 14.580,00</div>
+              </div>
+              <div class="glass p-6 rounded-[32px] border border-red-500/10">
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Despesas Operacionais</span>
+                  <div class="text-3xl font-black text-white mt-1">R$ 4.210,00</div>
+              </div>
+              <div class="glass p-6 rounded-[32px] border border-mint/20">
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Projeção Próximo Ciclo</span>
+                  <div class="text-3xl font-black text-mint mt-1">+ R$ 8.900,00</div>
+              </div>
+          </div>
+          <div class="glass rounded-[40px] overflow-hidden">
+              <div class="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                  <h3 class="font-bold text-white">Fluxo de Caixa & Pagamentos</h3>
+                  <button class="bg-mint text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase">Exportar Relatório</button>
+              </div>
+              <div class="p-8 text-center text-gray-600 italic">
+                  <i class="fas fa-lock text-4xl mb-4 opacity-10"></i><br>
+                  Módulo Financeiro JARVIS-001 em modo somente leitura para esta sessão.
+              </div>
+          </div>
+      </section>
+
+      <!-- AI CHAT WIDGET (CECILIA) -->
+      <div class="fixed bottom-8 right-8 z-50">
+          <button id="btnAiOpen" onclick="toggleAi()" class="w-16 h-16 rounded-full bg-mint text-black text-2xl shadow-[0_0_30px_rgba(77,190,148,0.5)] hover:scale-110 transition-transform active:scale-95 flex items-center justify-center">
+              <i class="fas fa-robot"></i>
+          </button>
+          <div id="aiChatWindow" class="hidden absolute bottom-20 right-0 w-[400px] h-[550px] glass border border-white/10 rounded-[32px] flex flex-col shadow-2xl animate-fade-in overflow-hidden">
+              <div class="p-6 bg-mint text-black font-black flex justify-between items-center">
+                <span class="flex items-center gap-2"><i class="fas fa-heartbeat"></i> CECÍLIA AI</span>
+                <button onclick="toggleAi()"><i class="fas fa-times"></i></button>
+              </div>
+              <div id="aiOutput" class="flex-1 overflow-y-auto p-6 space-y-4 text-sm font-medium">
+                  <div class="bg-white/5 p-4 rounded-2xl rounded-tl-none border border-white/5">
+                      Olá, sou a Cecília. Tenho acesso ao DNA clínico da Holozonic. Como posso auxiliar seu turno hoje?
+                  </div>
+              </div>
+              <div class="p-4 border-t border-white/10 flex gap-2">
+                  <input type="text" id="aiInput" placeholder="Pergunte ao DNA..." class="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-3 outline-none focus:border-mint transition-all">
+                  <button onclick="askAi()" class="w-12 h-12 bg-mint rounded-full text-black flex items-center justify-center hover:bg-mint-400 transition-colors">
+                      <i class="fas fa-paper-plane"></i>
+                  </button>
+              </div>
+          </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const API_URL = '/api'; // Standardized relative URL
+    let DB = { currentUser: null, pacientes: [], agenda: [], leads: [], fila: [], activeRecords: [], activeTeleId: null };
+
+    /*******************************************************
+     * AUTH MODULE
+     *******************************************************/
+    async function doLogin() {
+      const user = document.getElementById('loginUser').value;
+      const pass = document.getElementById('loginPass').value;
+      const role = document.getElementById('loginRole').value;
+
+      try {
+          const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user, pass })
+          });
+          const data = await res.json();
+          if(data.success) {
+            DB.currentUser = { ...data.user, role }; // Allow overriding role for development/UI testing if needed
+            sessionStorage.setItem('jarvis_auth', JSON.stringify(DB.currentUser));
+            initApp();
+          } else { 
+            alert('Falha na Matriz de Autenticação: ' + (data.message || 'Credenciais rejeitadas.')); 
+          }
+      } catch (err) {
+          console.error("Auth Fail:", err);
+          alert("Erro crítico de conexão com o Core.");
+      }
+    }
+
+    function initApp() {
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        document.getElementById('app-container').classList.add('grid');
+        
+        const user = DB.currentUser;
+        document.getElementById('lblAvatar').innerText = user.user.charAt(0).toUpperCase();
+        document.getElementById('lblUserName').innerText = 'Dr(a). ' + user.user.toUpperCase();
+        document.getElementById('lblUserRole').innerText = user.role.toUpperCase() + ' // PROTOCOL JARVIS';
+        
+        buildMenuNavigation();
+        startPolling();
+        switchView('view-dashboard');
+    }
+
+    function logout() { 
+        sessionStorage.removeItem('jarvis_auth');
+        location.reload(); 
+    }
+
+    /*******************************************************
+     * NAVIGATION ROUTER
+     *******************************************************/
+    const NAV_MAP = [
+      { id: 'view-dashboard', label: 'Monitoramento', icon: 'fas fa-chart-line', roles: ['admin', 'medico', 'atendente'] },
+      { id: 'view-cadastro', label: 'DNA de Pacientes', icon: 'fas fa-id-card', roles: ['admin', 'atendente'] },
+      { id: 'view-agenda', label: 'Agenda Operacional', icon: 'fas fa-calendar-alt', roles: ['admin', 'medico', 'atendente'] },
+      { id: 'view-teleconsulta', label: 'Telemedicina P2P', icon: 'fas fa-video', roles: ['admin', 'medico'] },
+      { id: 'view-pep', label: 'Prontuários (PEP)', icon: 'fas fa-notes-medical', roles: ['admin', 'medico'] },
+      { id: 'view-leads', label: 'Funil de Leads (Inêz)', icon: 'fas fa-filter', roles: ['admin', 'atendente'] },
+      { id: 'view-documentos', label: 'Emissor Oficial', icon: 'fas fa-file-medical', roles: ['admin', 'medico'] },
+      { id: 'view-financeiro', label: 'Gestão Financeira', icon: 'fas fa-wallet', roles: ['admin'] }
+    ];
+
+    function buildMenuNavigation() {
+      const menu = document.getElementById('navMenu');
+      menu.innerHTML = '';
+      NAV_MAP.forEach(nav => {
+        if(nav.roles.includes(DB.currentUser.role)) {
+          const btn = document.createElement('button');
+          btn.className = 'nav-button w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-bold text-gray-400 hover:text-white transition-all group';
+          btn.id = `nav-${nav.id}`;
+          btn.innerHTML = `<i class="${nav.icon} text-lg group-hover:text-mint transition-colors"></i> <span>${nav.label}</span>`;
+          btn.onclick = () => switchView(nav.id);
+          menu.appendChild(btn);
+        }
+      });
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('sidebar-active', 'text-white'));
+      const activeBtn = document.getElementById(`nav-${viewId}`);
+      if(activeBtn) activeBtn.classList.add('sidebar-active', 'text-white');
+
+      document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+      document.getElementById(viewId).classList.remove('hidden');
+
+      const currentNav = NAV_MAP.find(n => n.id === viewId);
+      document.getElementById('page-title').innerText = currentNav.label;
+      
+      if(viewId === 'view-pep' || viewId === 'view-documentos') populateDropdowns();
+      refreshUI();
+    }
+
+    /*******************************************************
+     * DATA SYNC
+     *******************************************************/
+    function startPolling() {
+      fetchCoreData();
+      setInterval(fetchCoreData, 10000);
+    }
+
+    async function fetchCoreData() {
+      try {
+        const [pRes, aRes, lRes] = await Promise.all([
+          fetch(`${API_URL}/patients`),
+          fetch(`${API_URL}/agenda`),
+          fetch(`${API_URL}/leads`)
+        ]);
+        DB.pacientes = await pRes.json();
+        const agendaRaw = await aRes.json();
+        DB.leads = await lRes.json();
+        
+        DB.agenda = agendaRaw.filter(a => a.status !== 'FINALIZADO');
+        DB.fila = agendaRaw.filter(a => a.status === 'AGUARDANDO' || a.status === 'EM_ATENDIMENTO');
+        
+        refreshUI();
+      } catch (e) {
+        console.error("Sync Error:", e);
+      }
+    }
+
+    function refreshUI() {
+      if(!DB.currentUser) return;
+
+      // KPI Update
+      document.getElementById('dashKpiBase').innerText = DB.pacientes.length;
+      document.getElementById('dashKpiConsulta').innerText = DB.agenda.filter(a=>a.type.includes('PRE') || a.type.includes('CONS')).length;
+      document.getElementById('dashKpiTele').innerText = DB.agenda.filter(a=>a.type.includes('TELE')).length;
+      
+      // Table Dash
+      const fDash = document.getElementById('dashFilaTable');
+      fDash.innerHTML = DB.fila.length ? DB.fila.map(f => `
+        <tr class="hover:bg-white/5 transition-colors">
+            <td class="px-6 py-4 font-bold text-white">${f.patient.name}</td>
+            <td class="px-6 py-4 text-gray-400 capitalize">${f.type.toLowerCase()}</td>
+            <td class="px-6 py-4">
+                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${f.status==='AGUARDANDO'?'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20':'bg-mint/10 text-mint border border-mint/20'}">
+                    ${f.status}
+                </span>
+            </td>
+            <td class="px-6 py-4 font-mono text-gray-500">${f.dateTime.split(' ')[1]||f.dateTime}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="4" class="p-10 text-center text-gray-600 italic">Fila limpa — Protocolo JARVIS em repouso.</td></tr>';
+
+      // Agenda
+      const aBody = document.getElementById('agendaTableBody');
+      if(aBody) {
+          aBody.innerHTML = DB.agenda.map(a => `
+              <tr class="hover:bg-white/5 transition-colors">
+                  <td class="px-6 py-4 text-gray-400 font-mono">${a.dateTime}</td>
+                  <td class="px-6 py-4 text-white font-bold">${a.patient.name}</td>
+                  <td class="px-6 py-4 text-gray-400 font-medium text-xs capitalize">${a.type.toLowerCase()}</td>
+                  <td class="px-6 py-4">
+                      <span class="text-[10px] font-black uppercase px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/10 rounded">${a.status}</span>
+                  </td>
+                  <td class="px-6 py-4 flex gap-2">
+                      ${a.status === 'AGUARDANDO' ? 
+                        `<button onclick="atenderPaciente(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-xs font-bold hover:scale-105 transition-all">ATENDER AGORA</button>` :
+                        `<button onclick="fazerCheckin(${a.id})" class="bg-white/5 text-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/10 transition-all">CHECK-IN</button>`
+                      }
+                  </td>
+              </tr>
+          `).join('');
+      }
+
+      // Patient Table
+      const cBody = document.getElementById('cadTableBody');
+      if(cBody) {
+          cBody.innerHTML = DB.pacientes.map(p => `
+              <tr class="hover:bg-white/5 transition-colors">
+                  <td class="px-6 py-4 text-gray-500">#${p.id}</td>
+                  <td class="px-6 py-4 text-white font-bold">${p.name}</td>
+                  <td class="px-6 py-4 text-gray-400">${p.cpf}</td>
+                  <td class="px-6 py-4">
+                      <button onclick="abrirPEP(${p.id})" class="text-mint text-xs font-black uppercase hover:underline">Ver Prontuário</button>
+                  </td>
+              </tr>
+          `).join('');
+      }
+
+      // Leads Table
+      const lBody = document.getElementById('leadsTableBody');
+      if(lBody) {
+          lBody.innerHTML = DB.leads.map(l => {
+              const data = l.data ? JSON.parse(l.data) : {};
+              const context = data.interested_in || data.note || 'Negociação Geral';
+              return `
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white">${l.name || 'Anônimo'}</td>
+                    <td class="px-6 py-4 text-gray-400 font-mono text-xs">${l.phone || l.email}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 bg-white/5 rounded text-[10px] uppercase font-black">${l.source}</span></td>
+                    <td class="px-6 py-4 text-gray-400 italic font-medium">${context}</td>
+                    <td class="px-6 py-4">
+                        <button onclick="converterLead(${l.id})" class="text-mint text-[10px] font-black uppercase border border-mint/30 px-3 py-1 rounded-lg hover:bg-mint hover:text-black transition-all">Converter em Paciente</button>
+                    </td>
+                </tr>
+              `;
+          }).join('');
+      }
+    }
+
+    function populateDropdowns() {
+      const selects = [document.getElementById('pepPatientSelect'), document.getElementById('docPacSelect')];
+      selects.forEach(sel => {
+        if(!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '<option value="">-- Selecionar Paciente no Fluxo --</option>' + DB.pacientes.map(p => `<option value="${p.id}" class="bg-dark">${p.name} (ID: ${p.id})</option>`).join('');
+        sel.value = current;
+      });
+    }
+
+    /*******************************************************
+     * CLINICAL ACTIONS
+     *******************************************************/
+    async function cadastrarPaciente() {
+      const name = document.getElementById('cadNome').value;
+      const cpf = document.getElementById('cadCpf').value;
+      const birthDate = document.getElementById('cadNasc').value;
+      const plan = document.getElementById('cadPlano').value;
+      
+      if(!name || !cpf) return alert("Parâmetros insuficientes para o DNA.");
+      
+      const res = await fetch(`${API_URL}/patients`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, cpf, birthDate, plan })
+      });
+      if(res.ok) {
+        alert("Paciente integrado ao ecossistema.");
+        document.getElementById('cadNome').value = ''; 
+        document.getElementById('cadCpf').value = '';
+        fetchCoreData();
+      }
+    }
+
+    async function fazerCheckin(id) {
+        showToast("JARVIS: Iniciando Check-in de Paciente...");
+        await fetch(`${API_URL}/agenda/${id}`, { 
+            method: 'PATCH', 
+            headers: {'Content-Type':'application/json'}, 
+            body: JSON.stringify({status:'AGUARDANDO'})
+        });
+        fetchCoreData();
+        showToast("Confirmado: Paciente movido para a Fila de Atendimento.", "success");
+    }
+
+    async function atenderPaciente(id) {
+      const f = DB.agenda.find(x => x.id === id);
+      if(f) {
+        // Persistir no backend
+        try {
+          await fetch(`${API_URL}/agenda/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'EM_ATENDIMENTO' })
+          });
+          f.status = 'EM_ATENDIMENTO';
+          showToast(`Iniciando atendimento de ${f.patient.name}`);
+        } catch(e) { console.error(e); }
+        
+        if(f.type.includes('TELE')) {
+          abrirTeleRoom(id);
+        } else {
+          switchView('view-pep');
+          selectPatient(f.patient.id);
+        }
+        await fetchCoreData();
+      }
+    }
+
+    async function converterLead(leadId) {
+        if(!confirm("JARVIS-001: Deseja converter este Lead em Paciente Oficial no DNA?")) return;
+        const res = await fetch(`${API_URL}/leads/convert`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ leadId })
+        });
+        if(res.ok) {
+            alert("Lead convertido com sucesso.");
+            fetchCoreData();
+        }
+    }
+
+    function abrirPEP(patientId) {
+        switchView('view-pep');
+        document.getElementById('pepPatientSelect').value = patientId;
+        carregarPEP();
+    }
+
+    async function abrirTeleRoom(id) {
+      const f = DB.agenda.find(x => x.id === id);
+      if(f) {
+        DB.activeTeleId = id;
+        document.getElementById('teleAuthBlock').classList.add('hidden');
+        document.getElementById('teleActiveBlock').classList.remove('hidden');
+        document.getElementById('teleActiveBlock').classList.add('grid');
+        document.getElementById('lblTeleNome').innerText = f.patient.name;
+        
+        // Meet Integration Logic
+        const meetArea = document.querySelector('#teleActiveBlock .bg-black');
+        if(f.meetLink) {
+            meetArea.innerHTML = `
+                <div class="text-center p-10">
+                    <div class="w-24 h-24 bg-mint/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-video text-4xl text-mint animate-pulse"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-white mb-2">Google Meet Pronto</h3>
+                    <p class="text-gray-400 mb-8 max-w-md mx-auto">A sala de telemedicina segura JARVIS-001 foi gerada via Google Sync para estabilidade total.</p>
+                    <a href="${f.meetLink}" target="_blank" class="inline-flex items-center gap-3 bg-mint text-black px-10 py-5 rounded-2xl font-black hover:scale-105 transition-all shadow-[0_0_50px_rgba(77,190,148,0.3)]">
+                        <i class="fas fa-external-link-alt"></i> ENTRAR NA CHAMADA AGORA
+                    </a>
+                    <div class="mt-8 text-[10px] text-gray-500 uppercase font-black tracking-widest">Protocolo Médico Protegido E2E</div>
+                </div>
+            `;
+        } else {
+            meetArea.innerHTML = `
+                <div class="text-center p-10">
+                    <i class="fas fa-video-slash text-4xl text-gray-700 mb-4"></i>
+                    <p class="text-gray-500 font-bold mb-6">Link do Google Meet não encontrado para esta sessão.</p>
+                    <button onclick="gerarMeetAgora(${id})" class="bg-white/10 text-white px-6 py-3 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10">
+                        <i class="fas fa-sync mr-2"></i> GERAR LINK VIA GOOGLE CALENDAR
+                    </button>
+                </div>
+            `;
+        }
+        
+        switchView('view-teleconsulta');
+      }
+    }
+    window.gerarMeetAgora = async function(id) {
+        showToast("JARVIS: Solicitando matriz de conferência ao Google...");
+        try {
+            const res = await fetch(`${API_URL}/agenda/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ status: 'EM_ATENDIMENTO' }) // Trigger sync
+            });
+            if(res.ok) {
+                setTimeout(async () => {
+                    await fetchCoreData();
+                    abrirTeleRoom(id);
+                    showToast("Google Meet gerado com sucesso.", "success");
+                }, 2000);
+            }
+        } catch(e) { console.error(e); }
+    }
+    async function finalizarTeleconsulta() {
+        if(!DB.activeTeleId) return;
+        const notas = document.getElementById('teleNotas').value;
+        const appt = DB.agenda.find(a => a.id === DB.activeTeleId);
+        
+        showToast("Encerrando sessão P2P...");
+        
+        if(notas && appt) {
+            await fetch(`${API_URL}/records`, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ 
+                    patientId: appt.patientId, 
+                    type: 'Evolução Teleconsulta', 
+                    description: notas 
+                })
+            });
+        }
+
+        await fetch(`${API_URL}/agenda/${DB.activeTeleId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ status: 'FINALIZADO' })
+        });
+
+        document.getElementById('teleAuthBlock').classList.remove('hidden');
+        document.getElementById('teleActiveBlock').classList.add('hidden');
+        document.getElementById('teleNotas').value = '';
+        DB.activeTeleId = null;
+        
+        switchView('view-dashboard');
+        fetchCoreData();
+        showToast("Atendimento finalizado com sucesso.", "success");
+    }
+
+    async function carregarPEP() {
+      const patId = document.getElementById('pepPatientSelect').value;
+      if(!patId) return;
+      const res = await fetch(`${API_URL}/records/${patId}`);
+      DB.activeRecords = await res.json();
+      document.getElementById('pepTreeContainer').classList.remove('hidden');
+      setPepTab('dados');
+    }
+
+    function setPepTab(tab) {
+      const patId = document.getElementById('pepPatientSelect').value;
+      const pat = DB.pacientes.find(p => p.id == patId);
+      if(!pat) return;
+      
+      const area = document.getElementById('pepContentArea');
+      let html = '';
+      
+      if(tab === 'dados') {
+        html = `
+            <div class="animate-fade-in">
+                <h2 class="text-2xl font-black text-white mb-8 border-l-4 border-mint pl-4">Identidade Clínica</h2>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="glass p-4 rounded-2xl"><label class="text-[10px] uppercase font-black text-gray-500">Nome</label><div class="text-white font-bold">${pat.name}</div></div>
+                    <div class="glass p-4 rounded-2xl"><label class="text-[10px] uppercase font-black text-gray-500">CPF</label><div class="text-white font-bold">${pat.cpf}</div></div>
+                    <div class="glass p-4 rounded-2xl"><label class="text-[10px] uppercase font-black text-gray-500">Nascimento</label><div class="text-white font-bold">${pat.birthDate||'--'}</div></div>
+                    <div class="glass p-4 rounded-2xl"><label class="text-[10px] uppercase font-black text-gray-500">Plano</label><div class="text-white font-bold">${pat.plan||'--'}</div></div>
+                </div>
+            </div>`;
+      } else if(tab === 'timeline' || tab === 'exames' || tab === 'receitas') {
+        const filteredRecords = tab === 'timeline' ? DB.activeRecords : DB.activeRecords.filter(r => r.type.toLowerCase().includes(tab.slice(0, -1)));
+        const title = tab === 'timeline' ? 'Linha do Tempo' : (tab === 'exames' ? 'Exames & Laudos' : 'Receitas Emitidas');
+        
+        html = `
+            <div class="animate-fade-in">
+                <h2 class="text-2xl font-black text-white mb-8 border-l-4 border-mint pl-4">${title}</h2>
+                <div class="space-y-6 relative before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-white/10">
+                  ${filteredRecords.map(r => `
+                    <div class="relative pl-12">
+                        <div class="absolute left-[13px] top-2 w-2 h-2 rounded-full bg-mint shadow-[0_0_10px_#4DBE94]"></div>
+                        <div class="text-[10px] font-black text-gray-500 uppercase mb-1">${r.date || 'DATA N/D'} — ${r.type}</div>
+                        <div class="glass p-5 rounded-2xl border border-white/5">
+                            <p class="text-gray-300 leading-relaxed">${r.description}</p>
+                        </div>
+                    </div>
+                  `).join('') || '<div class="text-center p-10 text-gray-600">Nenhum registro específico nesta categoria.</div>'}
+                </div>
+                ${tab === 'timeline' ? `
+                <div class="mt-10 p-6 glass rounded-[32px] border border-mint/10">
+                  <textarea id="novaEvo" class="w-full bg-transparent border-none outline-none text-white resize-none" rows="3" placeholder="Escrever nova evolução clínica..."></textarea>
+                  <div class="mt-4 flex justify-end">
+                      <button onclick="salvarEvolucao()" class="bg-mint text-black font-black px-6 py-2 rounded-full hover:scale-105 transition-transform">REGISTRAR EVOLUÇÃO</button>
+                  </div>
+                </div>` : ''}
+            </div>`;
+      }
+      area.innerHTML = html;
+    }
+
+    async function salvarEvolucao() {
+      const description = document.getElementById('novaEvo').value;
+      const patientId = parseInt(document.getElementById('pepPatientSelect').value);
+      if(!description || !patientId) return;
+      
+      showToast("JARVIS: Persistindo evolução no DNA clínico...");
+      await fetch(`${API_URL}/records`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ patientId, type: 'Evolução Clínica', description })
+      });
+      carregarPEP();
+      showToast("Registro efetuado com sucesso.", "success");
+    }
+
+    /*******************************************************
+     * AI WIDGET (CECILIA)
+     *******************************************************/
+    function toggleAi() {
+        const win = document.getElementById('aiChatWindow');
+        win.classList.toggle('hidden');
+        if(!win.classList.contains('hidden')) {
+            document.getElementById('aiInput').focus();
+        }
+    }
+
+    async function askAi() {
+        const input = document.getElementById('aiInput');
+        const output = document.getElementById('aiOutput');
+        const prompt = input.value;
+        if(!prompt) return;
+
+        // Context Awareness Injection
+        const activePatId = document.getElementById('pepPatientSelect')?.value;
+        const activePat = activePatId ? DB.pacientes.find(p => p.id == activePatId) : null;
+        let context = "Dashboard Holozonic";
+        if(activePat) {
+            context += ` | Paciente selecionado: ${activePat.name} (CPF: ${activePat.cpf}, Plano: ${activePat.plan}). Registros recentes: ${DB.activeRecords.slice(0,3).map(r => r.description).join('; ')}`;
+        }
+
+        input.value = '';
+        output.innerHTML += `<div class="bg-mint/10 p-4 rounded-2xl rounded-tr-none border border-mint/20 text-mint text-right ml-10">...${prompt}</div>`;
+        output.scrollTop = output.scrollHeight;
+
+        try {
+            const res = await fetch(`${API_URL}/ai/ask`, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ prompt, context })
+            });
+            const data = await res.json();
+            output.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl rounded-tl-none border border-white/5 animate-fade-in">${data.response}</div>`;
+            output.scrollTop = output.scrollHeight;
+        } catch (e) {
+            output.innerHTML += `<div class="bg-red-500/10 p-4 rounded-2xl text-red-400 border border-red-500/20">Erro na sinapse: ${e.message}</div>`;
+        }
+    }
+
+    function showToast(msg, type="info") {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-32 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full glass border ${type==='success'?'border-mint/50 text-mint':'border-white/20 text-white'} text-xs font-black uppercase tracking-widest z-[9999] shadow-2xl animate-fade-in`;
+        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-info-circle'} mr-2"></i> ${msg}`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+
+    /*******************************************************
+     * DOCS GEN
+     *******************************************************/
+     window.alterarTemplateDoc = function() {
+      const tipo = document.getElementById('docTipo').value;
+      const box = document.getElementById('docFieldsBox');
+      if(tipo==='receituario') box.innerHTML = `<div><label class="text-[10px] font-black text-gray-500 uppercase">Prescrição</label><textarea id="docD1" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1 h-32"></textarea></div>`;
+      else if(tipo==='atestado') box.innerHTML = `<div><label class="text-[10px] font-black text-gray-500 uppercase">Dias de Afastamento</label><input type="number" id="docD1" value="1" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1"></div>`;
+      else if(tipo==='encaminhamento') box.innerHTML = `<div><label class="text-[10px] font-black text-gray-500 uppercase">Especialidade / Motivo</label><input type="text" id="docD1" placeholder="Ex: Cardiologia" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1"></div>`;
+      else if(tipo==='solicitacao') box.innerHTML = `<div><label class="text-[10px] font-black text-gray-500 uppercase">Exames Solicitados</label><textarea id="docD1" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1 h-32"></textarea></div>`;
+      else box.innerHTML = `<div><label class="text-[10px] font-black text-gray-500 uppercase">Motivo / CID</label><input type="text" id="docD1" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1"></div>`;
+      
+      gerarDocumento();
+    }
+
+    window.updateDocName = function() {
+      const patId = document.getElementById('docPacSelect').value;
+      const pat = DB.pacientes.find(p => p.id == patId);
+      if(pat) {
+        document.getElementById('docPacNomeManual').value = pat.name;
+        document.getElementById('docDataManual').value = new Date().toLocaleDateString('pt-BR');
+      }
+      gerarDocumento();
+    }
+
+    window.gerarDocumento = function() {
+      const patId = document.getElementById('docPacSelect').value;
+      const pat = DB.pacientes.find(p => p.id == patId);
+      
+      const nomeDoc = document.getElementById('docPacNomeManual').value || (pat ? pat.name : 'Paciente');
+      const localDoc = document.getElementById('docLocalManual').value || 'Lages/SC';
+      const dataDoc = document.getElementById('docDataManual').value || new Date().toLocaleDateString('pt-BR');
+      const tipo = document.getElementById('docTipo').value;
+      const node = document.getElementById('docPreviewNode');
+      let body = document.getElementById('docD1') ? document.getElementById('docD1').value : '---';
+      const assinatura = document.getElementById('docAssinatura').value;
+
+      let content = '';
+      if(tipo==='atestado') content = `Atesto para os devidos fins que o(a) paciente <b>${nomeDoc}</b>${pat ? `, portador(a) do CPF ${pat.cpf},` : ''} necessita de repouso por um período de ${body} dia(s) a partir desta data.`;
+      else if (tipo === 'receituario') content = `<div class="whitespace-pre-wrap">${body}</div>`;
+      else if (tipo === 'encaminhamento') content = `Encaminho o(a) paciente <b>${nomeDoc}</b> para avaliação com especialista em <b>${body}</b>, devido a quadro clínico sob investigação.`;
+      else if (tipo === 'solicitacao') content = `Solicito para o(a) paciente <b>${nomeDoc}</b> a realização dos seguintes exames para auxílio diagnóstico:<br><br><div class="whitespace-pre-wrap">${body}</div>`;
+      else content = `Declaro que o(a) paciente <b>${nomeDoc}</b> compareceu a esta unidade de saúde para atendimento clínico nesta data e horário.`;
+
+      node.classList.remove('mix-blend-screen', 'opacity-90');
+      node.innerHTML = `
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold uppercase tracking-tighter">Holozonic Clinical Care</h1>
+            <p class="text-sm font-serif italic text-gray-600">Excelência em Longevidade & Terapias Bioenergéticas</p>
+            <div class="w-20 h-1 bg-black mx-auto mt-4"></div>
+        </div>
+        <div class="mb-10 text-right">${localDoc}, ${dataDoc}</div>
+        <div class="text-center font-bold text-2xl uppercase underline mb-10">${tipo}</div>
+        <div class="mb-20">
+            ${content}
+        </div>
+        <div class="mt-auto border-t border-black pt-4 text-center">
+            <b>${assinatura}</b><br>
+            <span class="text-sm">Assinado Digitalmente — Sistema JARVIS-001</span>
+        </div>
+      `;
+    }
+
+    // Auto-login if session exists
+    const savedAuth = sessionStorage.getItem('jarvis_auth');
+    if(savedAuth) {
+        DB.currentUser = JSON.parse(savedAuth);
+        initApp();
+    }
+
+    setTimeout(alterarTemplateDoc, 500);
+  </script>
+</body>
+</html>

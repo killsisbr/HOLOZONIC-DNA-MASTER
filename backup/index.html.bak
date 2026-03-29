@@ -1,0 +1,4692 @@
+
+<!doctype html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Holozonic — Clínica Integrada</title>
+  <meta name="description" content="Tecnologia inteligente, Medicina Chinesa e terapias bioenergéticas para transformar sua saúde." />
+  <meta name="theme-color" content="#000000" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui"],
+            display: ["Plus Jakarta Sans", "Inter", "ui-sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+   :root{
+  --mint1:#7DE6BE;
+  --mint2:#4DBE94;
+  --mint3:#31A77F;
+  --dark:#000000;
+  --ink:#0f172a;
+  --muted:#475569;
+  --sono:#3b82f6;
+  --sono-hover:#2563eb;
+  --hospedagem:#dc2626;
+  --hospedagem-hover:#b91c1c;
+  --duvida:#8b5cf6;
+  --duvida-hover:#7c3aed;
+}
+
+    body{ background:#fff; color:var(--ink); overflow-x:hidden; }
+
+    /* HEADER */
+    .topnav{ background: var(--dark); border-bottom: 1px solid rgba(255,255,255,.08); }
+
+    .nav-link{
+      color: rgba(255,255,255,.85);
+      font-weight: 800;
+      font-size: 14px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      transition: .2s;
+      white-space: nowrap;
+    }
+    .nav-link:hover{ color:#fff; background: rgba(255,255,255,.08); }
+
+    .btn-header-green{
+      background: linear-gradient(135deg, var(--mint2), var(--mint3));
+      color:#fff;
+      font-weight:900;
+      border-radius:999px;
+      padding: 10px 16px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: 0 18px 40px rgba(49,167,127,.22);
+      transition: transform .18s ease, filter .18s ease;
+      white-space:nowrap;
+    }
+    .btn-header-green:hover{ transform: translateY(-1px); filter: brightness(1.02); }
+
+    /* Botão azul do sono no header */
+    .btn-sono-header{
+      background: var(--sono);
+      color:#fff;
+      font-weight:900;
+      border-radius:999px;
+      padding: 10px 20px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: 0 18px 40px rgba(59,130,246,0.25);
+      transition: transform .18s ease, filter .18s ease, background .18s ease;
+      white-space:nowrap;
+      border: 2px solid #fff;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-sono-header:hover{ 
+      transform: translateY(-2px); 
+      filter: brightness(1.1);
+      background: var(--sono-hover);
+    }
+
+    /* Botões flutuantes laterais esquerdos com texto */
+    .floating-buttons {
+      position: fixed;
+      left: 20px;
+      bottom: 20px;
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .floating-btn {
+      padding: 12px 20px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      font-weight: 800;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid white;
+      min-width: 200px;
+    }
+
+    .floating-btn i {
+      font-size: 20px;
+    }
+
+    .floating-btn:hover {
+      transform: translateX(5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .btn-hospedagem-float {
+      background: var(--hospedagem);
+    }
+
+    .btn-sono-float {
+      background: var(--sono);
+    }
+
+    .btn-duvida-float {
+      background: #8b5cf6;
+    }
+
+    .mobile-panel{ background:#000; border-top: 1px solid rgba(255,255,255,.10); }
+    .mobile-link{
+      color: rgba(255,255,255,.92);
+      padding: 12px 12px;
+      border-radius: 14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      transition: .2s;
+      font-weight: 900;
+    }
+    .mobile-link:hover{ background: rgba(255,255,255,.06); }
+
+    /* HERO */
+    .hero{ background:#fff; position:relative; }
+    .hero-title{ font-weight:900; letter-spacing:-0.02em; }
+    .hero-highlight{
+      color: var(--mint3);
+      text-decoration: underline;
+      text-decoration-thickness: 6px;
+      text-underline-offset: 6px;
+    }
+    .btn-primary{
+      background: linear-gradient(135deg, var(--mint2), var(--mint3));
+      color:#fff;
+      font-weight:900;
+      border-radius:999px;
+      padding: 14px 18px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: 0 18px 40px rgba(2,6,23,.10);
+      transition: transform .18s ease, filter .18s ease;
+      white-space:nowrap;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.02); }
+
+    .btn-secondary{
+      background:#fff;
+      border: 2px solid rgba(2,6,23,.10);
+      color:#0f172a;
+      font-weight:900;
+      border-radius:999px;
+      padding: 14px 18px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      transition:.18s;
+      white-space:nowrap;
+      cursor: pointer;
+    }
+    .btn-secondary:hover{ background: rgba(2,6,23,.03); }
+
+    /* Banner image */
+    .banner-image {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 32px;
+      box-shadow: 0 30px 60px rgba(2,6,23,.25);
+      transform: rotate(2deg);
+      transition: transform 0.3s ease;
+    }
+    .banner-image:hover {
+      transform: rotate(0deg) scale(1.02);
+    }
+
+    /* SEÇÕES */
+    section{ scroll-margin-top: 120px; }
+
+    .mint-section{
+      background: linear-gradient(135deg, var(--mint1), var(--mint2));
+      color:#fff;
+    }
+    .mint-title{ font-weight:900; letter-spacing:-0.02em; }
+    .mint-title b{ color:#0b2b22; }
+    .mint-card{
+      background: rgba(255,255,255,.76);
+      border: 2px solid rgba(255,255,255,.35);
+      border-radius: 22px;
+      padding: 22px;
+      color:#0f172a;
+      box-shadow: 0 18px 40px rgba(2,6,23,.12);
+      transition: transform .18s ease, box-shadow .18s ease;
+      min-height: 230px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      gap: 12px;
+    }
+    .mint-card:hover{ transform: translateY(-4px); box-shadow: 0 28px 60px rgba(2,6,23,.16); }
+    .mint-ico{
+      width: 72px; height: 72px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.55);
+      border: 2px solid rgba(15,23,42,.08);
+      display:grid; place-items:center;
+      font-size: 34px; color:#0f172a;
+    }
+    .mint-card h4{ font-weight: 900; font-size: 16px; line-height: 1.2; }
+
+    .card{
+      background:#fff;
+      border:1px solid #eef2f7;
+      border-radius: 24px;
+      box-shadow: 0 12px 34px -18px rgba(2,6,23,.25);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .card:hover{
+      transform: translateY(-4px);
+      box-shadow: 0 22px 54px -26px rgba(2,6,23,.35);
+      border-color: rgba(49,167,127,.28);
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color:#0f172a;
+    }
+    .pill i{ color: var(--mint3); }
+
+    .list-check li{
+      display:flex; gap:10px; align-items:flex-start;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .list-check i{ margin-top: 3px; color: var(--mint3); }
+
+    /* WhatsApp flutuante original */
+    .wpp-container {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .chat-notification {
+      background: #fff;
+      border: 2px solid var(--mint2);
+      padding: 12px 16px;
+      border-radius: 20px 20px 0 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transform-origin: bottom right;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      animation-delay: 2s;
+      opacity: 0;
+      transform: scale(0);
+    }
+
+    .chat-notification p {
+      margin: 0;
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .chat-notification .close-notif {
+      color: #94a3b8;
+      font-size: 12px;
+      transition: 0.2s;
+    }
+    .chat-notification .close-notif:hover {
+      color: var(--ink);
+    }
+
+    @keyframes popIn {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .wpp-float{
+      width: 54px;
+      height: 54px;
+      border-radius: 999px;
+      background:#25D366;
+      display:grid;
+      place-items:center;
+      box-shadow: 0 18px 40px rgba(37,211,102,.3);
+      border: 2px solid #fff;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .wpp-float:hover {
+      transform: scale(1.1);
+    }
+
+    /* MODAL STYLES */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+   .modal-content{
+  background:#fff;
+  border-radius:32px;
+  max-width:700px;
+  width:90%;
+  max-height:90vh;
+  overflow-y:auto;
+  padding:1.5rem;
+  position:relative;
+  transform:scale(.9);
+  transition:transform .3s ease;
+  box-shadow:0 25px 50px -12px rgba(0,0,0,.25);
+}
+
+    .modal-overlay.active .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #64748b;
+      transition: color 0.2s;
+      z-index: 10;
+    }
+
+    .modal-close:hover {
+      color: #0f172a;
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header i.header-icon {
+      font-size: 3rem;
+      color: var(--mint3);
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .modal-header h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .attendant-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.5rem;
+      border-radius: 999px;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .attendant-badge.sono {
+      background: var(--sono);
+      color: white;
+    }
+
+    .attendant-badge.hospedagem {
+      background: var(--hospedagem);
+      color: white;
+    }
+
+    .attendant-badge.duvida {
+      background: #8b5cf6;
+      color: white;
+    }
+
+    .attendant-badge i {
+      font-size: 1.2rem;
+      color: white;
+      margin: 0;
+    }
+
+    .attendant-message {
+      background: #f8fafc;
+      border-radius: 24px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      border: 1px solid #e2e8f0;
+    }
+
+   .attendant-message p {
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+    .attendant-avatar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .attendant-avatar img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .attendant-avatar.sono img {
+      border: 2px solid var(--sono);
+    }
+
+    .attendant-avatar.hospedagem img {
+      border: 2px solid var(--hospedagem);
+    }
+
+    .attendant-avatar.duvida img {
+      border: 2px solid #8b5cf6;
+    }
+
+    .attendant-avatar span {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    /* Estilos Chat IA */
+    .ai-chat-bubble {
+      background: #f1f5f9;
+      border-radius: 0 16px 16px 16px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .ai-chat-bubble.sono {
+      border-left: 4px solid var(--sono);
+    }
+
+    .ai-chat-bubble.hospedagem {
+      border-left: 4px solid var(--hospedagem);
+    }
+
+    .ai-chat-bubble.duvida {
+      border-left: 4px solid #8b5cf6;
+    }
+    
+    .user-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    
+    .user-input-group input, 
+    .user-input-group textarea, 
+    .user-input-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: 0.2s;
+      outline: none;
+    }
+    
+    .user-input-group input:focus, 
+    .user-input-group textarea:focus, 
+    .user-input-group select:focus {
+      border-color: var(--mint3);
+      box-shadow: 0 0 0 4px rgba(49,167,127,0.1);
+    }
+    
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .step-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      transition: 0.3s;
+    }
+    
+    .step-dot.active.sono {
+      background: var(--sono);
+      transform: scale(1.2);
+    }
+
+    .step-dot.active.hospedagem {
+      background: var(--hospedagem);
+      transform: scale(1.2);
+    }
+
+    .step-dot.active.duvida {
+      background: #8b5cf6;
+      transform: scale(1.2);
+    }
+
+    .quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .quick-reply-btn {
+      background: white;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.85rem;
+      flex: 1 1 auto;
+      border: 2px solid;
+      text-align: left;
+    }
+
+    .quick-reply-btn.sono {
+      border-color: var(--sono);
+      color: var(--sono);
+    }
+
+    .quick-reply-btn.sono:hover {
+      background: var(--sono);
+      color: white;
+    }
+
+    .quick-reply-btn.hospedagem {
+      border-color: var(--hospedagem);
+      color: var(--hospedagem);
+    }
+
+    .quick-reply-btn.hospedagem:hover {
+      background: var(--hospedagem);
+      color: white;
+    }
+
+    .quick-reply-btn.duvida {
+      border-color: #8b5cf6;
+      color: #8b5cf6;
+    }
+
+    .quick-reply-btn.duvida:hover {
+      background: #8b5cf6;
+      color: white;
+    }
+
+    .modal-btn {
+      color: white;
+      font-weight: 800;
+      padding: 1rem;
+      border: none;
+      border-radius: 999px;
+      width: 100%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: transform 0.2s;
+    }
+
+    .modal-btn.sono {
+      background: var(--sono);
+    }
+
+    .modal-btn.sono:hover {
+      transform: translateY(-2px);
+      background: var(--sono-hover);
+    }
+
+    .modal-btn.hospedagem {
+      background: var(--hospedagem);
+    }
+
+    .modal-btn.hospedagem:hover {
+      transform: translateY(-2px);
+      background: var(--hospedagem-hover);
+    }
+
+    .modal-btn.duvida {
+      background: #8b5cf6;
+    }
+
+    .modal-btn.duvida:hover {
+      transform: translateY(-2px);
+      background: #7c3aed;
+    }
+
+    .modal-btn.secondary {
+      background: #64748b;
+    }
+    .modal-btn.secondary:hover {
+      background: #475569;
+    }
+
+    .contact-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .contact-option {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .contact-option:hover {
+      border-color: var(--mint2);
+      background: white;
+    }
+
+    .contact-option i {
+      font-size: 1.5rem;
+      color: var(--mint3);
+      margin-bottom: 0.5rem;
+    }
+
+    .contact-option span {
+      font-weight: 700;
+      color: #0f172a;
+      display: block;
+    }
+
+    .contact-option small {
+      color: #64748b;
+      font-size: 0.8rem;
+    }
+
+    /* Checkbox group styles */
+    .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .checkbox-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+
+    .checkbox-item.sono input[type="checkbox"] {
+      accent-color: var(--sono);
+    }
+
+    .checkbox-item.hospedagem input[type="checkbox"] {
+      accent-color: var(--hospedagem);
+    }
+
+    /* Footer */
+    footer .max-w-7xl {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    footer .flex {
+      justify-content: center;
+    }
+
+    /* Dúvidas modal */
+    .duvida-category {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+
+    .duvida-category:hover {
+      border-color: #8b5cf6;
+      background: white;
+      transform: translateY(-2px);
+    }
+
+    .duvida-category h4 {
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+
+    .duvida-category p {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    
+    .hero-pill{
+  display:inline-flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+}
+
+.cta-pulse{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg, #ff1f1f, #dc2626, #b91c1c);
+  color:#fff;
+  font-weight:900;
+  padding:10px 18px;
+  border-radius:999px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  box-shadow:0 0 0 rgba(255,30,30,.65), 0 12px 30px rgba(220,38,38,.35);
+  animation:pulseCTAHot 1.1s infinite;
+  border:2px solid rgba(255,255,255,.8);
+}
+
+@keyframes pulseCTAHot{
+  0%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(255,30,30,.45), 0 12px 30px rgba(220,38,38,.28);
+    filter:saturate(1);
+  }
+  50%{
+    transform:scale(1.08);
+    box-shadow:0 0 0 14px rgba(255,30,30,0), 0 18px 38px rgba(220,38,38,.42);
+    filter:saturate(1.2);
+  }
+  100%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(255,30,30,0), 0 12px 30px rgba(220,38,38,.28);
+    filter:saturate(1);
+  }
+}
+/* CHAT CECÍLIA */
+.modal-content.cecilia-modal{
+  max-width: 560px;
+  padding: 1.5rem;
+}
+
+.cecilia-chat{
+  max-height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  margin: 1rem 0 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+}
+
+.chat-msg{
+  display: flex;
+  width: 100%;
+}
+
+.chat-msg.bot{
+  justify-content: flex-start;
+}
+
+.chat-msg.user{
+  justify-content: flex-end;
+}
+
+.chat-bubble{
+  max-width: 82%;
+  padding: 12px 15px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 1.45;
+  box-shadow: 0 8px 20px rgba(15,23,42,.06);
+  word-break: break-word;
+}
+
+.chat-bubble.bot{
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 8px;
+}
+
+.chat-bubble.user{
+  background: var(--duvida);
+  color: #fff;
+  border-bottom-right-radius: 8px;
+}
+
+.chat-msg.typing{
+  display: none;
+}
+
+.chat-msg.typing.active{
+  display: flex;
+}
+
+.chat-bubble.typing{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 8px;
+  box-shadow: 0 8px 20px rgba(15,23,42,.06);
+}
+
+.chat-bubble.typing span{
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+  display: inline-block;
+  animation: blink 1.2s infinite ease-in-out;
+}
+
+.chat-bubble.typing span:nth-child(2){
+  animation-delay: .2s;
+}
+
+.chat-bubble.typing span:nth-child(3){
+  animation-delay: .4s;
+}
+
+.cecilia-replies{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: .5rem;
+}
+
+.cecilia-replies .quick-reply-btn{
+  margin: 0;
+  min-height: 54px;
+  border-width: 2px;
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+}
+
+.cecilia-replies .quick-reply-btn:hover{
+  background: #8b5cf6;
+  color: #fff;
+}
+
+@media (max-width: 640px){
+  .modal-content.cecilia-modal{
+    max-width: 94%;
+    padding: 1rem;
+  }
+
+  .cecilia-replies{
+    grid-template-columns: 1fr;
+  }
+
+  .chat-bubble{
+    max-width: 90%;
+    font-size: 14px;
+  }
+}
+
+@keyframes blink{
+  0%, 80%, 100%{ opacity:.3; transform:scale(.9); }
+  40%{ opacity:1; transform:scale(1); }
+}
+.btn-duvida-hero{
+  border-color: var(--duvida);
+  color: var(--duvida);
+  background: #fff;
+}
+
+.btn-duvida-hero:hover{
+  background: #f5f3ff;
+  border-color: var(--duvida-hover);
+  color: var(--duvida-hover);
+}
+
+}
+/* ===== BOTÕES DINÂMICOS HERO ===== */
+.dynamic-actions{
+  position: fixed;
+  inset: auto 0 20px 0;
+  z-index: 95;
+  pointer-events: none;
+}
+
+.dynamic-stack{
+  position: fixed;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+.dynamic-left{ left: 20px; }
+.dynamic-right{ right: 20px; }
+
+.dynamic-btn{
+  border: 2px solid #fff;
+  color: #fff;
+  border-radius: 999px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.18);
+  cursor: pointer;
+  transition:
+    opacity .25s ease,
+    transform .25s ease,
+    width .28s ease,
+    min-width .28s ease,
+    padding .28s ease,
+    border-radius .28s ease,
+    background .2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dynamic-btn i{
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* Estado completo */
+.dynamic-btn.is-full{
+  min-width: 220px;
+  padding: 12px 18px;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.dynamic-btn.is-full .label,
+.dynamic-btn.is-full .inez-content{
+  opacity: 1;
+  max-width: 260px;
+  transition: opacity .2s ease .08s, max-width .28s ease;
+}
+
+/* Estado bolinha */
+.dynamic-actions.is-compact .dynamic-btn{
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 999px;
+  justify-content: center;
+}
+
+.dynamic-actions.is-compact .dynamic-btn .label,
+.dynamic-actions.is-compact .dynamic-btn .inez-content{
+  opacity: 0;
+  max-width: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* Estado invisível enquanto rola */
+.dynamic-actions.is-scrolling .dynamic-btn{
+  opacity: 0;
+  transform: translateY(14px) scale(.92);
+  pointer-events: none;
+}
+
+/* Cores */
+.btn-longevidade{
+  background: linear-gradient(135deg, #31A77F, #4DBE94);
+}
+
+.btn-hospedagem{
+  background: #dc2626;
+}
+
+.btn-cecilia{
+  background: #8b5cf6;
+}
+
+.dynamic-inez{
+  background: #fff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+  min-width: 320px;
+  padding: 10px 14px;
+  align-items: center;
+}
+
+.dynamic-inez strong{
+  font-size: 13px;
+  line-height: 1.1;
+  display: block;
+}
+
+.dynamic-inez p{
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.dynamic-inez small{
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inez-avatar-wrap{
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.inez-avatar{
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid #10b981;
+}
+
+.inez-status{
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #fff;
+}
+
+.inez-content{
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+/* Hover */
+.dynamic-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(0,0,0,.22);
+}
+
+.dynamic-actions.is-compact .dynamic-btn:hover{
+  transform: scale(1.08);
+}
+
+/* Mobile */
+@media (max-width: 768px){
+  .dynamic-left{ left: 14px; bottom: 14px; }
+  .dynamic-right{ right: 14px; bottom: 14px; }
+
+  .dynamic-btn.is-full{
+    min-width: 54px;
+  }
+
+  .dynamic-left{
+    gap: 10px;
+  }
+
+  .dynamic-actions:not(.is-compact) .dynamic-left .dynamic-btn{
+    width: 56px;
+    min-width: 56px;
+    height: 56px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 999px;
+  }
+
+  .dynamic-actions:not(.is-compact) .dynamic-left .dynamic-btn .label{
+    display: none;
+  }
+
+  .dynamic-inez{
+    min-width: 250px;
+  }
+}
+  
+  /* ===== Fluxo completo de agendamento/teleconsulta ===== */
+/* ===== Ajustes do calendário e horários do agendamento ===== */
+.mini-calendar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px;}
+@media (max-width:640px){.mini-calendar{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.calendar-day{border:1.5px solid rgba(2,6,23,.10);border-radius:16px;background:#fff;padding:12px 10px;cursor:pointer;transition:.18s ease;text-align:center;box-shadow:0 8px 24px rgba(2,6,23,.05);}
+.calendar-day:hover{transform:translateY(-2px);border-color:var(--mint3);box-shadow:0 14px 30px rgba(16,185,129,.14);}
+.calendar-day.active{border-color:var(--mint3);background:linear-gradient(180deg,#f0fdf4 0%,#ffffff 100%);box-shadow:0 14px 30px rgba(16,185,129,.18);}
+.calendar-day small{display:block;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em;}
+.calendar-day strong{display:block;font-size:15px;font-weight:900;color:#0f172a;margin-top:4px;}
+.calendar-day span{display:block;font-size:12px;color:#475569;margin-top:3px;}
+.time-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px;}
+@media (max-width:640px){.time-slots{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.time-slot{border:1.5px solid rgba(2,6,23,.10);border-radius:14px;background:#fff;padding:12px 10px;font-weight:800;color:#0f172a;cursor:pointer;transition:.18s ease;text-align:center;box-shadow:0 8px 24px rgba(2,6,23,.05);}
+.time-slot:hover{transform:translateY(-2px);border-color:var(--mint3);box-shadow:0 14px 30px rgba(16,185,129,.14);}
+.time-slot.active{border-color:var(--mint3);background:#ecfdf5;color:#065f46;box-shadow:0 14px 30px rgba(16,185,129,.18);}
+
+  .procedure-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+    margin-top:16px;
+  }
+  @media (max-width:768px){
+    .procedure-grid{grid-template-columns:1fr;}
+  }
+  .procedure-card{
+    border:1.5px solid rgba(2,6,23,.10);
+    border-radius:22px;
+    background:#fff;
+    padding:16px;
+    cursor:pointer;
+    transition:.18s ease;
+    box-shadow:0 10px 30px rgba(2,6,23,.05);
+  }
+  .procedure-card:hover{
+    transform:translateY(-2px);
+    border-color:var(--mint3);
+    box-shadow:0 16px 34px rgba(16,185,129,.14);
+  }
+  .procedure-card.active{
+    border-color:var(--mint3);
+    background:linear-gradient(180deg,#f0fdf4 0%,#ffffff 100%);
+    box-shadow:0 16px 38px rgba(16,185,129,.16);
+  }
+  .procedure-card h4{
+    font-size:16px;
+    font-weight:900;
+    color:#0f172a;
+    margin-bottom:6px;
+  }
+  .procedure-card .price{
+    font-size:15px;
+    font-weight:900;
+    color:var(--mint3);
+    white-space:nowrap;
+  }
+  .procedure-card p{
+    font-size:13px;
+    line-height:1.55;
+    color:#475569;
+    margin-top:6px;
+  }
+  .procedure-card ul{
+    margin-top:10px;
+    padding-left:16px;
+    color:#334155;
+    font-size:12px;
+    line-height:1.55;
+  }
+  .summary-box{
+    background:#ecfdf5;
+    border:1px solid #bbf7d0;
+    border-radius:18px;
+    padding:16px;
+    margin-top:16px;
+  }
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+    padding:8px 0;
+    border-bottom:1px solid rgba(2,6,23,.06);
+    font-size:14px;
+  }
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row strong{color:#0f172a;}
+  .summary-row span{
+    color:#475569;
+    text-align:right;
+    font-weight:700;
+  }
+  .payment-card{
+    border:1px solid rgba(2,6,23,.08);
+    background:#fff;
+    border-radius:20px;
+    padding:16px;
+    box-shadow:0 10px 28px rgba(2,6,23,.05);
+    margin-top:16px;
+  }
+  .pix-box{
+    background:#0f172a;
+    color:#fff;
+    border-radius:22px;
+    padding:18px;
+    margin-top:16px;
+  }
+  .pix-code{
+    background:rgba(255,255,255,.06);
+    border:1px dashed rgba(255,255,255,.22);
+    border-radius:16px;
+    padding:14px;
+    margin-top:12px;
+    word-break:break-word;
+    font-size:13px;
+    line-height:1.6;
+    color:#e2e8f0;
+  }
+  .pix-qr{
+    width:170px;
+    height:170px;
+    border-radius:18px;
+    background:
+      linear-gradient(45deg,#fff 25%,transparent 25%) -10px 0/20px 20px,
+      linear-gradient(-45deg,#fff 25%,transparent 25%) -10px 0/20px 20px,
+      linear-gradient(45deg,transparent 75%,#fff 75%) -10px 0/20px 20px,
+      linear-gradient(-45deg,transparent 75%,#fff 75%) -10px 0/20px 20px,
+      #111827;
+    border:6px solid #fff;
+    margin:0 auto 16px auto;
+  }
+  .success-card{
+    background:linear-gradient(180deg,#f0fdf4 0%,#ffffff 100%);
+    border:1px solid #86efac;
+    border-radius:22px;
+    padding:18px;
+    margin-top:16px;
+  }
+  .tele-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+    margin-top:16px;
+  }
+  @media (max-width:768px){
+    .tele-grid{grid-template-columns:1fr;}
+  }
+  .tele-card{
+    border:1px solid rgba(2,6,23,.08);
+    border-radius:20px;
+    padding:16px;
+    background:#fff;
+    box-shadow:0 10px 26px rgba(2,6,23,.05);
+  }
+  .tele-card h4{
+    font-size:15px;
+    font-weight:900;
+    color:#0f172a;
+    margin-bottom:10px;
+  }
+  
+  /* ===== Seção de Planos Holozonic ===== */
+.plans-section{
+  padding: 90px 20px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.plans-container{
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.plans-header{
+  text-align: center;
+  max-width: 860px;
+  margin: 0 auto 50px;
+}
+
+.plans-badge{
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(16,185,129,.12);
+  color: #047857;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  margin-bottom: 14px;
+}
+
+.plans-header h2{
+  margin: 0 0 14px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.1;
+  color: #0f172a;
+}
+
+.plans-header p{
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.plans-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 24px;
+  align-items: stretch;
+  margin-top: 40px;
+}
+
+.plan-card{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px;
+  background: #ffffff;
+  border: 1px solid rgba(15,23,42,.08);
+  box-shadow: 0 20px 60px rgba(2,6,23,.06);
+  padding: 28px;
+  transition: .25s ease;
+}
+
+.plan-card:hover{
+  transform: translateY(-6px);
+  box-shadow: 0 28px 70px rgba(2,6,23,.10);
+}
+
+.plan-card.featured{
+  border: 2px solid rgba(16,185,129,.35);
+  box-shadow: 0 26px 70px rgba(16,185,129,.12);
+}
+
+.plan-card.premium{
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.plan-ribbon{
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #10b981;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.plan-top{
+  margin-bottom: 24px;
+}
+
+.plan-icon{
+  font-size: 28px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.plan-top h3{
+  margin: 0 0 10px;
+  font-size: 26px;
+  color: #0f172a;
+}
+
+.plan-subtitle{
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.plan-price{
+  margin-bottom: 24px;
+  padding: 20px;
+  border-radius: 20px;
+  background: #f8fafc;
+  border: 1px solid rgba(15,23,42,.06);
+}
+
+.price-month,
+.price-year{
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.price-month strong,
+.price-year strong{
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.price-month span,
+.price-year span{
+  color: #64748b;
+  font-size: 14px;
+}
+
+.price-note{
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.plan-features{
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: grid;
+  gap: 10px;
+}
+
+.plan-features li{
+  position: relative;
+  padding-left: 24px;
+  color: #1e293b;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.plan-features li::before{
+  content: "✔";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #10b981;
+  font-weight: 900;
+}
+
+.plan-diff{
+  margin-top: auto;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(16,185,129,.06);
+  border: 1px solid rgba(16,185,129,.10);
+}
+
+.plan-diff h4{
+  margin: 0 0 10px;
+  font-size: 16px;
+  color: #065f46;
+}
+
+.plan-diff p{
+  margin: 0;
+  color: #334155;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.plan-button,
+.plans-main-cta{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 16px;
+  padding: 15px 20px;
+  font-weight: 800;
+  transition: .2s ease;
+}
+
+.plan-button{
+  margin-top: 20px;
+  background: #0f172a;
+  color: #fff;
+}
+
+.plan-button:hover{
+  transform: translateY(-2px);
+  opacity: .95;
+}
+
+.plans-extra{
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: 1.5fr .9fr;
+  gap: 24px;
+}
+
+.plans-benefits,
+.plans-note-box{
+  background: #fff;
+  border-radius: 28px;
+  border: 1px solid rgba(15,23,42,.08);
+  box-shadow: 0 20px 60px rgba(2,6,23,.06);
+  padding: 30px;
+}
+
+.plans-benefits h3,
+.plans-note-box h3{
+  margin: 0 0 18px;
+  font-size: 26px;
+  color: #0f172a;
+}
+
+.benefits-grid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 16px;
+}
+
+.benefit-item{
+  padding: 18px;
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px solid rgba(15,23,42,.06);
+}
+
+.benefit-item strong{
+  display: block;
+  margin-bottom: 8px;
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.benefit-item p{
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.plans-note-box p{
+  color: #475569;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.plans-warning{
+  margin-top: 14px;
+  font-size: 13px;
+  color: #991b1b !important;
+  font-weight: 700;
+}
+
+.plans-main-cta{
+  width: 100%;
+  margin-top: 18px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+}
+
+.plans-main-cta:hover{
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1100px){
+  .plans-grid{
+    grid-template-columns: 1fr;
+  }
+
+  .plans-extra{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px){
+  .plans-section{
+    padding: 70px 16px;
+  }
+
+  .plan-card,
+  .plans-benefits,
+  .plans-note-box{
+    padding: 22px;
+  }
+
+  .benefits-grid{
+    grid-template-columns: 1fr;
+  }
+
+  .plan-top h3{
+    font-size: 22px;
+  }
+
+  .price-month strong,
+  .price-year strong{
+    font-size: 24px;
+  }
+}
+  
+  
+
+  </style>
+</head>
+
+<body class="font-sans antialiased">
+
+<!-- BOTÕES DINÂMICOS -->
+<div id="dynamicActions" class="dynamic-actions">
+  <!-- Esquerda -->
+  <div class="dynamic-stack dynamic-left">
+    <button class="dynamic-btn is-full btn-longevidade" onclick="openModal('longevidadeModal')" aria-label="Clínica de Longevidade">
+      <i class="fa-solid fa-heart-pulse"></i>
+      <span class="label">Clínica de Longevidade</span>
+    </button>
+
+    <button class="dynamic-btn is-full btn-hospedagem" onclick="openModal('hospedagemModal')" aria-label="Hospedagem Integrativa">
+      <i class="fa-solid fa-tree"></i>
+      <span class="label">Hospedagem Integrativa</span>
+    </button>
+
+    <button class="dynamic-btn is-full btn-cecilia" onclick="openModal('duvidasModal')" aria-label="Dúvidas? Fale com Cecília">
+      <i class="fa-regular fa-circle-question"></i>
+      <span class="label">Dúvidas? Fale com Cecília</span>
+    </button>
+  </div>
+
+  <!-- Direita / Inêz -->
+  <div class="dynamic-stack dynamic-right">
+    <button class="dynamic-btn dynamic-inez is-full" onclick="openModal('agendamentoModal')" aria-label="Inêz">
+      <div class="inez-avatar-wrap">
+        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Inêz" class="inez-avatar">
+        <span class="inez-status"></span>
+      </div>
+
+      <div class="inez-content">
+        <strong>botão Inêz</strong>
+        <p>Olá! Gostaria de marcar sua consulta?</p>
+        <small>Inêz (IA Holozonic)</small>
+      </div>
+    </button>
+  </div>
+</div>
+
+  <!-- MODAL DÚVIDAS COM CECÍLIA (IA sem WhatsApp) -->
+  <div id="duvidasModal" class="modal-overlay">
+  <div class="modal-content cecilia-modal">
+    <button class="modal-close" onclick="closeModal('duvidasModal')">
+      <i class="fa-solid fa-times"></i>
+    </button>
+    
+  <div class="modal-header mb-4">
+  <div class="attendant-badge duvida">
+    <i class="fa-solid fa-robot"></i>
+    IA CECÍLIA
+  </div>
+  <h3 class="mt-2">Cecília • Assistente Virtual</h3>
+  <p class="text-sm text-slate-500 mt-2">Tire dúvidas rápidas sobre consultas, valores e atendimentos</p>
+</div>
+
+<div class="attendant-avatar duvida" style="margin-bottom:.75rem;">
+  <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Cecília">
+  <div class="flex flex-col">
+    <span class="text-slate-800">Cecília</span>
+    <small class="text-slate-500">online agora</small>
+  </div>
+</div>
+
+    <div class="cecilia-chat" id="ceciliaChat">
+  <div class="chat-msg bot">
+  <div class="chat-bubble bot">
+    Olá! Eu sou a Cecília 😊<br>
+    Posso te ajudar com tratamentos, valores, unidades, sono, hospedagem ou agendamento.
+  </div>
+</div>
+
+  <div class="chat-msg typing" id="ceciliaTyping">
+    <div class="chat-bubble typing">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</div>
+
+    <div class="quick-replies cecilia-replies" id="ceciliaReplies">
+      <button class="quick-reply-btn duvida" onclick="ceciliaResponder('tratamentos')">
+        Quero entender os tratamentos
+      </button>
+      <button class="quick-reply-btn duvida" onclick="ceciliaResponder('valores')">
+        Quero saber valores
+      </button>
+      <button class="quick-reply-btn duvida" onclick="ceciliaResponder('agendamento')">
+        Quero agendar consulta
+      </button>
+      <button class="quick-reply-btn duvida" onclick="ceciliaResponder('sono')">
+        Quero falar sobre sono
+      </button>
+      <button class="quick-reply-btn duvida" onclick="ceciliaResponder('hospedagem')">
+        Quero saber da hospedagem
+      </button>
+      <button class="quick-reply-btn duvida" onclick="ceciliaResponder('localizacao')">
+        Onde vocês atendem?
+      </button>
+    </div>
+
+    <div class="grid gap-3 mt-5">
+      <button class="modal-btn duvida" onclick="openModal('agendamentoModal'); closeModal('duvidasModal')">
+        <i class="fa-regular fa-calendar-check"></i>
+        Agendar com Inêz agora
+      </button>
+      <button class="modal-btn secondary" onclick="openModal('whatsappModal'); closeModal('duvidasModal')">
+        <i class="fa-brands fa-whatsapp"></i>
+        Falar no WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+      
+<div id="longevidadeModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('longevidadeModal')">
+      <i class="fa-solid fa-times"></i>
+    </button>
+
+    <div class="modal-header">
+      <div class="attendant-badge" style="background: var(--mint3); color: white;">
+        <i class="fa-solid fa-heart-pulse"></i>
+        Clínica de Longevidade
+      </div>
+      <i class="fa-solid fa-leaf header-icon" style="color: var(--mint3);"></i>
+      <h3>Longevidade começa pelo entendimento da sua própria saúde</h3>
+      <p class="text-sm text-slate-500 mt-2">
+        Você já se perguntou como o seu organismo realmente está envelhecendo?
+      </p>
+    </div>
+
+    <div class="attendant-message">
+
+      <p>
+        Muitas vezes, os primeiros sinais de desgaste surgem muito antes de qualquer diagnóstico:
+      </p>
+
+      <p>
+        Cansaço frequente, sono irregular, inflamações silenciosas, mudanças no metabolismo ou perda de vitalidade.
+        São sinais de que o corpo está pedindo atenção e equilíbrio.
+      </p>
+
+      <p>
+        Na Holozonic, acreditamos que você é o verdadeiro dono da sua saúde.
+        Porém, em muitos momentos da vida, faltam orientação e compreensão claras para administrá-la da melhor forma.
+      </p>
+
+      <p>
+        É nesse ponto que entramos.
+      </p>
+
+      <p>
+        Nosso trabalho é empoderar você com conhecimento sobre o próprio organismo.
+        Ouvimos com atenção, buscamos compreender profundamente cada história e, com base em estudos dedicados e avaliação cuidadosa de cada paciente, investigamos os sinais que o corpo apresenta.
+      </p>
+
+      <p>
+        A partir dessa compreensão, orientamos e caminhamos juntos na construção dos melhores hábitos para restaurar equilíbrio, vitalidade e bem-estar.
+      </p>
+
+      <p>
+        Mais do que tratar sintomas, buscamos ajudar você a entender seu corpo, fortalecer sua saúde e construir um envelhecimento mais consciente e saudável.
+      </p>
+
+      <p>
+        Descubra como a Holozonic pode ajudar você a compreender melhor sua saúde e a viver com mais equilíbrio ao longo da vida.
+      </p>
+
+      <p>
+        <strong>Nos chame agora.</strong>
+      </p>
+
+    </div>
+
+    <div class="grid gap-3 mt-5">
+      <button class="modal-btn" style="background: var(--mint3);" onclick="openProcedureModal('Consulta Integrada MIB'); closeModal('longevidadeModal')">
+        <i class="fa-regular fa-calendar-check"></i>
+        Agendar Consulta
+      </button>
+
+      <button class="modal-btn secondary" onclick="closeModal('longevidadeModal'); openModal('sonoModal')">
+        <i class="fa-solid fa-moon"></i>
+        Fazer teste do sono
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+
+  <!-- MODAL HOSPEDAGEM INTEGRATIVA -->
+  <div id="hospedagemModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('hospedagemModal')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+      
+      <div class="modal-header">
+        <div class="attendant-badge hospedagem">
+          <i class="fa-solid fa-tree"></i>
+          HOSPEDAGEM INTEGRATIVA
+        </div>
+        <i class="fa-solid fa-campground header-icon" style="color: var(--hospedagem);"></i>
+        <h3>Formulário de Hospedagem</h3>
+        <p class="text-sm text-slate-500 mt-2">Hospedagem Integrativa – Saúde e Bem-Estar<br>Área Rural de Lages/SC</p>
+        <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mt-3 text-sm">
+          <i class="fa-solid fa-clock mr-2 text-yellow-600"></i>
+          CLIENTE IRÁ RECEBER PELO WHATSAPP ESTE FORMULÁRIO APÓS O PAGAMENTO
+        </div>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="step-indicator" id="hospedagemStepIndicator">
+        <div class="step-dot active hospedagem" data-step="1"></div>
+        <div class="step-dot" data-step="2"></div>
+        <div class="step-dot" data-step="3"></div>
+        <div class="step-dot" data-step="4"></div>
+        <div class="step-dot" data-step="5"></div>
+        <div class="step-dot" data-step="6"></div>
+        <div class="step-dot" data-step="7"></div>
+      </div>
+
+      <!-- Avatar da IA -->
+      <div class="attendant-avatar hospedagem">
+        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Ana">
+        <span class="text-slate-700">Ana - Especialista em Bem-Estar</span>
+      </div>
+
+      <!-- Step 1: Introdução -->
+      <div class="chat-step" id="hospedagemStep1">
+        <div class="ai-chat-bubble hospedagem">
+          <p class="font-medium text-slate-700">🌿 Olá! Ficamos felizes em ter você conosco nesta sua jornada de bem-estar.</p>
+          <p class="mt-2 text-slate-600">Para garantirmos uma vivência plena e segura, este questionário mapeia suas condições físicas e possíveis restrições. Estas informações são fundamentais para alinharmos as atividades de bem-estar ao seu ritmo pessoal, respeitando os limites do seu corpo em cada interação com a natureza.</p>
+          <p class="mt-3 font-semibold">Vamos iniciar sua pré-Consulta para a Hospedagem Integrativa?</p>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="modal-btn hospedagem" onclick="nextHospedagemStep(1, 2)">Começar <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Step 2: Identificação -->
+      <div class="chat-step hidden" id="hospedagemStep2">
+        <div class="ai-chat-bubble hospedagem">
+          <p class="font-medium">📋 Primeiro, precisamos dos seus dados:</p>
+        </div>
+        <div class="user-input-group">
+          <input type="text" id="hospNome" placeholder="Nome completo">
+          <div class="flex gap-3">
+            <select id="hospSexo" class="flex-1">
+              <option value="">Sexo</option>
+              <option value="masculino">Masculino</option>
+              <option value="feminino">Feminino</option>
+            </select>
+            <input type="number" id="hospIdade" placeholder="Idade" class="w-24">
+            <input type="text" id="hospEstadoCivil" placeholder="Estado civil" class="flex-1">
+          </div>
+          <input type="text" id="hospProfissao" placeholder="Profissão">
+          <input type="text" id="hospEndereco" placeholder="Endereço">
+          <div class="flex gap-3">
+            <input type="text" id="hospCidade" placeholder="Cidade" class="flex-1">
+            <input type="text" id="hospEstado" placeholder="UF" class="w-20">
+          </div>
+          <input type="tel" id="hospTelefone" placeholder="Telefone / WhatsApp (com DDD)">
+          <input type="email" id="hospEmail" placeholder="E-mail">
+          <input type="text" id="hospEmergencia" placeholder="Contato de emergência (DDD)">
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevHospedagemStep(2, 1)">Voltar</button>
+          <button class="modal-btn hospedagem flex-1" onclick="nextHospedagemStep(2, 3)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Objetivo e Duração -->
+      <div class="chat-step hidden" id="hospedagemStep3">
+        <div class="ai-chat-bubble hospedagem">
+          <p class="font-medium">🎯 Qual o principal objetivo da sua participação no programa?</p>
+        </div>
+        <div class="user-input-group">
+          <div class="checkbox-group">
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="descanso"> Descanso e recuperação física</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="estresse"> Redução do estresse</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="sono"> Melhora do sono</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="digestiva"> Melhora da saúde digestiva</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="imunologico"> Fortalecimento imunológico</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="emocional"> Equilíbrio emocional</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="estilo"> Mudança de estilo de vida</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="desintoxicacao"> Desintoxicação metabólica</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="dor"> Dor crônica ou tensão muscular</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="emagrecimento"> Emagrecimento saudável</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="esgotamento"> Recuperação de esgotamento</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="prevencao"> Prevenção e promoção de saúde</label>
+          </div>
+          <input type="text" id="hospOutroObjetivo" placeholder="Outro objetivo">
+          
+          <p class="font-medium mt-3">Duração prevista da estadia:</p>
+          <select id="hospDuracao">
+            <option value="">Selecione</option>
+            <option value="2_3">Programa de 2 a 3 dias</option>
+            <option value="5">Programa de 5 dias</option>
+            <option value="7">Programa de 7 dias</option>
+            <option value="10_14">Programa intensivo de 10 a 14 dias</option>
+          </select>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevHospedagemStep(3, 2)">Voltar</button>
+          <button class="modal-btn hospedagem flex-1" onclick="nextHospedagemStep(3, 4)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Saúde e Condições -->
+      <div class="chat-step hidden" id="hospedagemStep4">
+        <div class="ai-chat-bubble hospedagem">
+          <p class="font-medium">🏥 Agora sobre sua saúde:</p>
+        </div>
+        <div class="user-input-group">
+          <p class="font-medium">Como você classifica sua saúde atualmente?</p>
+          <select id="hospSaude">
+            <option value="">Selecione</option>
+            <option value="excelente">Excelente</option>
+            <option value="boa">Boa</option>
+            <option value="regular">Regular</option>
+            <option value="atencao">Precisa de atenção médica</option>
+          </select>
+
+          <p class="font-medium mt-3">Possui diagnóstico médico atual?</p>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2"><input type="radio" name="hospDiagnostico" value="nao"> Não</label>
+            <label class="flex items-center gap-2"><input type="radio" name="hospDiagnostico" value="sim"> Sim</label>
+          </div>
+          <input type="text" id="hospQualDiagnostico" placeholder="Qual diagnóstico?">
+
+          <p class="font-medium mt-3">Condições de saúde existentes:</p>
+          <div class="checkbox-group">
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="hipertensao"> Hipertensão</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="diabetes"> Diabetes</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="cardiacas"> Doenças cardíacas</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="respiratorias"> Doenças respiratórias</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="autoimunes"> Doenças autoimunes</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="neurologicas"> Doenças neurológicas</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="ansiedade"> Ansiedade</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="depressao"> Depressão</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="insonia"> Insônia crônica</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="burnout"> Burnout</label>
+          </div>
+          <input type="text" id="hospOutroDiagnostico" placeholder="Outro diagnóstico relevante">
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevHospedagemStep(4, 3)">Voltar</button>
+          <button class="modal-btn hospedagem flex-1" onclick="nextHospedagemStep(4, 5)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Medicamentos e Hábitos -->
+      <div class="chat-step hidden" id="hospedagemStep5">
+        <div class="ai-chat-bubble hospedagem">
+          <p class="font-medium">💊 Medicamentos e hábitos de vida:</p>
+        </div>
+        <div class="user-input-group">
+          <p class="font-medium">Faz uso de medicamentos contínuos?</p>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2"><input type="radio" name="hospMedicamentos" value="nao"> Não</label>
+            <label class="flex items-center gap-2"><input type="radio" name="hospMedicamentos" value="sim"> Sim</label>
+          </div>
+          <textarea id="hospQuaisMedicamentos" rows="2" placeholder="Quais medicamentos?"></textarea>
+
+          <p class="font-medium mt-3">Qualidade do sono:</p>
+          <select id="hospSonoQualidade">
+            <option value="">Selecione</option>
+            <option value="boa">Boa</option>
+            <option value="regular">Regular</option>
+            <option value="ruim">Ruim</option>
+          </select>
+
+          <p class="font-medium mt-3">Horas de sono por noite:</p>
+          <select id="hospSonoHoras">
+            <option value="">Selecione</option>
+            <option value="4">4h</option>
+            <option value="6">6h</option>
+            <option value="8">8h</option>
+            <option value="9">Mais de 9h</option>
+          </select>
+
+          <p class="font-medium mt-3">Tabagismo:</p>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2"><input type="radio" name="hospTabagismo" value="nao"> Não</label>
+            <label class="flex items-center gap-2"><input type="radio" name="hospTabagismo" value="sim"> Sim</label>
+          </div>
+
+          <p class="font-medium mt-3">Atividade física:</p>
+          <select id="hospAtividade">
+            <option value="">Selecione</option>
+            <option value="regular">Regular</option>
+            <option value="ocasional">Ocasional</option>
+            <option value="sedentario">Sedentário</option>
+          </select>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevHospedagemStep(5, 4)">Voltar</button>
+          <button class="modal-btn hospedagem flex-1" onclick="nextHospedagemStep(5, 6)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 6: Restrições e Atividades -->
+      <div class="chat-step hidden" id="hospedagemStep6">
+        <div class="ai-chat-bubble hospedagem">
+          <p class="font-medium">⚠️ Restrições e atividades do programa:</p>
+        </div>
+        <div class="user-input-group">
+          <p class="font-medium">Alguma condição que impeça ou limite a participação em:</p>
+          
+          <p class="mt-2">Caminhadas leves ou trilhas naturais:</p>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2"><input type="radio" name="hospCaminhadas" value="nao"> Não</label>
+            <label class="flex items-center gap-2"><input type="radio" name="hospCaminhadas" value="sim"> Sim</label>
+          </div>
+
+          <p class="mt-2">Cavalgadas:</p>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2"><input type="radio" name="hospCavalgadas" value="nao"> Não</label>
+            <label class="flex items-center gap-2"><input type="radio" name="hospCavalgadas" value="sim"> Sim</label>
+          </div>
+
+          <p class="font-medium mt-3">Restrições importantes:</p>
+          <div class="checkbox-group">
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="gestacao"> Gestação</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="cirurgia"> Cirurgia recente</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="infeccao"> Infecção ativa</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="febre"> Febre ou doença aguda</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="cardiacas"> Doenças cardíacas descompensadas</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="psiquiatricas"> Crises psiquiátricas recentes</label>
+            <label class="checkbox-item hospedagem"><input type="checkbox" value="limitacoes"> Limitações físicas graves</label>
+          </div>
+          <input type="text" id="hospOutraRestricao" placeholder="Outro fator relevante">
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevHospedagemStep(6, 5)">Voltar</button>
+          <button class="modal-btn hospedagem flex-1" onclick="nextHospedagemStep(6, 7)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 7: Finalização e Pagamento -->
+      <div class="chat-step hidden" id="hospedagemStep7">
+        <div class="ai-chat-bubble hospedagem">
+          <p class="font-medium">✅ Perfeito! Sua pré-Consulta está completa.</p>
+          <p class="mt-2">Agora, escolha o programa desejado:</p>
+        </div>
+
+        <div class="grid gap-4 mt-4">
+          <button class="modal-btn hospedagem" onclick="agendarHospedagem('2_3')">
+            <i class="fa-regular fa-calendar-check"></i>
+            Programa de 2 a 3 dias (R$ 1.497)
+          </button>
+          
+          <button class="modal-btn hospedagem" onclick="agendarHospedagem('5')">
+            <i class="fa-regular fa-calendar-check"></i>
+            Programa de 5 dias (R$ 2.497)
+          </button>
+
+          <button class="modal-btn hospedagem" onclick="agendarHospedagem('7')">
+            <i class="fa-regular fa-calendar-check"></i>
+            Programa de 7 dias (R$ 3.497)
+          </button>
+
+          <button class="modal-btn hospedagem" onclick="agendarHospedagem('10_14')">
+            <i class="fa-regular fa-calendar-check"></i>
+            Programa Intensivo 10-14 dias (R$ 5.997)
+          </button>
+
+          <div class="bg-green-50 border border-green-200 p-4 rounded-xl mt-2">
+            <p class="font-semibold text-green-800 flex items-center gap-2">
+              <i class="fa-solid fa-circle-check"></i>
+              Ao escolher, você receberá:
+            </p>
+            <ul class="mt-2 text-sm space-y-1 text-green-700">
+              <li>• Link para pagamento via WhatsApp</li>
+              <li>• Formulário completo da hospedagem</li>
+              <li>• Checklist de preparação</li>
+              <li>• Instruções para sua chegada</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 p-4 rounded-xl mt-4 text-sm border-l-4 border-blue-500">
+          <p class="font-semibold">📌 ATIVIDADES INCLUSAS:</p>
+          <ul class="list-disc pl-5 mt-1">
+            <li>Trilhas terapêuticas</li>
+            <li>Banhos de floresta (Shinrin-yoku)</li>
+            <li>Alimentação saudável</li>
+            <li>Práticas de silêncio</li>
+            <li>Cavalgada</li>
+            <li>Cachoeira</li>
+          </ul>
+        </div>
+
+        <p class="text-center text-xs text-slate-500 mt-4">
+          Até breve! Nossa equipe está preparada para receber você.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DO SONO -->
+  <div id="sonoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('sonoModal')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+      
+      <div class="modal-header">
+        <div class="attendant-badge sono">
+          <i class="fa-solid fa-moon"></i>
+          Clínica de Longevidade
+        </div>
+        <i class="fa-solid fa-bed header-icon" style="color: var(--sono);"></i>
+        <h3>Longevidade começa pelo entendimento da sua própria saúde</h3>
+        <p class="text-sm text-slate-500 mt-2">Você já se perguntou como o seu organismo realmente está envelhecendo?
+</p>
+          </div>
+
+      <!-- Step Indicator -->
+      <div class="step-indicator" id="sonoStepIndicator">
+        <div class="step-dot active sono" data-step="1"></div>
+        <div class="step-dot" data-step="2"></div>
+        <div class="step-dot" data-step="3"></div>
+        <div class="step-dot" data-step="4"></div>
+        <div class="step-dot" data-step="5"></div>
+        <div class="step-dot" data-step="6"></div>
+      </div>
+
+      <!-- Avatar da IA -->
+      <div class="attendant-avatar sono">
+        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Dra. Sofia">
+        <span class="text-slate-700">Dra. Inêz - Especialista do Sono</span>
+      </div>
+
+      <!-- Step 1: Introdução -->
+      <div class="chat-step" id="sonoStep1">
+        <div class="ai-chat-bubble sono">
+          <p class="font-medium text-slate-700">🌙 Olá! Ficamos felizes em acompanhar você em sua jornada de saúde.</p>
+          <p class="mt-2 text-slate-600">Este formulário é o primeiro passo da sua jornada conosco – Anamnese. Em conjunto com sua consulta, ele nos permitirá compreender melhor sua qualidade do sono e identificar possíveis distúrbios respiratórios ou neurológicos relacionados ao sono.</p>
+          <p class="mt-2 text-sm italic text-slate-500">* O questionário não substitui a consulta/Consulta clínica.</p>
+          <p class="mt-3 font-semibold">Vamos iniciar sua Anamnese?</p>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="modal-btn sono" onclick="nextSonoStep(1, 2)">Começar <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Step 2: Identificação -->
+      <div class="chat-step hidden" id="sonoStep2">
+        <div class="ai-chat-bubble sono">
+          <p class="font-medium">📋 Primeiro, seus dados:</p>
+        </div>
+        <div class="user-input-group">
+          <input type="text" id="sonoNome" placeholder="Nome completo">
+          <div class="flex gap-3">
+            <select id="sonoSexo" class="flex-1">
+              <option value="">Sexo</option>
+              <option value="masculino">Masculino</option>
+              <option value="feminino">Feminino</option>
+            </select>
+            <input type="number" id="sonoIdade" placeholder="Idade" class="w-24">
+            <input type="text" id="sonoEstadoCivil" placeholder="Estado civil" class="flex-1">
+          </div>
+          <input type="text" id="sonoProfissao" placeholder="Profissão">
+          <input type="text" id="sonoEndereco" placeholder="Endereço">
+          <div class="flex gap-3">
+            <input type="text" id="sonoCidade" placeholder="Cidade" class="flex-1">
+            <input type="text" id="sonoEstado" placeholder="UF" class="w-20">
+          </div>
+          <input type="tel" id="sonoTelefone" placeholder="Telefone / WhatsApp">
+          <input type="email" id="sonoEmail" placeholder="E-mail">
+          <div class="flex gap-3">
+            <input type="number" id="sonoPeso" placeholder="Peso (kg)" class="flex-1">
+            <input type="number" id="sonoAltura" placeholder="Altura (cm)" class="flex-1">
+          </div>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevSonoStep(2, 1)">Voltar</button>
+          <button class="modal-btn sono flex-1" onclick="nextSonoStep(2, 3)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Queixa Principal -->
+      <div class="chat-step hidden" id="sonoStep3">
+        <div class="ai-chat-bubble sono">
+          <p class="font-medium">🎯 Qual o principal motivo da Consulta?</p>
+        </div>
+        <div class="user-input-group">
+          <div class="checkbox-group">
+            <label class="checkbox-item sono"><input type="checkbox" value="ronco"> Ronco</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="nao_reparador"> Sono não reparador</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="cansaco"> Cansaço durante o dia</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="insonia"> Insônia</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="despertares"> Despertares noturnos</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="dificuldade_iniciar"> Dificuldade para iniciar</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="sonolencia"> Sonolência excessiva</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="apneia"> Suspeita de apneia</label>
+          </div>
+          <input type="text" id="sonoOutroMotivo" placeholder="Outro motivo">
+          
+          <p class="font-medium mt-3">Há quanto tempo?</p>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2"><input type="radio" name="sonoTempo" value="semanas"> Semanas</label>
+            <label class="flex items-center gap-2"><input type="radio" name="sonoTempo" value="meses"> Meses</label>
+            <label class="flex items-center gap-2"><input type="radio" name="sonoTempo" value="anos"> Anos</label>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevSonoStep(3, 2)">Voltar</button>
+          <button class="modal-btn sono flex-1" onclick="nextSonoStep(3, 4)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Padrão de Sono -->
+      <div class="chat-step hidden" id="sonoStep4">
+        <div class="ai-chat-bubble sono">
+          <p class="font-medium">⏰ Seu padrão de sono:</p>
+        </div>
+        <div class="user-input-group">
+          <div class="flex gap-3">
+            <input type="time" id="sonoDormir" placeholder="Dormir" class="flex-1">
+            <input type="time" id="sonoAcordar" placeholder="Acordar" class="flex-1">
+          </div>
+          
+          <p class="font-medium mt-2">Tempo para adormecer:</p>
+          <select id="sonoTempoAdormecer">
+            <option value="">Selecione</option>
+            <option value="menos_10">Menos de 10 min</option>
+            <option value="10_30">10 a 30 min</option>
+            <option value="mais_30">Mais de 30 min</option>
+            <option value="mais_1h">Mais de 1 hora</option>
+          </select>
+
+          <p class="font-medium mt-2">Despertares noturnos:</p>
+          <select id="sonoDespertares">
+            <option value="">Selecione</option>
+            <option value="0">Nenhum</option>
+            <option value="1_2">1 a 2 vezes</option>
+            <option value="3+">3 ou mais vezes</option>
+          </select>
+
+          <p class="font-medium mt-2">Ao acordar:</p>
+          <select id="sonoSensacao">
+            <option value="">Selecione</option>
+            <option value="descansado">Descansado</option>
+            <option value="parcial">Parcialmente descansado</option>
+            <option value="cansado">Cansado</option>
+          </select>
+
+          <p class="font-medium mt-3">Alguém já relatou que você:</p>
+          <div class="checkbox-group">
+            <label class="checkbox-item sono"><input type="checkbox" value="ronca_alto"> Ronca alto</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="pausas"> Pausas respiratórias</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="boca"> Respira pela boca</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="engasga"> Engasga dormindo</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="movimento"> Movimenta muito</label>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevSonoStep(4, 3)">Voltar</button>
+          <button class="modal-btn sono flex-1" onclick="nextSonoStep(4, 5)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Saúde e Hábitos -->
+      <div class="chat-step hidden" id="sonoStep5">
+        <div class="ai-chat-bubble sono">
+          <p class="font-medium">🏥 Histórico de saúde:</p>
+        </div>
+        <div class="user-input-group">
+          <p class="font-medium">Condições existentes:</p>
+          <div class="checkbox-group">
+            <label class="checkbox-item sono"><input type="checkbox" value="hipertensao"> Hipertensão</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="diabetes"> Diabetes</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="obesidade"> Obesidade</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="cardiacas"> Doenças cardíacas</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="ansiedade"> Ansiedade</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="depressao"> Depressão</label>
+            <label class="checkbox-item sono"><input type="checkbox" value="refluxo"> Refluxo</label>
+          </div>
+          <input type="text" id="sonoOutroDiagnostico" placeholder="Outro diagnóstico">
+
+          <p class="font-medium mt-3">Medicamentos contínuos:</p>
+          <textarea id="sonoMedicamentos" rows="2" placeholder="Quais?"></textarea>
+
+          <p class="font-medium mt-3">Medicamentos para dormir:</p>
+          <textarea id="sonoMedicamentosSono" rows="2" placeholder="Quais?"></textarea>
+        </div>
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1" onclick="prevSonoStep(5, 4)">Voltar</button>
+          <button class="modal-btn sono flex-1" onclick="nextSonoStep(5, 6)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- Step 6: Finalização -->
+      <div class="chat-step hidden" id="sonoStep6">
+        <div class="ai-chat-bubble sono">
+          <p class="font-medium">✅ Ótimo! Escolha o tipo de atendimento:</p>
+        </div>
+
+        <div class="grid gap-4 mt-4">
+          <button class="modal-btn sono" onclick="openProcedureModal('Consulta do Sono'); closeModal('sonoModal')">
+            <i class="fa-regular fa-calendar-check"></i>
+            Consulta do Sono (R$ 297)
+          </button>
+          
+          <button class="modal-btn sono" onclick="openProcedureModal('Polissonografia Domiciliar'); closeModal('sonoModal')">
+            <i class="fa-solid fa-bed"></i>
+            Exame de Polissonografia (R$ 450)
+          </button>
+
+          <div class="bg-green-50 border border-green-200 p-4 rounded-xl mt-2">
+            <p class="font-semibold text-green-800">Após a escolha:</p>
+            <ul class="mt-2 text-sm text-green-700">
+              <li>• Link de pagamento via WhatsApp</li>
+              <li>• Confirmação automática</li>
+              <li>• Link da teleconsulta (Google Meet)</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="text-center text-xs text-slate-500 mt-4">
+          Até breve! Nossa equipe está preparada para receber você.
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL AGENDAMENTO INÊZ -->
+  <div id="agendamentoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('agendamentoModal')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+
+      <div class="modal-header mb-4">
+        <div class="attendant-badge" style="background: var(--mint3);">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          Agendamento Inteligente
+        </div>
+        <h3 class="text-xl">Marcar Consulta</h3>
+      </div>
+
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+        <div class="step-dot" id="dot-4"></div>
+        <div class="step-dot" id="dot-5"></div>
+        <div class="step-dot" id="dot-6"></div>
+        <div class="step-dot" id="dot-7"></div>
+      </div>
+
+      <div id="step-1" class="chat-step block">
+        <div class="attendant-avatar mb-2">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Inêz">
+          <span class="text-slate-700">Inêz</span>
+        </div>
+        <div class="ai-chat-bubble" style="border-left-color: var(--mint3);">
+          <p class="font-medium text-slate-700">
+            Olá! Sou a Inêz, assistente da Holozonic. Vou conduzir seu atendimento do início ao fim.
+            Primeiro, preciso dos seus dados para iniciar o pré-agendamento com segurança.
+          </p>
+        </div>
+        <div class="user-input-group mt-4">
+          <label class="text-sm font-bold text-slate-600">Seu Nome</label>
+          <input type="text" id="aiNome" placeholder="Ex: João Silva">
+
+          <label class="text-sm font-bold text-slate-600 mt-2">WhatsApp</label>
+          <input type="tel" id="aiTelefone" placeholder="(00) 00000-0000">
+
+          <label class="text-sm font-bold text-slate-600 mt-2">E-mail</label>
+          <input type="email" id="aiEmail" placeholder="voce@email.com">
+        </div>
+        <button class="modal-btn mt-4" style="background: var(--mint3);" onclick="nextStep(1, 2)">Próximo <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+
+      <div id="step-2" class="chat-step hidden">
+        <div class="attendant-avatar mb-2">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Inêz">
+          <span class="text-slate-700">Inêz</span>
+        </div>
+        <div class="ai-chat-bubble" style="border-left-color: var(--mint3);">
+          <p class="font-medium text-slate-700">
+            Prazer, <span id="displayName" class="font-bold text-emerald-600"></span>!
+            Antes de escolher o procedimento, me conte brevemente o que você está sentindo.
+          </p>
+        </div>
+        <div class="user-input-group mt-4">
+          <label class="text-sm font-bold text-slate-600">O que você está sentindo?</label>
+          <textarea id="aiMotivo" rows="4" placeholder="Ex: Dores nas costas, insônia, fadiga, baixa energia, ansiedade, acompanhamento preventivo..."></textarea>
+        </div>
+
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1 justify-center" onclick="nextStep(2, 1)">Voltar</button>
+          <button class="modal-btn flex-1" style="background: var(--mint3);" onclick="nextStep(2, 3)">Próximo <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <div id="step-3" class="chat-step hidden">
+        <div class="attendant-avatar mb-2">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Inêz">
+          <span class="text-slate-700">Inêz</span>
+        </div>
+        <div class="ai-chat-bubble" style="border-left-color: var(--mint3);">
+          <p class="font-medium text-slate-700">
+            Agora escolha o procedimento ideal para seu atendimento.
+          </p>
+        </div>
+
+        <div id="procedureGrid" class="procedure-grid"></div>
+
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1 justify-center" onclick="nextStep(3, 2)">Voltar</button>
+          <button class="modal-btn flex-1" style="background: var(--mint3);" onclick="nextStep(3, 4)">Próximo <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <div id="step-4" class="chat-step hidden">
+        <div class="attendant-avatar mb-2">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Inêz">
+          <span class="text-slate-700">Inêz</span>
+        </div>
+        <div class="ai-chat-bubble" style="border-left-color: var(--mint3);">
+          <p class="font-medium text-slate-700">
+            Perfeito. Agora escolha a data e o horário preferencial para o seu atendimento.
+            
+            
+          </p>
+        </div>
+        <div class="user-input-group mt-4">
+  <label class="text-sm font-bold text-slate-600">
+    Escolha a data e horário
+  </label>
+
+  <div class="calendar-embed mt-3">
+    <iframe
+      src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0fQVGmDOne7LxUTHyzqBPphhM1wK32qXc3xbEOFsyAehOwzPOjoOsV0tZW9cImsu2J4oVBY8a0?gv=true"
+      width="100%"
+      height="600"
+      frameborder="0"
+      style="border:0; border-radius:16px;">
+    </iframe>
+  </div>
+</div>
+        <div class="summary-box">
+          <h4 class="font-bold text-emerald-800 text-sm mb-2">Resumo parcial</h4>
+          <div class="summary-row"><strong>Paciente</strong><span id="resumoNome"></span></div>
+          <div class="summary-row"><strong>Procedimento</strong><span id="resumoProcedimento"></span></div>
+          <div class="summary-row"><strong>Valor</strong><span id="resumoValor"></span></div>
+        </div>
+
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1 justify-center" onclick="nextStep(4, 3)">Voltar</button>
+          <button class="modal-btn flex-1" style="background: var(--mint3);" onclick="nextStep(4, 5)">Próximo <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <div id="step-5" class="chat-step hidden">
+        <div class="attendant-avatar mb-2">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Inêz">
+          <span class="text-slate-700">Inêz</span>
+        </div>
+        <div class="ai-chat-bubble" style="border-left-color: var(--mint3);">
+          <p class="font-medium text-slate-700">
+            Tudo anotado. Confira o resumo completo do seu atendimento e prossiga para o pagamento.
+          </p>
+        </div>
+
+        <div class="summary-box">
+          <div class="summary-row"><strong>Nome</strong><span id="resumoNomeFinal"></span></div>
+          <div class="summary-row"><strong>WhatsApp</strong><span id="resumoTelefone"></span></div>
+          <div class="summary-row"><strong>E-mail</strong><span id="resumoEmail"></span></div>
+          <div class="summary-row"><strong>Motivo</strong><span id="resumoMotivo"></span></div>
+          <div class="summary-row"><strong>Procedimento</strong><span id="resumoProcedimentoFinal"></span></div>
+          <div class="summary-row"><strong>Valor</strong><span id="resumoValorFinal"></span></div>
+          <div class="summary-row"><strong>Data</strong><span id="resumoData"></span></div>
+          <div class="summary-row"><strong>Horário</strong><span id="resumoHora"></span></div>
+        </div>
+
+        <div class="payment-card">
+          <h4 class="font-bold text-slate-800 text-sm mb-2">Pagamento</h4>
+          <p class="text-sm text-slate-600">
+            Clique no botão abaixo para gerar o PIX. Depois disso, você poderá confirmar o pagamento e liberar o agendamento.
+          </p>
+        </div>
+
+        <div class="flex gap-3">
+          <button class="btn-secondary flex-1 justify-center" onclick="nextStep(5, 4)">Voltar</button>
+          <button class="modal-btn flex-[2]" style="background: var(--mint3);" onclick="generatePixPayment()">
+            Gerar PIX <i class="fa-solid fa-qrcode ml-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="step-6" class="chat-step hidden">
+        <div class="attendant-avatar mb-2">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Inêz">
+          <span class="text-slate-700">Inêz</span>
+        </div>
+        <div class="ai-chat-bubble" style="border-left-color: var(--mint3);">
+          <p class="font-medium text-slate-700">
+            PIX gerado com sucesso. Efetue o pagamento e depois confirme para liberar seu agendamento.
+          </p>
+        </div>
+
+        <div class="pix-box">
+          <div class="pix-qr"></div>
+          <p class="text-sm text-slate-300 mb-2">Código PIX copia e cola:</p>
+          <div class="pix-code" id="pixCodeBox"></div>
+        </div>
+
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1 justify-center" onclick="copyPixCode()">
+            <i class="fa-regular fa-copy"></i> Copiar código
+          </button>
+          <button class="modal-btn flex-[2]" style="background: var(--mint3);" onclick="confirmPixPayment()">
+            Já efetuei o pagamento
+          </button>
+        </div>
+      </div>
+
+      <div id="step-7" class="chat-step hidden">
+        <div class="attendant-avatar mb-2">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Inêz">
+          <span class="text-slate-700">Inêz</span>
+        </div>
+        <div class="ai-chat-bubble" style="border-left-color: var(--mint3);">
+          <p class="font-medium text-slate-700">
+            Seu pagamento foi confirmado e o agendamento está liberado. Agora você já pode acessar a área da teleconsulta.
+          </p>
+        </div>
+
+        <div class="success-card">
+          <h4 class="font-bold text-emerald-800 text-base mb-2">✅ Agendamento liberado</h4>
+          <div class="summary-row"><strong>Paciente</strong><span id="okNome"></span></div>
+          <div class="summary-row"><strong>Procedimento</strong><span id="okProcedimento"></span></div>
+          <div class="summary-row"><strong>Data</strong><span id="okData"></span></div>
+          <div class="summary-row"><strong>Período</strong><span id="okHora"></span></div>
+          <div class="summary-row"><strong>Status</strong><span>Agendamento liberado</span></div>
+        </div>
+
+        <div class="flex gap-3 mt-4">
+          <button class="btn-secondary flex-1 justify-center" onclick="sendScheduleToWhatsApp()">
+            <i class="fa-brands fa-whatsapp"></i> Enviar confirmação
+          </button>
+          <button class="modal-btn flex-[2]" style="background: var(--mint3);" onclick="openTeleconsultaArea()">
+            Ir para teleconsulta <i class="fa-solid fa-video ml-1"></i>
+          </button>
+          
+          <div class="flex gap-2 justify-center mt-3">
+  <button class="btn-secondary" type="button" onclick="resetInezFlow()">
+    <i class="fa-solid fa-rotate-left"></i>
+    Refazer
+  </button>
+</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="teleconsultaModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('teleconsultaModal')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+
+      <div class="modal-header mb-4">
+        <div class="attendant-badge" style="background: var(--mint3);">
+          <i class="fa-solid fa-video"></i>
+          Teleconsulta
+        </div>
+        <h3 class="text-xl">Área da Teleconsulta</h3>
+      </div>
+
+      <div class="ai-chat-bubble" style="border-left-color: var(--mint3);">
+        <p class="font-medium text-slate-700">
+          Bem-vindo(a). Aqui estão os dados do seu atendimento e o acesso final para a sua teleconsulta.
+        </p>
+      </div>
+
+      <div class="tele-grid">
+        <div class="tele-card">
+          <h4>Dados do paciente</h4>
+          <div class="summary-row"><strong>Nome</strong><span id="teleNome"></span></div>
+          <div class="summary-row"><strong>WhatsApp</strong><span id="teleTelefone"></span></div>
+          <div class="summary-row"><strong>E-mail</strong><span id="teleEmail"></span></div>
+        </div>
+
+        <div class="tele-card">
+          <h4>Dados do atendimento</h4>
+          <div class="summary-row"><strong>Procedimento</strong><span id="teleProcedimento"></span></div>
+          <div class="summary-row"><strong>Valor</strong><span id="teleValor"></span></div>
+          <div class="summary-row"><strong>Data</strong><span id="teleData"></span></div>
+          <div class="summary-row"><strong>Período</strong><span id="teleHora"></span></div>
+        </div>
+      </div>
+
+      <div class="tele-card mt-4">
+        <h4>Orientações pré-consulta</h4>
+        <p class="text-sm text-slate-600 leading-6">
+          Esteja em um local silencioso, com boa internet, celular carregado e documentos ou exames em mãos para facilitar o atendimento.
+        </p>
+      </div>
+
+      <div class="flex gap-3 mt-4">
+        <button class="modal-btn flex-[2]" style="background: var(--mint3);" onclick="enterTeleconsultaRoom()">
+          <i class="fa-solid fa-video"></i> Entrar na sala de teleconsulta
+        </button>
+        <button class="btn-secondary flex-1 justify-center" onclick="sendTeleconsultaToWhatsApp()">
+          <i class="fa-brands fa-whatsapp"></i> Receber no WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL WHATSAPP CECÍLIA -->
+
+  <div id="whatsappModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('whatsappModal')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+      
+      <div class="modal-header">
+        <div class="attendant-badge" style="background: var(--mint3);">
+          <i class="fa-regular fa-comment-dots"></i>
+          Atendimento Online
+        </div>
+        <i class="fa-brands fa-whatsapp header-icon" style="color: var(--mint3);"></i>
+        <h3>Conversar no WhatsApp</h3>
+      </div>
+
+      <div class="attendant-message">
+        <div class="attendant-avatar">
+          <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Cecília">
+          <span>Cecília, Secretária Holozonic</span>
+        </div>
+        <p>👋 Olá! Sou a Cecília. Como posso ajudar você hoje com dúvidas ou informações?</p>
+      </div>
+
+      <div class="quick-replies">
+        <button class="quick-reply-btn" style="border-color: var(--mint3); color: var(--mint3);" onclick="selectQuickReply('Tirar dúvidas sobre tratamentos')">
+          <i class="fa-regular fa-circle-question"></i> Tirar dúvidas
+        </button>
+        <button class="quick-reply-btn" style="border-color: var(--mint3); color: var(--mint3);" onclick="selectQuickReply('Informações de preços')">
+          <i class="fa-regular fa-credit-card"></i> Preços
+        </button>
+        <button class="quick-reply-btn" style="border-color: var(--mint3); color: var(--mint3);" onclick="selectQuickReply('Saber a localização')">
+          <i class="fa-solid fa-location-dot"></i> Localização
+        </button>
+      </div>
+
+      <button class="modal-btn" style="background: var(--mint3);" onclick="openWhatsApp()">
+        <i class="fa-brands fa-whatsapp"></i>
+        Iniciar conversa com Cecília
+      </button>
+      <p class="text-center text-sm text-slate-500 mt-3">
+        Horário de atendimento: Seg a Sex, 8h às 20h e Sab 8h às 12h
+      </p>
+    </div>
+  </div>
+
+  <!-- MODAL CONTATO -->
+  <div id="contatoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('contatoModal')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+      
+      <div class="modal-header">
+        <i class="fa-regular fa-paper-plane header-icon" style="color: var(--mint3);"></i>
+        <h3>Entrar em contato</h3>
+      </div>
+
+      <p class="text-center text-slate-600 mb-4">
+        Escolha a melhor forma de contato para você:
+      </p>
+
+      <div class="contact-options">
+        <div class="contact-option" onclick="openModal('whatsappModal'); closeModal('contatoModal')">
+          <i class="fa-brands fa-whatsapp" style="color: var(--mint3);"></i>
+          <span>Falar com Cecília</span>
+          <small>Dúvidas online</small>
+        </div>
+        <div class="contact-option" onclick="window.location.href='tel:+554899128212'">
+          <i class="fa-solid fa-phone" style="color: var(--mint3);"></i>
+          <span>Ligar agora</span>
+          <small>(48) 99128-8212</small>
+        </div>
+        <div class="contact-option" onclick="window.location.href='mailto:holozonic@gmail.com'">
+          <i class="fa-regular fa-envelope" style="color: var(--mint3);"></i>
+          <span>E-mail</span>
+          <small>holozonic@gmail.com</small>
+        </div>
+        <div class="contact-option" onclick="openModal('agendamentoModal'); closeModal('contatoModal')">
+          <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--mint3);"></i>
+          <span>Agendar com Inêz</span>
+          <small>Consulta Integrada</small>
+        </div>
+      </div>
+
+      <p class="text-center text-sm text-slate-500 mt-4">
+        Retornaremos em até 1 hora em horário comercial
+      </p>
+    </div>
+  </div>
+
+  <!-- MODAL TELEFONE -->
+  <div id="telefoneModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('telefoneModal')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+      
+      <div class="modal-header">
+        <i class="fa-solid fa-phone header-icon" style="color: var(--mint3);"></i>
+        <h3>Ligar para Holozonic</h3>
+      </div>
+
+      <div class="attendant-message">
+        <div class="attendant-avatar">
+          <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Cecília">
+          <span>Central de Atendimento</span>
+        </div>
+        <p>Nosso horário de atendimento telefônico:</p>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-4 mb-4">
+        <div class="flex justify-between items-center py-2 border-b border-slate-200">
+          <span class="font-bold">Segunda - Sexta</span>
+          <span class="text-slate-600">08:00 - 20:00</span>
+        </div>
+        <div class="flex justify-between items-center py-2">
+          <span class="font-bold">Sábado</span>
+          <span class="text-slate-600">09:00 - 15:00</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button class="flex-1 modal-btn" style="background: var(--mint3);" onclick="window.location.href='tel:+554899128212'">
+          <i class="fa-solid fa-phone"></i>
+          Ligar agora
+        </button>
+        <button class="flex-1 btn-secondary" onclick="openModal('whatsappModal'); closeModal('telefoneModal')">
+          <i class="fa-brands fa-whatsapp"></i>
+          WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INFO HERO -->
+  <div id="infoHeroModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('infoHeroModal')">
+        <i class="fa-solid fa-times"></i>
+      </button>
+      
+      <div class="modal-header">
+        <i class="fa-regular fa-star header-icon" style="color: var(--mint3);"></i>
+        <h3>Holozonic - Sua Saúde Integrada</h3>
+      </div>
+
+      <div class="space-y-4">
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-2xl">
+          <p class="font-bold text-lg mb-2">🎯 Nossa Abordagem</p>
+          <p class="text-slate-600">Integramos tecnologia de ponta com sabedoria milenar da Medicina Chinesa para oferecer um cuidado verdadeiramente completo e personalizado.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-50 p-3 rounded-xl text-center">
+            <i class="fa-solid fa-microchip text-2xl text-emerald-600 mb-2"></i>
+            <p class="font-bold text-sm">Monitoramento</p>
+            <p class="text-xs text-slate-500">Tecnologia vestível</p>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl text-center">
+            <i class="fa-solid fa-leaf text-2xl text-emerald-600 mb-2"></i>
+            <p class="font-bold text-sm">Medicina Chinesa</p>
+            <p class="text-xs text-slate-500">Tradição milenar</p>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl text-center">
+            <i class="fa-solid fa-bolt text-2xl text-emerald-600 mb-2"></i>
+            <p class="font-bold text-sm">Bioenergética</p>
+            <p class="text-xs text-slate-500">Campo energético</p>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl text-center">
+            <i class="fa-solid fa-heart-pulse text-2xl text-emerald-600 mb-2"></i>
+            <p class="font-bold text-sm">Cuidado Integral</p>
+            <p class="text-xs text-slate-500">Corpo, mente e espírito</p>
+          </div>
+        </div>
+
+        <button class="modal-btn mt-2" style="background: var(--mint3);" onclick="openModal('agendamentoModal'); closeModal('infoHeroModal')">
+          <i class="fa-regular fa-calendar-check"></i>
+          Agendar minha Consulta com Inêz
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="topnav sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="h-32 flex items-center justify-between gap-4">
+
+        <a href="#topo" class="flex items-center gap-3" aria-label="Holozonic">
+          <img
+            src="https://i.imgur.com/PeN4mJL.png"
+            alt="Holozonic"
+            class="h-28 sm:h-32 md:h-32 w-auto object-contain"
+            loading="eager"
+          >
+        </a>
+
+        <nav class="hidden lg:flex items-center gap-1" aria-label="Menu">
+          <a class="nav-link" href="index.html">Início</a>
+          <a class="nav-link" href="holozonic2.html">Por que Holozonic</a>
+          <a class="nav-link" href="medicina-chinesa.html">Medicina Chinesa</a>
+          <a class="nav-link" href="MIB.html">MIB</a>
+          <a class="nav-link" href="ozonio.html">Ozonioterapia</a>
+          <a class="nav-link" href="feridas.html">Feridas</a>
+          <a class="nav-link" href="app.html">App</a>
+        </nav>
+
+        <div class="hidden lg:flex items-center gap-3">
+          <!-- Botão azul do sono no header -->
+          <button class="btn-sono-header" onclick="openModal('sonoModal')">
+            <i class="fa-solid fa-moon"></i>
+            TESTE DO SONO
+          </button>
+
+          <button id="btnContatoTop" class="btn-header-green" onclick="openModal('contatoModal')">
+            <i class="fa-regular fa-paper-plane"></i>
+            Entrar em contato
+          </button>
+        </div>
+
+        <button id="mobileBtn" class="lg:hidden text-white text-xl p-2 rounded-xl hover:bg-white/10"
+                aria-label="Abrir menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+      </div>
+    </div>
+
+    <div id="mobileMenu" class="hidden lg:hidden mobile-panel">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col gap-2">
+        <a class="mobile-link" href="#por-que">Por que Holozonic <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
+        <a class="mobile-link" href="#medicina-chinesa">Medicina Chinesa <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
+        <a class="mobile-link" href="#mib">MIB <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
+        <a class="mobile-link" href="#feridas">Feridas <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
+        <a class="mobile-link" href="#ozonio">Oxigênio–Ozonioterapia <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
+        <a class="mobile-link" href="#exame-sono">Exame Sono <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
+        <button class="mobile-link w-full text-left" onclick="openModal('contatoModal')">Contato <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></button>
+
+        <div class="pt-2">
+          <button class="btn-header-green justify-center w-full" onclick="openModal('contatoModal')">
+            <i class="fa-regular fa-paper-plane"></i> Entrar em contato
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section id="topo" class="hero">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+      <div class="grid lg:grid-cols-12 gap-12 items-center">
+
+        <div class="lg:col-span-7">
+          <button class="pill hero-pill border-0 cursor-pointer" onclick="openModal('agendamentoModal')" style="background:none;">
+  <i class="fa-solid fa-sparkles"></i>
+  <span class="cta-pulse">AGENDE SUA TELE-CONSULTA!</span>
+</button>
+
+          <h1 class="hero-title font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.05] mt-6">Holozonic 
+<br>
+             <span class="hero-highlight">Clínica de Longevidade e Medicina Chinesa</span>
+          </h1>
+
+          <p class="mt-6 text-lg text-slate-700 max-w-2xl">
+            Compreender o corpo antes que a doença apareça. Reequilibrar o organismo antes que ele adoeça. Viver mais tempo com energia e lucidez.
+          </p>
+
+          <div class="mt-7 space-y-2 text-slate-700 font-semibold">
+            <p>Na Holozonic, você não entra em um protocolo.</p>
+            <p>Você entra em um <b>ecossistema de cuidado personalizado</b>.</p>
+            <p class="text-slate-600">Porque saúde real não é tratar partes isoladas — é entender o ser humano por completo.</p>
+          </div>
+
+     <div class="mt-8 flex flex-col sm:flex-row gap-4 flex-wrap">
+ <button id="btnAgendar" class="btn-primary justify-center" onclick="openModal('agendamentoModal')">
+  <i class="fa-solid fa-wand-magic-sparkles"></i>
+  Agendar sua Consulta
+</button>
+
+  <button id="btnWhats" class="btn-secondary btn-duvida-hero justify-center" onclick="openModal('duvidasModal')">
+    <i class="fa-regular fa-circle-question text-[18px]"></i>
+    Dúvidas com Cecília
+  </button>
+
+  <button class="btn-secondary justify-center border-blue-200 hover:bg-blue-50" onclick="openModal('sonoModal')" style="border-color: #3b82f6; color: #3b82f6;">
+    <i class="fa-solid fa-moon"></i>
+    Teste do Sono
+  </button>
+
+  <button class="btn-secondary justify-center border-emerald-200 hover:bg-emerald-50" onclick="openModal('teleconsultaModal')" style="border-color: var(--mint3); color: var(--mint3);">
+    <i class="fa-solid fa-video"></i>
+    Teleconsulta
+  </button>
+</div>
+
+          <div class="mt-10 flex flex-wrap gap-3">
+            <span class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 font-extrabold text-sm">
+              <i class="fa-solid fa-circle-check mr-2 text-emerald-600"></i>Diagnóstico integral
+            </span>
+            <span class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 font-extrabold text-sm">
+              <i class="fa-solid fa-circle-check mr-2 text-emerald-600"></i>Monitoramento inteligente
+            </span>
+            <span class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 font-extrabold text-sm">
+              <i class="fa-solid fa-circle-check mr-2 text-emerald-600"></i>Protocolos personalizados
+            </span>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5">
+          <button onclick="openModal('infoHeroModal')" class="w-full cursor-pointer border-none bg-transparent">
+            <img 
+              src="https://i.imgur.com/jJK5xq1.png" 
+              alt="Holozonic Banner" 
+              class="banner-image w-full"
+            >
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- SEÇÕES ORIGINAIS (mantidas intactas) -->
+  <section id="por-que" class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl"> Por que escolher a <span style="color:var(--mint3)">Holozonic</span>?</h2>
+        <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+          Nossa missão é elevar o padrão do cuidado em saúde integrativa, conectando tradição, ciência e tecnologia
+          em um único sistema clínico. Aqui você não é tratado como um prontuário — você é acompanhado como uma vida em evolução.
+        </p>
+      </div>
+
+      <div class="mt-10 grid lg:grid-cols-3 gap-6">
+        <div class="card p-7">
+          <div class="pill"><i class="fa-solid fa-user-heart"></i> Atendimento humano</div>
+          <h3 class="font-extrabold text-2xl mt-4">Você é visto por inteiro</h3>
+          <ul class="mt-4 space-y-3 list-check">
+            <li><i class="fa-solid fa-check"></i> Você não é tratado como um prontuário</li>
+            <li><i class="fa-solid fa-check"></i> Você não recebe soluções genéricas</li>
+            <li><i class="fa-solid fa-check"></i> Você não é apenas mais um paciente</li>
+            <li><i class="fa-solid fa-check"></i> Você é acompanhado como uma vida em evolução</li>
+          </ul>
+        </div>
+
+        <div class="card p-7">
+          <div class="pill"><i class="fa-solid fa-stethoscope"></i> Integrativa de verdade</div>
+          <h3 class="font-extrabold text-2xl mt-4">Leitura profunda do seu estado</h3>
+          <p class="text-slate-600 mt-3">
+            Unimos os pilares clássicos da Medicina Chinesa com ferramentas diagnósticas modernas
+            para uma leitura profunda do seu estado:
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-3 text-slate-700 font-extrabold">
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">Físico</div>
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">Funcional</div>
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">Emocional</div>
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">Energético</div>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <p class="font-extrabold text-slate-900">O objetivo não é apenas aliviar sintomas.</p>
+            <p class="text-slate-700 font-semibold mt-1">É entender por que eles apareceram.</p>
+          </div>
+        </div>
+
+        <div class="card p-7">
+          <div class="pill"><i class="fa-solid fa-compass"></i> Estratégia clínica</div>
+          <h3 class="font-extrabold text-2xl mt-4">Causa raiz, não só sintoma</h3>
+          <p class="text-slate-600 mt-3">
+            O foco é claro: não apenas aliviar — mas encontrar a causa raiz.
+          </p>
+          <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+            <p class="font-extrabold text-emerald-900">🧭 Seu Mapa de Saúde Personalizado</p>
+            <p class="text-emerald-900/80 font-semibold mt-1">
+              Um relatório estratégico do seu estilo de vida para orientar decisões clínicas mais assertivas.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 card p-8">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div>
+            <h3 class="font-display font-extrabold text-2xl">⌚ Monitoramento Inteligente da Saúde</h3>
+            <p class="text-slate-600 mt-2">
+              A Holozonic incorpora tecnologia vestível e acompanhamento contínuo para ampliar a precisão do cuidado.
+            </p>
+            <p class="text-slate-700 font-extrabold mt-4">Você pode contar com:</p>
+            <ul class="mt-3 space-y-2 list-check">
+              <li><i class="fa-solid fa-check"></i> Análise de dados em tempo real</li>
+              <li><i class="fa-solid fa-check"></i> Acompanhamento remoto</li>
+              <li><i class="fa-solid fa-check"></i> Prescrição e monitoramento de hábitos</li>
+              <li><i class="fa-solid fa-check"></i> Notificações nos horários combinados</li>
+              <li><i class="fa-solid fa-check"></i> Consulta de passos e nível de sedentarismo</li>
+            </ul>
+
+            <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+              <p class="font-extrabold text-emerald-900">Tudo isso gera algo poderoso:</p>
+              <p class="text-emerald-900/90 font-extrabold mt-1">Seu Mapa de Saúde Personalizado</p>
+              <p class="text-emerald-900/80 font-semibold mt-1">
+                Um relatório estratégico do seu estilo de vida para orientar decisões clínicas mais assertivas.
+              </p>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="openModal('agendamentoModal')"><i class="fa-solid fa-wand-magic-sparkles"></i> Iniciar acompanhamento com Inêz</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  
+  <section id="planos-holozonic" class="plans-section">
+  <div class="plans-container">
+    <div class="plans-header">
+      <span class="plans-badge">Programas Holozonic</span>
+      <h2>Programas de Engenharia de Saúde e Longevidade</h2>
+      <p>
+        Cuidado contínuo para saúde, equilíbrio metabólico e longevidade.
+        Escolha o plano ideal para o seu momento e comece uma jornada
+        estruturada de acompanhamento, prevenção e vitalidade.
+      </p>
+    </div>
+
+    <div class="plans-grid">
+      <!-- Plano Base -->
+      <article class="plan-card">
+        <div class="plan-top">
+          <span class="plan-icon">⚜️</span>
+          <h3>Programa Base de Saúde</h3>
+          <p class="plan-subtitle">
+            Para quem deseja iniciar um acompanhamento estruturado de saúde integrativa.
+          </p>
+        </div>
+
+        <div class="plan-price">
+          <div class="price-month">
+            <strong>R$ 297,00</strong>
+            <span>/ mês</span>
+          </div>
+          <div class="price-year">
+            <strong>R$ 3.200,00</strong>
+            <span>/ ano</span>
+          </div>
+          <p class="price-note">
+            Equivalente a <strong>R$ 266,66/mês</strong> • Economia anual de <strong>R$ 364,00</strong>
+          </p>
+        </div>
+
+        <ul class="plan-features">
+          <li>Consulta inicial aprofundada</li>
+          <li>Consulta trimestral (tele ou presencial)</li>
+          <li>Avaliação clínica avançada</li>
+          <li>Investigação detalhada de sintomas</li>
+          <li>Identificação de problemas de saúde atuais e potenciais</li>
+          <li>Planejamento estratégico de saúde</li>
+          <li>Definição de metas terapêuticas personalizadas</li>
+          <li>Implementação do plano terapêutico</li>
+          <li>Mapa da Saúde Holozonic</li>
+          <li>Acompanhamento digital</li>
+          <li>Avaliação energética básica</li>
+          <li>01 sessão/mês de ventosaterapia</li>
+        </ul>
+
+        <div class="plan-diff">
+          <h4>Diferencial estratégico</h4>
+          <p>
+            O foco é estabelecer os alicerces da sua vitalidade, identificando
+            desequilíbrios iniciais e iniciando a harmonização do seu terreno biológico.
+          </p>
+        </div>
+
+        <a href="#agendamento" class="plan-button">Escolher Plano Base</a>
+      </article>
+
+      <!-- Plano Saúde Inteligente -->
+      <article class="plan-card featured">
+        <div class="plan-ribbon">Mais escolhido</div>
+
+        <div class="plan-top">
+          <span class="plan-icon">⭐</span>
+          <h3>Programa Saúde Inteligente</h3>
+          <p class="plan-subtitle">
+            Para quem deseja prevenção ativa e acompanhamento contínuo.
+          </p>
+        </div>
+
+        <div class="plan-price">
+          <div class="price-month">
+            <strong>R$ 597,00</strong>
+            <span>/ mês</span>
+          </div>
+          <div class="price-year">
+            <strong>R$ 6.400,00</strong>
+            <span>/ ano</span>
+          </div>
+          <p class="price-note">
+            Equivalente a <strong>R$ 533,33/mês</strong> • Economia anual de <strong>R$ 764,00</strong>
+          </p>
+        </div>
+
+        <ul class="plan-features">
+          <li>Consulta inicial estendida</li>
+          <li>Consultas conforme necessidade clínica</li>
+          <li>Avaliação clínica avançada</li>
+          <li>Investigação detalhada de queixas e sintomas</li>
+          <li>Identificação ampliada de riscos</li>
+          <li>Planejamento estratégico com ajustes contínuos</li>
+          <li>Definição e revisão periódica de metas</li>
+          <li>Gestão contínua da saúde</li>
+          <li>Mapa da Saúde Holozonic</li>
+          <li>Acompanhamento digital</li>
+          <li>Avaliação metabólica periódica</li>
+          <li>Canal ativo para dúvidas</li>
+          <li>Prescrição de hábitos via WhatsApp</li>
+          <li>Análise detalhada de estilo de vida</li>
+          <li>Avaliação de risco em biomarcadores</li>
+          <li>Avaliação energética avançada (Zang-Fu)</li>
+          <li>01 sessão/mês de moxabustão térmica</li>
+        </ul>
+
+        <div class="plan-diff">
+          <h4>Diferencial estratégico</h4>
+          <p>
+            A prevenção torna-se ativa e personalizada, cruzando monitoramento
+            metabólico e vitalidade dos órgãos para antecipar riscos e otimizar sua saúde.
+          </p>
+        </div>
+
+        <a href="#agendamento" class="plan-button">Escolher Saúde Inteligente</a>
+      </article>
+
+      <!-- Plano Longevidade -->
+      <article class="plan-card premium">
+        <div class="plan-top">
+          <span class="plan-icon">👑</span>
+          <h3>Programa Holozonic Longevidade</h3>
+          <p class="plan-subtitle">
+            Para quem busca monitoramento avançado e engenharia de estilo de vida com foco em longevidade.
+          </p>
+        </div>
+
+        <div class="plan-price">
+          <div class="price-month">
+            <strong>R$ 897,00</strong>
+            <span>/ mês</span>
+          </div>
+          <div class="price-year">
+            <strong>R$ 9.687,60</strong>
+            <span>/ ano</span>
+          </div>
+          <p class="price-note">
+            Equivalente a <strong>R$ 807,30/mês</strong> • Economia anual de <strong>R$ 1.076,40</strong>
+          </p>
+        </div>
+
+        <ul class="plan-features">
+          <li>Consulta inicial estendida e estratégica de longevidade</li>
+          <li>Consultas prioritárias com agenda VIP</li>
+          <li>Avaliação clínica avançada e funcional</li>
+          <li>Investigação aprofundada de queixas e sintomas</li>
+          <li>Análise de vitalidade energética (Zang-Fu)</li>
+          <li>Monitoramento de stress biofísico</li>
+          <li>Avaliação estratégica de saúde</li>
+          <li>Planejamento estratégico de longevidade com ajustes contínuos</li>
+          <li>Metas de vitalidade e envelhecimento saudável</li>
+          <li>Otimização mitocondrial</li>
+          <li>Gestão personalizada dos cuidados com foco em longevidade</li>
+          <li>Mapa da Saúde Holozonic – versão avançada</li>
+          <li>Monitoramento e acompanhamento ampliado</li>
+          <li>Avaliação metabólica avançada</li>
+          <li>Canal prioritário para dúvidas</li>
+          <li>Biofeedback via wearables</li>
+          <li>Engenharia de estilo de vida e hábitos personalizada</li>
+          <li>Análise aprofundada de estilo de vida e envelhecimento</li>
+          <li>Rastreamento ampliado de biomarcadores</li>
+          <li>Análise de idade cronológica × idade biológica</li>
+          <li>Índice de envelhecimento metabólico</li>
+          <li>Avaliação multidimensional do envelhecimento</li>
+          <li>Identificação de vulnerabilidades</li>
+          <li>Avaliação avançada de doenças por biomarcadores</li>
+          <li>Monitoramento funcional do organismo</li>
+          <li>Avaliação energética bio-holográfica completa</li>
+          <li>01 sessão/mês de laseracupuntura sistêmica</li>
+        </ul>
+
+        <div class="plan-diff">
+          <h4>Diferencial estratégico</h4>
+          <p>
+            Um plano de blindagem contra o envelhecimento acelerado, com leitura
+            de biomarcadores, avaliação bio-holográfica e gestão da saúde em tempo real.
+          </p>
+        </div>
+
+        <a href="#agendamento" class="plan-button">Escolher Longevidade</a>
+      </article>
+    </div>
+
+    <div class="plans-extra">
+      <div class="plans-benefits">
+        <h3>Benefícios do gerenciamento biológico contínuo</h3>
+        <div class="benefits-grid">
+          <div class="benefit-item">
+            <strong>Domínio biológico</strong>
+            <p>Compreensão profunda de como seu corpo reage a cada estímulo.</p>
+          </div>
+          <div class="benefit-item">
+            <strong>Prevenção preditiva</strong>
+            <p>Antecipação de desequilíbrios antes que se tornem patologias.</p>
+          </div>
+          <div class="benefit-item">
+            <strong>Eficiência metabólica</strong>
+            <p>Otimização da energia vital e redução do estresse oxidativo.</p>
+          </div>
+          <div class="benefit-item">
+            <strong>Modulação inflamatória</strong>
+            <p>Controle dos marcadores de inflammaging e envelhecimento inflamatório.</p>
+          </div>
+          <div class="benefit-item">
+            <strong>Longevidade ativa</strong>
+            <p>Envelhecer com autonomia, clareza mental, equilíbrio e vigor.</p>
+          </div>
+          <div class="benefit-item">
+            <strong>Gestão da saúde em tempo real</strong>
+            <p>Quando a saúde é acompanhada ao longo do tempo, ela deixa de ser reativa e passa a ser estratégica.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="plans-note-box">
+        <h3>Investir em saúde hoje é cuidar do futuro</h3>
+        <p>
+          A Holozonic não apenas trata sintomas; ela integra avaliação clínica,
+          biomarcadores, bioenergética e estratégia de saúde para máxima vitalidade.
+        </p>
+        <p>
+          <strong>Com o plano anual, o paciente economiza o equivalente a mais de um mês de acompanhamento.</strong>
+        </p>
+        <p class="plans-warning">
+          * Vagas limitadas para o Programa Longevidade devido à natureza personalizada do acompanhamento VIP.
+        </p>
+
+        <a href="#agendamento" class="plans-main-cta">Agendar Consulta de Saúde</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+  <section class="mint-section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+      <div class="text-center max-w-4xl mx-auto">
+        <h2 class="mint-title font-display text-4xl sm:text-5xl">
+          Tudo o que <b>você precisa</b> em um único ecossistema
+        </h2>
+        <p class="mt-6 text-white/90 text-lg leading-relaxed">
+          Cada protocolo é desenvolvido de forma individual.
+          Consideramos seu momento biológico, padrão energético, estilo de vida e queixas reais.
+          Nada é padronizado. Nada é automático.
+        </p>
+      </div>
+
+      <div class="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="mint-card">
+          <div class="mint-ico"><i class="fa-solid fa-diagram-project"></i></div>
+          <h4>Diagnóstico integral (MIB®)</h4>
+          <p class="text-slate-600 font-semibold text-sm">Consulta profunda do físico, emoções, energia e funcional.</p>
+        </div>
+
+        <div class="mint-card">
+          <div class="mint-ico"><i class="fa-solid fa-fingerprint"></i></div>
+          <h4>Cuidado personalizado de alta precisão</h4>
+          <p class="text-slate-600 font-semibold text-sm">Protocolos individualizados, respeitando o tempo biológico.</p>
+        </div>
+
+        <div class="mint-card">
+          <div class="mint-ico"><i class="fa-solid fa-bandage"></i></div>
+          <h4>Feridas & Regeneração</h4>
+          <p class="text-slate-600 font-semibold text-sm">Prevenção, tratamento e acompanhamento presencial/domicílio.</p>
+        </div>
+
+        <div class="mint-card">
+          <div class="mint-ico"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <h4>Ambiente terapêutico</h4>
+          <p class="text-slate-600 font-semibold text-sm">Acolher, acalmar e reorganizar o campo energético.</p>
+        </div>
+      </div>
+
+      <div class="mt-14 flex justify-center">
+        <button class="btn-header-green bg-white text-emerald-700 hover:bg-slate-50" onclick="openModal('whatsappModal')">
+          <i class="fa-brands fa-whatsapp"></i>
+          Falar com Cecília sobre Terapias
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section id="medicina-chinesa" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl">☯️ Medicina Chinesa <span style="color:var(--mint3)">aplicada com rigor clínico</span></h2>
+        <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+          Utilizamos os quatro pilares diagnósticos clássicos da Medicina Chinesa para uma visão clínica mais completa e estratégica.
+        </p>
+      </div>
+
+      <div class="mt-10 grid lg:grid-cols-2 gap-6">
+        <div class="card p-7">
+          <h3 class="font-extrabold text-2xl">Pilares diagnósticos</h3>
+          <div class="mt-5 space-y-4 text-slate-700">
+            <div class="flex gap-3">
+              <i class="fa-solid fa-eye mt-1" style="color:var(--mint3)"></i>
+              <div>
+                <p class="font-extrabold">🔍 Observação (望 – Wàng)</p>
+                <p class="text-slate-600">Face, língua, postura e vitalidade.</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <i class="fa-solid fa-ear-listen mt-1" style="color:var(--mint3)"></i>
+              <div>
+                <p class="font-extrabold">👂 Audição e Olfação (闻 – Wén)</p>
+                <p class="text-slate-600">Respiração, voz e sinais sutis.</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <i class="fa-solid fa-comments mt-1" style="color:var(--mint3)"></i>
+              <div>
+                <p class="font-extrabold">❓ Interrogação (问 – Wèn)</p>
+                <p class="text-slate-600">Investigação clínica aprofundada.</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <i class="fa-solid fa-heart-pulse mt-1" style="color:var(--mint3)"></i>
+              <div>
+                <p class="font-extrabold">🫀 Pulsologia (切 – Qiè)</p>
+                <p class="text-slate-600">Leitura refinada dos pulsos energéticos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-7">
+          <h3 class="font-extrabold text-2xl">🌱 Terapias integrativas combinadas</h3>
+          <p class="text-slate-600 mt-3">
+            Na Holozonic, as terapias são integradas de forma inteligente conforme a necessidade individual.
+            <b>Importante:</b> os tratamentos são definidos somente após Consulta clínica.
+          </p>
+
+          <div class="mt-5 grid sm:grid-cols-2 gap-3 text-slate-700 font-extrabold">
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Laserterapia</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Moxabustão</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Ventosaterapia</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Oxigênio–ozonioterapia</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 sm:col-span-2">Protocolos para feridas e regeneração tecidual</div>
+          </div>
+
+          <div class="mt-6">
+            <button class="btn-primary" onclick="openModal('agendamentoModal')"><i class="fa-solid fa-wand-magic-sparkles"></i> Agendar Consulta com Inêz</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="mib" class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl">🔬 Diagnóstico Integral com o <span style="color:var(--mint3)">Método MIB®</span></h2>
+        <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+          O Método MIB® (Medicina Integrativa Bioenergética) é o núcleo clínico da Holozonic.
+          Uma Consulta profunda que integra estilo de vida, relações socioambientais, corpo físico, emoções,
+          campo energético e aspectos funcionais — com foco em <b>causa raiz</b>.
+        </p>
+      </div>
+
+      <div class="mt-10 grid lg:grid-cols-3 gap-6">
+        <div class="card p-7">
+          <h3 class="font-extrabold text-xl">🧩 Protocolos personalizados</h3>
+          <p class="text-slate-600 mt-2">
+            Aqui não existem tratamentos genéricos. Cada paciente recebe um plano terapêutico construído a partir da sua leitura energética e fisiológica,
+            respeitando o tempo biológico de recuperação.
+          </p>
+        </div>
+
+        <div class="card p-7">
+          <h3 class="font-extrabold text-xl">🎯 Alta precisão</h3>
+          <p class="text-slate-600 mt-2">
+            Consideramos seu momento biológico, padrão energético, estilo de vida e queixas reais.
+            Nada é padronizado. Nada é automático.
+          </p>
+        </div>
+
+        <div class="card p-7">
+          <h3 class="font-extrabold text-xl">🌟 Nossa visão & valores</h3>
+          <div class="mt-3 rounded-2xl bg-slate-50 border border-slate-200 p-5">
+            <p class="font-extrabold text-slate-900">Nossa Visão</p>
+            <p class="text-slate-600 font-semibold mt-1">
+              Ser referência em medicina integrativa bioenergética, conectando a sabedoria oriental às tecnologias mais avançadas de monitoramento e cuidado em saúde.
+            </p>
+          </div>
+          <p class="font-extrabold mt-4">Nossos Valores</p>
+          <ul class="mt-2 space-y-2 list-check">
+            <li><i class="fa-solid fa-check"></i> Excelência clínica com foco em resultado</li>
+            <li><i class="fa-solid fa-check"></i> Inovação baseada em critérios técnicos</li>
+            <li><i class="fa-solid fa-check"></i> Ética e transparência em cada etapa</li>
+            <li><i class="fa-solid fa-check"></i> Atendimento humano e verdadeiramente individualizado</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-10 card p-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <h3 class="font-display font-extrabold text-2xl">🧠 Consultas com protocolo personalizado</h3>
+            <p class="text-slate-600 mt-2">
+              Toda jornada começa pela consulta clínica via Método MIB®. Uma anamnese profunda baseada na Medicina Chinesa e na bioenergia.
+            </p>
+            <p class="text-slate-700 font-extrabold mt-4">Importante:</p>
+            <ul class="mt-2 space-y-2 list-check">
+              <li><i class="fa-solid fa-check"></i> Consulta obrigatória antes de procedimentos avulsos</li>
+              <li><i class="fa-solid fa-check"></i> Protocolos definidos individualmente</li>
+              <li><i class="fa-solid fa-check"></i> Valores por sessão</li>
+            </ul>
+          </div>
+          <button class="btn-primary" onclick="openModal('whatsappModal')"><i class="fa-brands fa-whatsapp"></i> Falar com Cecília</button>
+        </div>
+      </div>
+
+      <div class="mt-6 card p-8">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div>
+            <h3 class="font-display font-extrabold text-2xl">📌 Planos terapêuticos</h3>
+            <p class="text-slate-600 mt-2">
+              Para quem precisa de acompanhamento contínuo, oferecemos programas com melhor custo-benefício, podendo incluir:
+            </p>
+            <ul class="mt-4 space-y-2 list-check">
+              <li><i class="fa-solid fa-check"></i> Estímulo energético sem agulhas</li>
+              <li><i class="fa-solid fa-check"></i> Fortalecimento imunológico</li>
+              <li><i class="fa-solid fa-check"></i> Melhora da circulação</li>
+              <li><i class="fa-solid fa-check"></i> Oxigenação celular</li>
+            </ul>
+            <p class="text-slate-500 font-semibold mt-3">(Valores sujeitos a atualização.)</p>
+          </div>
+          <button class="btn-primary" onclick="openModal('agendamentoModal')"><i class="fa-solid fa-wand-magic-sparkles"></i> Agendar plano com Inêz</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="feridas" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl">🩹 Referência no cuidado com <span style="color:var(--mint3)">Feridas</span></h2>
+        <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+          Tecnologia atualizada e abordagem clínica criteriosa para prevenção, tratamento e acompanhamento —
+          com possibilidade de atendimento presencial ou domiciliar.
+        </p>
+      </div>
+
+      <div class="mt-10 grid lg:grid-cols-2 gap-6">
+        <div class="card p-7">
+          <h3 class="font-extrabold text-2xl">Como funciona</h3>
+          <ul class="mt-4 space-y-2 list-check">
+            <li><i class="fa-solid fa-check"></i> Prevenção</li>
+            <li><i class="fa-solid fa-check"></i> Tratamento</li>
+            <li><i class="fa-solid fa-check"></i> Acompanhamento</li>
+            <li><i class="fa-solid fa-check"></i> Com possibilidade de atendimento presencial ou domiciliar</li>
+          </ul>
+          <div class="mt-6">
+            <button class="btn-primary" onclick="openModal('whatsappModal')"><i class="fa-brands fa-whatsapp"></i> Ver disponibilidade com Cecília</button>
+          </div>
+        </div>
+
+        <div class="card p-7">
+          <h3 class="font-extrabold text-2xl">🕊️ Ambiente terapêutico diferenciado</h3>
+          <p class="text-slate-600 mt-3">
+            Desde o primeiro contato, você percebe. Um espaço pensado para:
+          </p>
+          <ul class="mt-4 space-y-2 list-check">
+            <li><i class="fa-solid fa-check"></i> Acolher</li>
+            <li><i class="fa-solid fa-check"></i> Acalmar</li>
+            <li><i class="fa-solid fa-check"></i> Reorganizar o campo energético</li>
+          </ul>
+          <div class="mt-6 rounded-2xl bg-slate-50 border border-slate-200 p-5">
+            <p class="font-extrabold">Na Holozonic, o cuidado começa antes mesmo da consulta.</p>
+            <p class="text-slate-600 mt-1 font-semibold">Acolhimento + clareza clínica + estratégia terapêutica.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ozonio" class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl">💠 Oxigênio–Ozonioterapia <span style="color:var(--mint3)">Asséptica</span></h2>
+        <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+          Um dos grandes diferenciais da Holozonic: protocolos modernos com oxigênio e ozônio medicinal,
+          com abordagem não invasiva, segura e baseada em critérios clínicos.
+        </p>
+      </div>
+
+      <div class="mt-10 grid lg:grid-cols-2 gap-6">
+        <div class="card p-7">
+          <h3 class="font-extrabold text-2xl">✨ Efeitos terapêuticos observados</h3>
+          <ul class="mt-4 space-y-2 list-check">
+            <li><i class="fa-solid fa-check"></i> Ação antimicrobiana</li>
+            <li><i class="fa-solid fa-check"></i> Equilíbrio da microbiota cutânea</li>
+            <li><i class="fa-solid fa-check"></i> Estímulo à oxigenação tecidual</li>
+            <li><i class="fa-solid fa-check"></i> Ativação do metabolismo celular</li>
+            <li><i class="fa-solid fa-check"></i> Apoio à regeneração da pele</li>
+          </ul>
+        </div>
+
+        <div class="card p-7">
+          <h3 class="font-extrabold text-2xl">🌸 Rejuvenescimento e revitalização da pele</h3>
+          <p class="text-slate-600 mt-3">
+            Protocolos indicados para quem busca saúde cutânea com naturalidade e segurança.
+          </p>
+
+          <div class="mt-4 grid sm:grid-cols-2 gap-3 text-slate-700 font-extrabold">
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Pele mais limpa, luminosa e uniforme</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Melhora da textura e firmeza</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Estímulo de colágeno</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Redução de inflamações</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Auxílio em peles acneicas/sensibilizadas</div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">Assepsia do couro cabeludo (suporte capilar)</div>
+          </div>
+
+          <p class="text-slate-600 font-semibold mt-4">
+            Resultados progressivos e duradouros, respeitando a fisiologia da pele.
+          </p>
+
+          <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+            <p class="font-extrabold text-emerald-900">🛡️ Segurança em primeiro lugar</p>
+            <p class="text-emerald-900/80 font-semibold mt-1">
+              ✔ Profissional pós-graduado (especialista)
+              ✔ Registro ativo no conselho de classe
+              ✔ Equipamentos regulamentados pela ANVISA
+              ✔ Protocolos rigorosos de biossegurança
+              ✔ Clínica em conformidade com Vigilância Sanitária
+            </p>
+            <p class="text-emerald-900/80 font-semibold mt-3">
+              Exija sempre segurança antes de qualquer procedimento.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 flex justify-center">
+        <button class="btn-primary" onclick="openModal('agendamentoModal')"><i class="fa-solid fa-wand-magic-sparkles"></i> Agendar Sessão com Inêz</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="exame-sono" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl">📊 Exames especializados — <span style="color:var(--mint3)">Polissonografia domiciliar</span></h2>
+        <p class="text-slate-600 mt-4 text-lg leading-relaxed">
+          Monitoramento completo do sono no conforto da sua casa, com relatório detalhado e acompanhamento remoto.
+        </p>
+      </div>
+
+      <div class="mt-10 grid lg:grid-cols-2 gap-6">
+        <div class="card p-7">
+          <h3 class="font-extrabold text-2xl">😴 O que inclui</h3>
+          <ul class="mt-4 space-y-2 list-check">
+            <li><i class="fa-solid fa-check"></i> Análise de apneia</li>
+            <li><i class="fa-solid fa-check"></i> Monitoramento de ronco</li>
+            <li><i class="fa-solid fa-check"></i> Consulta do sono REM</li>
+            <li><i class="fa-solid fa-check"></i> Relatório detalhado</li>
+            <li><i class="fa-solid fa-check"></i> Acompanhamento remoto</li>
+          </ul>
+          <p class="text-slate-600 font-semibold mt-4">
+            Equipamentos portáteis e orientação especializada durante todo o processo.
+          </p>
+        </div>
+
+        <div class="card p-7">
+          <h3 class="font-extrabold text-2xl">🌐 Serviços integrados</h3>
+          <p class="text-slate-600 mt-3">
+            Uma plataforma completa para facilitar sua jornada:
+          </p>
+          <ul class="mt-4 space-y-2 list-check">
+            <li><i class="fa-solid fa-check"></i> Agendamento online rápido</li>
+            <li><i class="fa-solid fa-check"></i> Teleconsulta com qualidade presencial</li>
+            <li><i class="fa-solid fa-check"></i> Prescrição digital com validade legal</li>
+            <li><i class="fa-solid fa-check"></i> Hospedagem terapêutica rural conveniada* (não é internação)</li>
+          </ul>
+          <div class="mt-6">
+            <button class="btn-primary" onclick="openModal('whatsappModal')"><i class="fa-brands fa-whatsapp"></i> Tirar dúvidas com Cecília</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ceo" class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="grid lg:grid-cols-12 gap-8 items-start">
+        <div class="lg:col-span-5">
+          <div class="card p-8">
+            <div class="pill"><i class="fa-solid fa-user-doctor"></i> CEO & Founder</div>
+            <h2 class="font-display font-extrabold text-3xl mt-4">Dr. Hamilton Souza</h2>
+            <p class="text-slate-600 mt-3">
+              Especialista em Medicina Chinesa 
+              Clínico em Saúde Integrativa e criador do Método MIB – Medicina Integrativa Bioenergética. 
+              Seu trabalho de excelência une o profundo conhecimento tradicional oriental com as mais avançadas estratégias modernas de diagnóstico preditivo e monitoramento metabólico.
+            </p>
+            <div class="mt-6 rounded-2xl bg-slate-50 border border-slate-200 p-5">
+              <p class="font-extrabold">Princípio clínico</p>
+              <p class="text-slate-600 mt-1 font-semibold">
+                “Tratar o ser humano em sua totalidade — não apenas suas partes.”
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7">
+          <div class="card p-8">
+            <h3 class="font-extrabold text-2xl">👤 Sobre</h3>
+            <p class="text-slate-600 mt-3 leading-relaxed">
+              Dr. Hamilton Souza é movido por uma visão sistêmica e integrativa, unindo o rigor da ciência à profundidade dos saberes ancestrais da medicina chinesa.
+              Sua atuação se consolida na harmonia entre corpo, mente e bioenergia, unindo natureza e tecnologia contemporânea.
+              Com um olhar dedicado à singularidade de cada ser, oferece um cuidado humano e profundo, focado na integralidade da saúde e na promoção do bem-estar pleno.
+            </p>
+            <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+              <p class="font-extrabold text-emerald-900">Visão clínica central</p>
+              <p class="text-emerald-900/80 font-semibold mt-1">
+                As doenças tendem a se manifestar primeiro no campo energético, depois no funcional e, por fim, no físico.
+                Por isso, o cuidado precisa começar antes do sintoma avançar.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contato" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="max-w-3xl">
+        <h3 class="font-display font-extrabold text-3xl sm:text-4xl">Fale Conosco</h3>
+        <p class="text-slate-600 mt-3 text-lg">
+          Se você quer entender seu corpo de forma mais profunda, este é o próximo passo.
+          Holozonic — tradição, ciência e bioenergia trabalhando a favor da sua saúde.
+        </p>
+
+        <div class="mt-8 flex flex-col sm:flex-row gap-4">
+          <button id="btnWhats2" class="btn-primary justify-center" onclick="openModal('agendamentoModal')">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Agendar com Inêz
+          </button>
+          
+          <button id="btnCeciliaContato" class="btn-primary justify-center bg-white border border-emerald-200 !text-emerald-700 hover:!bg-emerald-50" onclick="openModal('whatsappModal')" style="background: white; border: 2px solid var(--mint2); color: var(--mint3);">
+            <i class="fa-brands fa-whatsapp"></i> Falar com Cecília
+          </button>
+
+          <button id="btnTel" class="btn-secondary justify-center" onclick="openModal('telefoneModal')">
+            <i class="fa-solid fa-phone"></i> Ligar agora
+          </button>
+        </div>
+
+        <div class="mt-8 grid sm:grid-cols-2 gap-4">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <p class="font-extrabold"><i class="fa-solid fa-location-dot mr-2" style="color:var(--mint3)"></i>Unidades</p>
+            <p class="text-slate-600 font-semibold mt-1">Lages/SC & Balneário Camboriú/SC</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <p class="font-extrabold"><i class="fa-solid fa-envelope mr-2" style="color:var(--mint3)"></i>E-mail</p>
+            <p class="text-slate-600 font-semibold mt-1">holozonic@gmail.com</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER CENTRALIZADO -->
+  <footer class="bg-black text-white/80 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <div class="flex flex-col items-center text-center gap-4">
+        <div class="flex items-center gap-3">
+          <img src="https://i.imgur.com/PeN4mJL.png" alt="Holozonic" class="h-10 w-auto object-contain">
+          <p class="text-sm text-white/65 max-w-lg">
+            Clínica de Medicina Chinesa & Longevidade
+          </p>
+        </div>
+        
+        <!-- FALE CONOSCO CENTRALIZADO -->
+        <div class="mt-4">
+          <h4 class="text-white font-bold text-lg mb-2">Agende sua Consulta</h4>
+
+<h3 class="text-white font-bold text-lg mb-2">E se a sua idade no calendário não fosse a verdadeira idade do seu organismo? </h3>
+
+Descubra como a Medicina Chinesa pode revelar sinais precoces de desequilíbrio e ajudar a restaurar energia, vitalidade e bem-estar.
+Entenda como seu corpo está envelhecendo e quais caminhos podem favorecer um envelhecimento mais saudável.
+
+Agende sua consulta na Holozonic.
+          <div class="flex gap-4 justify-center flex-wrap">
+            <a href="tel:+554899128212" class="text-white/70 hover:text-white transition">
+              <i class="fa-solid fa-phone mr-1"></i> (48) 99128-8212
+            </a>
+            <span class="text-white/30 hidden sm:inline">|</span>
+            <a href="mailto:holozonic@gmail.com" class="text-white/70 hover:text-white transition">
+              <i class="fa-regular fa-envelope mr-1"></i> holozonic@gmail.com
+            </a>
+            <span class="text-white/30 hidden sm:inline">|</span>
+            <a href="#" onclick="openModal('whatsappModal'); return false;" class="text-white/70 hover:text-white transition">
+              <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <p class="text-xs text-white/55 mt-4">© <span id="year"></span> Holozonic. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // CONFIGURAÇÕES BASE
+    const PHONE_E164 = "554899128212";
+    const WPP = `https://wa.me/${PHONE_E164}`;
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // DADOS DOS FORMULÁRIOS
+    let hospedagemData = {};
+    let sonoData = {};
+
+    let currentInezStep = 1;
+    let selectedProcedure = {
+      name: "",
+      price: "",
+      description: "",
+      benefits: [],
+      paymentLink: ""
+    };
+    let inezData = {
+      nome: "",
+      telefone: "",
+      email: "",
+      motivo: "",
+      data: "",
+      hora: "",
+      pixCode: "",
+      pagamentoConfirmado: false
+    };
+
+
+    // FUNÇÕES DE MODAL
+    function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+
+  if (modalId === "duvidasModal") {
+    resetCeciliaChat();
+  }
+
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
+
+  if (modalId === "agendamentoModal") {
+    renderProcedureGrid();
+    renderMiniCalendar();
+    renderTimeSlots();
+    refreshInezSummary();
+    if (!currentInezStep || currentInezStep < 1) currentInezStep = 1;
+    goToInezStep(currentInezStep || 1);
+  }
+
+  if (modalId === "teleconsultaModal") {
+    refreshTeleconsultaSummary();
+  }
+}
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    function closeChatNotification(event) {
+      event.stopPropagation();
+      const notif = document.getElementById('chatNotification');
+      if (notif) notif.style.display = 'none';
+    }
+
+function addCeciliaMessage(text, sender = 'bot') {
+  const chat = document.getElementById('ceciliaChat');
+  const typing = document.getElementById('ceciliaTyping');
+
+  const msg = document.createElement('div');
+  msg.className = `chat-msg ${sender}`;
+  msg.innerHTML = `<div class="chat-bubble ${sender}">${text}</div>`;
+
+  chat.insertBefore(msg, typing);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showCeciliaTyping(show = true) {
+  const typing = document.getElementById('ceciliaTyping');
+  if (!typing) return;
+
+  if (show) {
+    typing.classList.add('active');
+  } else {
+    typing.classList.remove('active');
+  }
+}
+
+function ceciliaResponder(tipo) {
+  const perguntas = {
+    tratamentos: 'Quero entender os tratamentos',
+    valores: 'Quero saber valores',
+    agendamento: 'Quero agendar consulta',
+    sono: 'Quero falar sobre sono',
+    hospedagem: 'Quero saber da hospedagem',
+    localizacao: 'Onde vocês atendem?'
+  };
+
+  const respostas = {
+    tratamentos: 'Trabalhamos com Consulta Integrada MIB, Consulta do Sono, Polissonografia Domiciliar, Ozonioterapia, protocolos para feridas e Hospedagem Integrativa. O ideal é escolher a consulta inicial para definir o melhor caminho.',
+    valores: 'Hoje os principais valores são: Consulta Integrada MIB R$ 297, Consulta do Sono R$ 297, Polissonografia R$ 450, Ozonioterapia R$ 150 e Hospedagem Integrativa a partir de R$ 1.497.',
+    agendamento: 'Perfeito. Vou te encaminhar para a Inêz, que organiza o pré-agendamento, mostra os procedimentos e já direciona para o pagamento.',
+    sono: 'O fluxo do sono pode seguir por Consulta do Sono ou por Polissonografia Domiciliar, dependendo da sua necessidade. Se quiser, eu já te encaminho para esse atendimento.',
+    hospedagem: 'A Hospedagem Integrativa oferece programas de 2 a 14 dias, com proposta de bem-estar, natureza e acompanhamento estratégico. Posso te direcionar para reserva.',
+    localizacao: 'Atendemos em Lages/SC, Balneário Camboriú/SC e também temos hospedagem integrativa na área rural de Lages/SC.'
+  };
+
+  addCeciliaMessage(perguntas[tipo], 'user');
+  showCeciliaTyping(true);
+
+  setTimeout(() => {
+    showCeciliaTyping(false);
+    addCeciliaMessage(respostas[tipo] || 'Posso te ajudar com mais detalhes.');
+
+    if (tipo === 'agendamento') {
+      setTimeout(() => {
+        closeModal('duvidasModal');
+        openModal('agendamentoModal');
+      }, 700);
+    }
+
+    if (tipo === 'sono') {
+      setTimeout(() => {
+        addCeciliaMessage('Se quiser, você pode fazer o teste do sono agora ou agendar diretamente com a Inêz.');
+      }, 400);
+    }
+
+    if (tipo === 'hospedagem') {
+      setTimeout(() => {
+        addCeciliaMessage('Também posso te encaminhar direto para o formulário da hospedagem.');
+      }, 400);
+    }
+  }, 700);
+}
+
+
+    // FUNÇÕES DO FLUXO DE HOSPEDAGEM
+    let currentHospedagemStep = 1;
+
+    function showHospedagemStep(step) {
+      for (let i = 1; i <= 7; i++) {
+        const el = document.getElementById(`hospedagemStep${i}`);
+        if (el) el.classList.add('hidden');
+      }
+      
+      const currentEl = document.getElementById(`hospedagemStep${step}`);
+      if (currentEl) currentEl.classList.remove('hidden');
+      
+      document.querySelectorAll('#hospedagemStepIndicator .step-dot').forEach((dot, index) => {
+        if (index + 1 <= step) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+      
+      currentHospedagemStep = step;
+    }
+
+    function nextHospedagemStep(current, next) {
+      if (current === 2) {
+        const nome = document.getElementById('hospNome')?.value;
+        const telefone = document.getElementById('hospTelefone')?.value;
+        if (!nome || !telefone) {
+          alert('Por favor, preencha seu nome e telefone para continuar.');
+          return;
+        }
+        hospedagemData.nome = nome;
+        hospedagemData.telefone = telefone;
+      }
+      showHospedagemStep(next);
+    }
+
+    function prevHospedagemStep(current, prev) {
+      showHospedagemStep(prev);
+    }
+
+    function agendarHospedagem(programa) {
+      const programas = {
+        '2_3': 'Programa de 2 a 3 dias (R$ 1.497)',
+        '5': 'Programa de 5 dias (R$ 2.497)',
+        '7': 'Programa de 7 dias (R$ 3.497)',
+        '10_14': 'Programa Intensivo 10-14 dias (R$ 5.997)'
+      };
+      
+      const mensagem = `🌿 *HOSPEDAGEM INTEGRATIVA*\n\n` +
+                      `Olá! Gostaria de reservar a hospedagem.\n\n` +
+                      `*Dados:*\n` +
+                      `Nome: ${hospedagemData.nome || 'Não informado'}\n` +
+                      `WhatsApp: ${hospedagemData.telefone || 'Não informado'}\n\n` +
+                      `*Programa selecionado:* ${programas[programa]}\n\n` +
+                      `✅ *Status:* Aguardando link de pagamento\n\n` +
+                      `Após a confirmação, enviar formulário completo e instruções.`;
+      
+      const url = WPP + "?text=" + encodeURIComponent(mensagem);
+      window.open(url, '_blank');
+      
+      setTimeout(() => {
+        alert('✅ Link de pagamento enviado! Você receberá todas as instruções após a confirmação.');
+      }, 1000);
+      
+      closeModal('hospedagemModal');
+    }
+
+    // FUNÇÕES DO FLUXO DO SONO
+    let currentSonoStep = 1;
+
+    function showSonoStep(step) {
+      for (let i = 1; i <= 7; i++) {
+        const el = document.getElementById(`sonoStep${i}`);
+        if (el) el.classList.add('hidden');
+      }
+      
+      const currentEl = document.getElementById(`sonoStep${step}`);
+      if (currentEl) currentEl.classList.remove('hidden');
+      
+      document.querySelectorAll('#sonoStepIndicator .step-dot').forEach((dot, index) => {
+        if (index + 1 <= step) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+      
+      currentSonoStep = step;
+    }
+
+    function nextSonoStep(current, next) {
+      if (current === 2) {
+        const nome = document.getElementById('sonoNome')?.value;
+        const telefone = document.getElementById('sonoTelefone')?.value;
+        if (!nome || !telefone) {
+          alert('Por favor, preencha seu nome e telefone para continuar.');
+          return;
+        }
+        sonoData.nome = nome;
+        sonoData.telefone = telefone;
+      }
+      showSonoStep(next);
+    }
+
+    function prevSonoStep(current, prev) {
+      showSonoStep(prev);
+    }
+
+        function agendarExameSono() {
+      const mensagem = `🌙 *EXAME DO SONO*\n\n` +
+                      `Olá! Gostaria de agendar o exame de polissonografia.\n\n` +
+                      `*Dados:*\n` +
+                      `Nome: ${sonoData.nome || 'Não informado'}\n` +
+                      `WhatsApp: ${sonoData.telefone || 'Não informado'}\n\n` +
+                      `*Tipo:* Polissonografia (R$ 450)\n\n` +
+                      `✅ *Status:* Aguardando link de pagamento\n\n` +
+                      `Após a confirmação, enviar orientações para o exame e link da teleconsulta.`;
+      
+      const url = WPP + "?text=" + encodeURIComponent(mensagem);
+      window.open(url, '_blank');
+      
+      setTimeout(() => {
+        alert('✅ Link de pagamento enviado! Você receberá as orientações para o exame.');
+      }, 1000);
+      
+      closeModal('sonoModal');
+    }
+
+const procedureCatalog = {
+  "Consulta Integrada MIB": {
+    name: "Consulta Integrada MIB",
+    price: "R$ 297",
+    description: "Consulta clínica completa para avaliação profunda do seu estado físico, emocional, funcional e energético.",
+    benefits: [
+      "Avaliação inicial completa",
+      "Plano terapêutico personalizado",
+      "Mapa de saúde individual"
+    ],
+    paymentLink: "https://SEU-LINK-1"
+  },
+  "Consulta do Sono": {
+    name: "Consulta do Sono",
+    price: "R$ 297",
+    description: "Consulta especializada para investigar ronco, insônia, apneia e fadiga.",
+    benefits: [
+      "Anamnese do sono",
+      "Avaliação clínica",
+      "Encaminhamento estratégico"
+    ],
+    paymentLink: "https://SEU-LINK-2"
+  },
+  "Polissonografia Domiciliar": {
+    name: "Polissonografia Domiciliar",
+    price: "R$ 450",
+    description: "Exame completo do sono no conforto da sua casa com análise especializada.",
+    benefits: [
+      "Exame domiciliar",
+      "Relatório detalhado",
+      "Acompanhamento remoto"
+    ],
+    paymentLink: "https://SEU-LINK-3"
+  },
+  "Sessão de Ozonioterapia": {
+    name: "Sessão de Ozonioterapia",
+    price: "R$ 150",
+    description: "Atendimento voltado para equilíbrio, regeneração e apoio terapêutico individualizado.",
+    benefits: [
+      "Aplicação segura",
+      "Avaliação prévia",
+      "Suporte integrativo"
+    ],
+    paymentLink: "https://SEU-LINK-4"
+  },
+  "Protocolo para Feridas": {
+    name: "Protocolo para Feridas",
+    price: "Sob avaliação",
+    description: "Atendimento especializado para prevenção, tratamento e acompanhamento de feridas.",
+    benefits: [
+      "Atendimento especializado",
+      "Plano individualizado",
+      "Possível suporte domiciliar"
+    ],
+    paymentLink: ""
+  },
+  "Hospedagem Integrativa": {
+    name: "Hospedagem Integrativa",
+    price: "A partir de R$ 1.497",
+    description: "Imersão terapêutica com natureza, bem-estar e acompanhamento estratégico.",
+    benefits: [
+      "Vivência rural",
+      "Programas de 2 a 14 dias",
+      "Pré-avaliação individual"
+    ],
+    paymentLink: "https://SEU-LINK-5"
+  }
+};
+
+
+const calendarLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const availableTimeSlots = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
+
+function renderMiniCalendar() {
+  const calendar = document.getElementById("miniCalendar");
+  if (!calendar) return;
+
+  const today = new Date();
+  calendar.innerHTML = "";
+
+  for (let i = 0; i < 6; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `calendar-day ${inezData.data === iso ? "active" : ""}`;
+    btn.innerHTML = `
+      <small>${calendarLabels[date.getDay()]}</small>
+      <strong>${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}</strong>
+      <span>${date.getFullYear()}</span>
+    `;
+    btn.addEventListener("click", () => selectCalendarDate(iso));
+    calendar.appendChild(btn);
+  }
+}
+
+function renderTimeSlots() {
+  const slots = document.getElementById("timeSlots");
+  if (!slots) return;
+
+  slots.innerHTML = availableTimeSlots.map(hour => `
+    <button type="button" class="time-slot ${inezData.hora === hour ? "active" : ""}" data-hour="${hour}">${hour}</button>
+  `).join("");
+
+  slots.querySelectorAll(".time-slot").forEach(btn => {
+    btn.addEventListener("click", () => selectTimeSlot(btn.dataset.hour));
+  });
+}
+
+function selectCalendarDate(dateValue) {
+  inezData.data = dateValue;
+  const input = document.getElementById("aiData");
+  if (input) input.value = dateValue;
+  renderMiniCalendar();
+  refreshInezSummary();
+}
+
+function selectTimeSlot(hourValue) {
+  inezData.hora = hourValue;
+  const input = document.getElementById("aiHora");
+  if (input) input.value = hourValue;
+  renderTimeSlots();
+  refreshInezSummary();
+}
+
+function renderProcedureGrid() {
+  const grid = document.getElementById("procedureGrid");
+  if (!grid) return;
+
+  grid.innerHTML = Object.values(procedureCatalog).map(proc => `
+    <div class="procedure-card ${selectedProcedure.name === proc.name ? "active" : ""}" data-name="${proc.name}">
+      <div class="flex items-start justify-between gap-3">
+        <h4>${proc.name}</h4>
+        <span class="price">${proc.price}</span>
+      </div>
+      <p>${proc.description}</p>
+      <ul>
+        ${proc.benefits.map(item => `<li>${item}</li>`).join("")}
+      </ul>
+    </div>
+  `).join("");
+
+  grid.querySelectorAll(".procedure-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const proc = procedureCatalog[card.dataset.name];
+      if (!proc) return;
+      selectedProcedure = proc;
+      renderProcedureGrid();
+      refreshInezSummary();
+    });
+  });
+}
+
+function openProcedureModal(procedureName) {
+  openModal('agendamentoModal');
+
+  if (procedureCatalog[procedureName]) {
+    selectedProcedure = procedureCatalog[procedureName];
+    goToInezStep(3);
+  } else {
+    selectedProcedure = { name: "", price: "", description: "", benefits: [], paymentLink: "" };
+    goToInezStep(1);
+  }
+
+  renderProcedureGrid();
+  refreshInezSummary();
+}
+
+function persistInezFields() {
+  inezData.nome = document.getElementById('aiNome')?.value.trim() || "";
+  inezData.telefone = document.getElementById('aiTelefone')?.value.trim() || "";
+  inezData.email = document.getElementById('aiEmail')?.value.trim() || "";
+  inezData.motivo = document.getElementById('aiMotivo')?.value.trim() || "";
+  inezData.data = document.getElementById('aiData')?.value || "";
+  inezData.hora = document.getElementById('aiHora')?.value || "";
+}
+
+function formatDateBR(dateValue) {
+  if (!dateValue) return "-";
+  return new Date(dateValue + 'T00:00:00').toLocaleDateString('pt-BR');
+}
+
+function refreshInezSummary() {
+  persistInezFields();
+
+  const map = {
+    displayName: inezData.nome || "",
+    resumoNome: inezData.nome || "-",
+    resumoProcedimento: selectedProcedure.name || "-",
+    resumoValor: selectedProcedure.price || "-",
+    resumoNomeFinal: inezData.nome || "-",
+    resumoTelefone: inezData.telefone || "-",
+    resumoEmail: inezData.email || "-",
+    resumoMotivo: inezData.motivo || "-",
+    resumoProcedimentoFinal: selectedProcedure.name || "-",
+    resumoValorFinal: selectedProcedure.price || "-",
+    resumoData: formatDateBR(inezData.data),
+    resumoHora: inezData.hora || "-",
+    okNome: inezData.nome || "-",
+    okProcedimento: selectedProcedure.name || "-",
+    okData: formatDateBR(inezData.data),
+    okHora: inezData.hora || "-"
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  });
+
+  renderMiniCalendar();
+  renderTimeSlots();
+  refreshTeleconsultaSummary();
+}
+
+function refreshTeleconsultaSummary() {
+  const map = {
+    teleNome: inezData.nome || "-",
+    teleTelefone: inezData.telefone || "-",
+    teleEmail: inezData.email || "-",
+    teleProcedimento: selectedProcedure.name || "-",
+    teleValor: selectedProcedure.price || "-",
+    teleData: formatDateBR(inezData.data),
+    teleHora: inezData.hora || "-"
+  };
+
+  Object.entries(map).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  });
+}
+
+function goToInezStep(step) {
+  for (let i = 1; i <= 7; i++) {
+    const screen = document.getElementById(`step-${i}`);
+    const dot = document.getElementById(`dot-${i}`);
+
+    if (screen) {
+      screen.classList.remove('block');
+      screen.classList.add('hidden');
+    }
+
+    if (dot) {
+      if (i <= step) dot.classList.add('active');
+      else dot.classList.remove('active');
+    }
+  }
+
+  const activeStep = document.getElementById(`step-${step}`);
+  if (activeStep) {
+    activeStep.classList.remove('hidden');
+    activeStep.classList.add('block');
+  }
+
+  currentInezStep = step;
+  refreshInezSummary();
+}
+
+function nextStep(current, next) {
+  persistInezFields();
+
+  if (current === 1) {
+    if (!inezData.nome || !inezData.telefone || !inezData.email) {
+      alert('Por favor, preencha nome, WhatsApp e e-mail para continuar.');
+      return;
+    }
+  }
+
+  if (current === 2) {
+    if (!inezData.motivo) {
+      alert('Descreva o que você está sentindo para continuar.');
+      return;
+    }
+  }
+
+  if (current === 3) {
+    if (!selectedProcedure.name) {
+      alert('Selecione um procedimento para continuar.');
+      return;
+    }
+  }
+
+  if (current === 4) {
+    if (!inezData.data || !inezData.hora) {
+      alert('Escolha a data e o horário desejado.');
+      return;
+    }
+  }
+
+  goToInezStep(next);
+}
+
+function buildPixCode() {
+  const value = (selectedProcedure.price || "R$ 297").replace(/[^\d]/g, "");
+  return `00020126580014BR.GOV.BCB.PIX0136holozonic.agendamento5204000053039865404${value}5802BR5913HOLOZONIC6009LAGES-SC62070503***6304ABCD`;
+}
+
+function generatePixPayment() {
+  persistInezFields();
+
+  if (!selectedProcedure.name) {
+    alert('Selecione um procedimento.');
+    goToInezStep(2);
+    return;
+  }
+
+  if (!inezData.data || !inezData.hora) {
+    alert('Escolha a data e o horário desejado.');
+    goToInezStep(4);
+    return;
+  }
+
+  inezData.pixCode = buildPixCode();
+  const pixCodeBox = document.getElementById('pixCodeBox');
+  if (pixCodeBox) pixCodeBox.textContent = inezData.pixCode;
+
+  goToInezStep(6);
+}
+
+function copyPixCode() {
+  if (!inezData.pixCode) {
+    alert('Nenhum código PIX foi gerado ainda.');
+    return;
+  }
+
+  navigator.clipboard.writeText(inezData.pixCode)
+    .then(() => alert('Código PIX copiado com sucesso.'))
+    .catch(() => alert('Não foi possível copiar automaticamente. Copie manualmente o código exibido.'));
+}
+
+function confirmPixPayment() {
+  inezData.pagamentoConfirmado = true;
+  refreshInezSummary();
+  goToInezStep(7);
+}
+
+function openTeleconsultaArea() {
+  refreshTeleconsultaSummary();
+  closeModal('agendamentoModal');
+  openModal('teleconsultaModal');
+}
+
+function enterTeleconsultaRoom() {
+  const meetingLink = "https://meet.google.com/";
+  window.open(meetingLink, '_blank');
+}
+
+function sendScheduleToWhatsApp() {
+  const mensagem = encodeURIComponent(
+    `Olá! Meu agendamento foi liberado.\n\n` +
+    `Nome: ${inezData.nome || "-"}\n` +
+    `WhatsApp: ${inezData.telefone || "-"}\n` +
+    `E-mail: ${inezData.email || "-"}\n` +
+    `Procedimento: ${selectedProcedure.name || "-"}\n` +
+    `Valor: ${selectedProcedure.price || "-"}\n` +
+    `Data: ${formatDateBR(inezData.data)}\n` +
+    `Período: ${inezData.hora || "-"}\n` +
+    `Status: Agendamento liberado`
+  );
+
+  window.open(`${WPP}?text=${mensagem}`, '_blank');
+}
+
+function sendTeleconsultaToWhatsApp() {
+  const mensagem = encodeURIComponent(
+    `Olá! Gostaria de receber os dados da minha teleconsulta.\n\n` +
+    `Nome: ${inezData.nome || "-"}\n` +
+    `Procedimento: ${selectedProcedure.name || "-"}\n` +
+    `Data: ${formatDateBR(inezData.data)}\n` +
+    `Período: ${inezData.hora || "-"}`
+  );
+
+  window.open(`${WPP}?text=${mensagem}`, '_blank');
+}
+
+function finalizeAIAppointment() {
+  generatePixPayment();
+}
+
+
+
+
+function resetCeciliaChat() {
+  const chat = document.getElementById("ceciliaChat");
+  if (!chat) return;
+
+  chat.innerHTML = `
+    <div class="chat-msg bot">
+      <div class="chat-bubble bot">
+        Olá! Eu sou a Cecília 😊<br>
+        Posso te ajudar com tratamentos, valores, unidades, sono, hospedagem ou agendamento.
+      </div>
+    </div>
+    <div class="chat-msg typing" id="ceciliaTyping">
+      <div class="chat-bubble typing">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  `;
+}
+
+(function () {
+    const dynamicActions = document.getElementById('dynamicActions');
+    if (!dynamicActions) return;
+
+    let scrollTimer = null;
+    let lastScrollY = window.scrollY;
+
+    function isInHero() {
+      const hero = document.querySelector('.hero');
+      if (!hero) return window.scrollY < 180;
+
+      const heroBottom = hero.offsetTop + hero.offsetHeight - 120;
+      return window.scrollY < heroBottom;
+    }
+
+    function setFullState() {
+      dynamicActions.classList.remove('is-scrolling');
+      dynamicActions.classList.remove('is-compact');
+    }
+
+    function setCompactState() {
+      dynamicActions.classList.remove('is-scrolling');
+      dynamicActions.classList.add('is-compact');
+    }
+
+    function setHiddenScrollingState() {
+      dynamicActions.classList.add('is-scrolling');
+    }
+
+    function handleScroll() {
+      const currentY = window.scrollY;
+      const inHero = isInHero();
+
+      if (inHero) {
+        setFullState();
+      } else {
+        setHiddenScrollingState();
+
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          if (!isInHero()) {
+            setCompactState();
+          } else {
+            setFullState();
+          }
+        }, 180);
+      }
+
+      lastScrollY = currentY;
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('load', handleScroll);
+    window.addEventListener('resize', handleScroll);
+  })();
+
+function finishProcedureSale() {
+  persistInezFields();
+
+  if (!selectedProcedure.name) {
+    alert('Selecione um procedimento.');
+    goToInezStep(2);
+    return;
+  }
+
+  if (!inezData.nome || !inezData.telefone || !inezData.email) {
+    alert('Por favor, preencha nome, WhatsApp e e-mail.');
+    goToInezStep(1);
+    return;
+  }
+
+  if (!inezData.data || !inezData.hora) {
+    alert('Escolha a data e o horário desejado.');
+    goToInezStep(4);
+    return;
+  }
+
+  const mensagem = encodeURIComponent(
+    `Olá! Fiz um pré-agendamento pela Inêz.
+
+` +
+    `Procedimento: ${selectedProcedure.name}
+` +
+    `Valor: ${selectedProcedure.price}
+` +
+    `Nome: ${inezData.nome}
+` +
+    `WhatsApp: ${inezData.telefone}
+` +
+    `E-mail: ${inezData.email}
+` +
+    `Motivo/Observação: ${inezData.motivo || 'Não informado'}
+` +
+    `Data preferencial: ${formatDateBR(inezData.data)}
+` +
+    `Período: ${inezData.hora}
+
+` +
+    `Status: Agendamento liberado`
+  );
+
+  if (selectedProcedure.paymentLink) {
+    window.open(selectedProcedure.paymentLink, '_blank');
+  }
+
+  window.open(`${WPP}?text=${mensagem}`, '_blank');
+}
+
+function resetInezFlow() {
+  inezData = {
+    nome: "",
+    telefone: "",
+    email: "",
+    motivo: "",
+    data: "",
+    hora: "",
+    pixCode: "",
+    pagamentoConfirmado: false
+  };
+
+  selectedProcedure = {
+    name: "",
+    price: "",
+    description: "",
+    benefits: [],
+    paymentLink: ""
+  };
+
+  currentInezStep = 1;
+
+  const campos = ['aiNome', 'aiTelefone', 'aiEmail', 'aiMotivo', 'aiData', 'aiHora'];
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+
+  document.querySelectorAll('.procedure-card').forEach(card => {
+    card.classList.remove('active');
+  });
+
+  document.querySelectorAll('.calendar-day').forEach(day => {
+    day.classList.remove('active');
+  });
+
+  document.querySelectorAll('.time-slot').forEach(slot => {
+    slot.classList.remove('active');
+  });
+
+  refreshInezSummary();
+  goToInezStep(1);
+}
+   
+    // FUNÇÕES WHATSAPP CECÍLIA
+    function openWhatsApp() {
+      const msg = encodeURIComponent(
+        "Olá Cecília! Vim pelo site da Holozonic e gostaria de tirar algumas dúvidas."
+      );
+      window.open(WPP + "?text=" + msg, '_blank');
+      closeModal('whatsappModal');
+    }
+
+    function selectQuickReply(option) {
+      const msg = encodeURIComponent(
+        `Olá Cecília! Gostaria de ${option}. Pode me ajudar?`
+      );
+      window.open(WPP + "?text=" + msg, '_blank');
+      closeModal('whatsappModal');
+    }
+
+    // MENU MOBILE
+    const mobileBtn = document.getElementById("mobileBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+    if (mobileBtn) {
+      mobileBtn.addEventListener("click", () => mobileMenu.classList.toggle("hidden"));
+    }
+    
+    document.querySelectorAll("#mobileMenu a, #mobileMenu button").forEach(el => {
+      el.addEventListener("click", () => {
+        mobileMenu.classList.add("hidden");
+      });
+    });
+
+    // FECHAR MODAIS
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.classList.remove('active');
+          document.body.style.overflow = 'auto';
+        }
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+          modal.classList.remove('active');
+          document.body.style.overflow = 'auto';
+        });
+      }
+    });
+
+    // INICIALIZAÇÃO
+    document.addEventListener('DOMContentLoaded', function() {
+      showHospedagemStep(1);
+      showSonoStep(1);
+      renderProcedureGrid();
+      renderMiniCalendar();
+      renderTimeSlots();
+      goToInezStep(1);
+      refreshInezSummary();
+    });
+  </script>
+
+</body>
+</html>

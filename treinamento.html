@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holozonic - Central de Treinamento IA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg-body: #020617;
+      --primary: #3b82f6;
+      --emerald: #10b981;
+    }
+    body { background: var(--bg-body); color: #f8fafc; font-family: 'Inter', sans-serif; }
+    .glass { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+    .chat-bubble { border-radius: 20px; padding: 12px 16px; margin-bottom: 8px; max-width: 80%; font-size: 0.9rem; }
+    .bubble-ai { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); align-self: flex-start; }
+    .bubble-user { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); align-self: flex-end; }
+  </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex flex-col">
+
+  <header class="flex justify-between items-center mb-8">
+    <div class="flex items-center gap-4">
+      <button onclick="window.location.href='painel.html'" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all">
+        <i class="fas fa-chevron-left text-slate-400"></i>
+      </button>
+      <div>
+        <h1 class="text-2xl font-black text-white tracking-tight">Central de Treinamento IA</h1>
+        <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Self-Evolve Engine v4.1 Ativo</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+       <button onclick="limparChat()" class="px-4 py-2 rounded-xl bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20 hover:bg-red-500/20 transition-all">Limpar Conversa</button>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
+    
+    <!-- CHAT INTERFACE -->
+    <div class="lg:col-span-2 flex flex-col bg-slate-900/50 rounded-3xl border border-white/5 glass h-[calc(100vh-180px)]">
+      <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+            <i class="fas fa-brain text-white"></i>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white leading-none">Agente Inêz</div>
+            <span class="text-[10px] text-emerald-500 font-bold uppercase">Online / Listening</span>
+          </div>
+        </div>
+        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sincronismo via Ollama</div>
+      </div>
+      
+      <div id="chatWindow" class="flex-1 overflow-y-auto p-6 flex flex-col space-y-4">
+        <!-- Bubbles injected here -->
+        <div class="chat-bubble bubble-ai">
+          Olá, Dr. Jarvis. Sou a Inêz. Estou analisando os logs do consultório em tempo real. Como posso ajudar na evolução do sistema hoje?
+        </div>
+      </div>
+
+      <div class="p-6 bg-white/[0.02] border-t border-white/5">
+        <div class="relative">
+          <input type="text" id="chatInput" placeholder="Envie um comando ou pergunte sobre os logs..." 
+                 class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none focus:border-blue-500 transition-all pr-16">
+          <button onclick="enviarMensagem()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-blue-600 rounded-xl text-white flex items-center justify-center hover:bg-blue-500 transition-all">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG MONITOR & DISTILLATION -->
+    <div class="flex flex-col gap-6">
+      
+      <div class="bg-slate-900/50 rounded-3xl border border-white/5 glass p-6 flex flex-col h-1/2 overflow-hidden">
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex justify-between">
+          Log Monitor Final
+          <span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded text-[8px]">Real-time</span>
+        </h3>
+        <div id="logMonitor" class="flex-1 font-mono text-[10px] text-emerald-300 space-y-2 overflow-y-auto">
+           <!-- Logs via JS -->
+           <div class="opacity-50">[22:45:12] SYSTEM: Initializing...</div>
+           <div class="opacity-100 text-blue-400">[22:45:14] AUTH: Admin session started</div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/50 rounded-3xl border border-white/5 glass p-6 h-1/2 flex flex-col">
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Distilled Knowledge</h3>
+        <div class="flex-1 flex items-center justify-center text-center p-4">
+          <div>
+            <div class="w-16 h-16 bg-white/5 rounded-2xl mx-auto mb-4 border border-white/10 flex items-center justify-center text-slate-600">
+               <i class="fas fa-microchip text-2xl"></i>
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed italic">Aguardando padrões clínicos para destilação noKnowledge Graph...</p>
+          </div>
+        </div>
+        <button class="w-full bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-600/20 transition-all">Forçar Re-Indexação</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3001/api';
+    
+    async function refreshLogs() {
+      try {
+        const res = await fetch(`${API_URL}/ai/logs`);
+        const logs = await res.json();
+        const monitor = document.getElementById('logMonitor');
+        monitor.innerHTML = logs.map(l => `
+          <div class="border-b border-white/[0.04] pb-2 mb-2 group">
+            <div class="flex justify-between items-start">
+               <span class="text-slate-600 text-[9px] font-bold">[${new Date(l.timestamp).toLocaleString()}]</span>
+               <button onclick="distillFromLog('${l.input}', '${l.id}')" class="opacity-0 group-hover:opacity-100 text-[9px] text-blue-400 font-bold uppercase tracking-widest hover:text-blue-300 transition-all">Destilar Pattern</button>
+            </div>
+            <div class="text-emerald-400 mt-1"><span class="text-blue-500 font-black">»</span> ${l.input}</div>
+            ${l.distilledPattern ? `<div class="text-slate-500 text-[9px] mt-1 bg-white/5 p-1 rounded italic">${l.distilledPattern}</div>` : ''}
+          </div>
+        `).join('') || '<div class="text-slate-700 italic">Nenhum log capturado hoje.</div>';
+      } catch (e) {
+        console.error('Log sync error');
+      }
+    }
+
+    async function enviarMensagem() {
+      const input = document.getElementById('chatInput');
+      const val = input.value;
+      if(!val) return;
+
+      const chat = document.getElementById('chatWindow');
+      chat.innerHTML += `<div class="chat-bubble bubble-user">${val}</div>`;
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+
+      try {
+        const res = await fetch(`${API_URL}/ai/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: val, context: 'Painel de Treinamento JARVIS' })
+        });
+        const data = await res.json();
+        
+        chat.innerHTML += `<div class="chat-bubble bubble-ai">${data.response}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+        refreshLogs();
+      } catch (e) {
+        chat.innerHTML += `<div class="chat-bubble bubble-ai text-red-400">Erro ao conectar com Ollama local ou Backend.</div>`;
+      }
+    }
+
+    async function distillFromLog(text, id) {
+       const pattern = prompt("Qual o padrão destilado (Distilled Knowledge)?", text);
+       if(!pattern) return;
+
+       await fetch(`${API_URL}/ai/distill`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pattern: `DISTILLED: ${pattern}`, confidence: 0.98 })
+       });
+       
+       alert('Aprendizado vinculado ao Knowledge Graph com sucesso.');
+       refreshLogs();
+    }
+
+    function limparChat() {
+      document.getElementById('chatWindow').innerHTML = '';
+    }
+
+    document.getElementById('chatInput').addEventListener('keypress', e => {
+      if(e.key === 'Enter') enviarMensagem();
+    });
+
+    setInterval(refreshLogs, 5000);
+    refreshLogs();
+  </script>
+</body>
+</html>

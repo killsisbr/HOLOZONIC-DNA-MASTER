@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holozonic Care - Sistema Global</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-surface: #ffffff;
+      --sidebar-bg: #0f172a;
+      --sidebar-hover: #1e293b;
+      --sidebar-text: #cbd5e1;
+      --sidebar-active: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+    body { background: var(--bg-body); color: var(--text-main); height: 100vh; overflow: hidden; }
+
+    /* AUTH SCREEN */
+    #auth-screen {
+      position: fixed; inset: 0; background: var(--sidebar-bg);
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+      background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+    }
+    .auth-box {
+      background: var(--bg-surface); width: 100%; max-width: 400px;
+      padding: 2.5rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+    }
+    .auth-box h2 { margin-bottom: 0.5rem; color: var(--text-main); font-weight: 700; }
+    .auth-box p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .auth-form .form-group { margin-bottom: 1rem; }
+    .auth-form input, .auth-form select { 
+      width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.95rem; outline: none; transition: 0.2s;
+    }
+    .auth-form input:focus { border-color: var(--primary); }
+    .auth-btn { width: 100%; background: var(--primary); color: #fff; padding: 0.85rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 1rem; }
+    .auth-btn:hover { background: var(--primary-hover); }
+
+    /* APP LAYOUT */
+    #app-container { display: none; grid-template-columns: 260px 1fr; height: 100vh; }
+    
+    /* SIDEBAR */
+    aside { background: var(--sidebar-bg); color: var(--sidebar-text); padding: 1.5rem 1rem; display: flex; flex-direction: column; overflow-y: auto;}
+    .brand { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+    .brand h2 { color: #fff; font-size: 1.25rem; font-weight: 700; }
+    .brand span { font-size: 0.75rem; color: var(--primary); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+    .nav-btn { display: flex; align-items: center; gap: 0.75rem; background: transparent; border: none; color: inherit; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; text-align: left; transition: 0.2s; margin-bottom: 0.25rem; }
+    .nav-btn svg { width: 18px; height: 18px; stroke-width: 2; }
+    .nav-btn:hover { background: var(--sidebar-hover); color: var(--sidebar-active); }
+    .nav-btn.active { background: var(--primary); color: #fff; }
+    .user-profile { margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap: 10px; }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color:#fff; display:flex; justify-content:center; align-items:center; font-weight:bold; }
+    .user-info div { font-size: 0.85rem; color: #fff; font-weight: 600; }
+    .user-info span { font-size: 0.75rem; color: var(--sidebar-text); }
+    
+    /* MAIN */
+    main { padding: 2rem; overflow-y: auto; background: var(--bg-body); }
+    .topbar { margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-end;}
+    .topbar h1 { font-size: 1.5rem; color: var(--text-main); }
+    .topbar p { font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem; }
+    
+    .view-section { display: none; animation: fadeIn 0.3s ease; }
+    .view-section.active { display: block; }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+    /* COMPONENTS */
+    .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .card { background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .card-title { font-size: 1rem; font-weight: 600; color: var(--text-main); }
+    .kpi-value { font-size: 2rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0; }
+    .kpi-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+    th, td { padding: 1rem; border-bottom: 1px solid var(--border); }
+    th { font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; background: #f8fafc; }
+    tr:hover { background: #f8fafc; }
+    
+    .badge { display: inline-flex; padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+    .badge-info { background: #e0f2fe; color: #0369a1; }
+    .badge-neutral { background: #f1f5f9; color: #475569; }
+
+    .btn { padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.5rem;}
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+    .btn-outline:hover { background: var(--bg-body); }
+
+    /* FORMS & GRIDS */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+    .form-control { padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; outline: none; }
+    .form-control:focus { border-color: var(--primary); }
+    
+    /* PRONTUARIO TREE & LAYOUT */
+    .pep-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; height: calc(100vh - 150px); }
+    .pep-sidebar { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden;}
+    .pep-search { padding: 1rem; border-bottom: 1px solid var(--border); background: #f8fafc; }
+    .pep-tree { flex: 1; overflow-y: auto; padding: 1rem; }
+    .tree-node { font-size: 0.875rem; padding: 0.5rem; border-radius: 6px; cursor: pointer; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: 0.2s;}
+    .tree-node:hover, .tree-node.active { background: var(--primary); color: #fff; }
+    .tree-node.child { margin-left: 1.5rem; font-size: 0.8rem; }
+    .pep-content { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; overflow-y: auto; position: relative; }
+    
+    /* TIMELINE */
+    .timeline { border-left: 2px solid var(--border); margin-left: 1rem; padding-left: 1.5rem; position: relative; }
+    .timeline-item { margin-bottom: 1.5rem; position: relative; }
+    .timeline-item::before { content: ''; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; position: absolute; left: -1.90rem; top: 0.2rem; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+    .timeline-date { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.25rem; }
+    .timeline-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .timeline-box h4 { font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-main); }
+    .timeline-box p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* TELECONSULTA PIP */
+    .tele-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; height: calc(100vh - 180px); }
+    .video-mock { background: #000; border-radius: var(--radius); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;}
+    .video-mock p { color: rgba(255,255,255,0.7); }
+    .pip-cam { position: absolute; bottom: 1rem; right: 1rem; width: 140px; height: 100px; background: #1e293b; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2); }
+    .controls-overlay { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; background: rgba(0,0,0,0.6); padding: 0.5rem 1rem; border-radius: 999px; }
+    .controls-overlay button { width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); color: #fff; cursor: pointer; }
+    .controls-overlay button.end { background: var(--danger); }
+    .tele-sidebar { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; }
+
+    /* DOCUMENT BOX */
+    .doc-preview-box { border: 1px dashed var(--border); background: #fafafa; padding: 2rem; border-radius: 8px; font-family: 'Times New Roman', Times, serif; color: #000; min-height: 400px; white-space: pre-wrap; line-height: 1.5; font-size:1.1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-box">
+      <h2>Holozonic Care</h2>
+      <p>Acesso Restrito - Identifique-se</p>
+      <div class="auth-form">
+        <div class="form-group">
+          <label>Nível de Acesso</label>
+          <select id="loginRole">
+            <option value="admin">Administrador (Master)</option>
+            <option value="medico">Médico / Especialista</option>
+            <option value="atendente">Recepção / Atendente</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Usuário</label>
+          <input type="text" id="loginUser" placeholder="admin, clinico, recepcao..." value="admin">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="loginPass" placeholder="******" value="1234">
+        </div>
+        <button class="auth-btn" onclick="doLogin()">Autenticar Sessão</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app-container">
+    <aside>
+      <div class="brand">
+        <h2>Holozonic</h2>
+        <span>Medical Care System</span>
+      </div>
+      <nav id="navMenu">
+        <!-- Rendered dynamically based on Role -->
+      </nav>
+      <div class="user-profile">
+        <div class="user-avatar" id="lblAvatar">A</div>
+        <div class="user-info">
+          <div id="lblUserName">Administrador</div>
+          <span id="lblUserRole">Sessão Segura</span>
+        </div>
+        <button class="btn btn-outline" style="padding: 0.3rem; margin-left:auto; border:none; color:var(--danger)" onclick="logout()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        </button>
+      </div>
+    </aside>
+
+    <main>
+      
+      <!-- DASHBOARD -->
+      <section id="view-dashboard" class="view-section active">
+        <div class="topbar">
+          <div>
+            <h1>Painel de Monitoramento</h1>
+            <p>Visão global de operação, alertas e agendamentos.</p>
+          </div>
+        </div>
+        
+        <div class="grid-kpi">
+          <div class="card">
+            <div class="kpi-label">Pacientes Ativos na Base</div>
+            <div class="kpi-value" id="dashKpiBase">0</div>
+          </div>
+          <div class="card">
+            <div class="kpi-label">Consultas Hoje (Presencial)</div>
+            <div class="kpi-value" id="dashKpiConsulta" style="color:var(--info)">0</div>
+          </div>
+          <div class="card">
+            <div class="kpi-label">Teleconsultas Hoje</div>
+            <div class="kpi-value" id="dashKpiTele" style="color:var(--warning)">0</div>
+          </div>
+          <div class="card" style="border-left: 4px solid var(--danger)">
+            <div class="kpi-label">Alertas Críticos (Tempo Fila)</div>
+            <div class="kpi-value" style="color:var(--danger)">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Fluxo de Atendimento em Tempo Real</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Entrada / Hora</th>
+              </tr>
+            </thead>
+            <tbody id="dashFilaTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CADASTRO E RECEPCAO -->
+      <section id="view-cadastro" class="view-section">
+        <div class="topbar">
+          <div>
+            <h1>Recepção e Cadastros</h1>
+            <p>Cadastre pacientes oriundos do site e presencialmente.</p>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-bottom: 2rem;">
+          <div class="card-header"><h3 class="card-title">Novo Paciente Deste Turno</h3></div>
+          <div class="form-grid">
+            <div class="form-group"><label>Nome Completo</label><input type="text" id="cadNome" class="form-control"></div>
+            <div class="form-group"><label>CPF</label><input type="text" id="cadCpf" class="form-control"></div>
+            <div class="form-group"><label>Data Nascimento</label><input type="date" id="cadNasc" class="form-control"></div>
+            <div class="form-group"><label>Plano / Particular</label>
+              <select id="cadPlano" class="form-control"><option>Particular</option><option>Unimed</option><option>SulAmérica</option></select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="cadastrarPaciente()">Salvar e Gerar Prontuário</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Pacientes Cadastrados</h3></div>
+          <table>
+            <thead><tr><th>ID</th><th>Nome</th><th>CPF</th><th>Ações</th></tr></thead>
+            <tbody id="cadTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- AGENDA -->
+      <section id="view-agenda" class="view-section">
+        <div class="topbar">
+          <div>
+            <h1>Agenda Médica</h1>
+            <p>Gerenciamento de horários e especialidades.</p>
+          </div>
+          <button class="btn btn-outline" onclick="abrirNovoAgendamento()">+ Novo Agendamento</button>
+        </div>
+
+        <div class="card">
+          <table>
+            <thead><tr><th>Hora</th><th>Paciente</th><th>Médico Solicitado</th><th>Modalidade</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="agendaTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- FILA DE ESPERA -->
+      <section id="view-fila" class="view-section">
+        <div class="topbar">
+          <div>
+            <h1>Monitor da Fila de Espera</h1>
+            <p>Controle de check-ins e direcionamento de consultórios.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <table>
+            <thead><tr><th>Senha/Hora</th><th>Paciente</th><th>Tipo</th><th>Status Atual</th><th>Operações</th></tr></thead>
+            <tbody id="filaMonitorBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TELECONSULTA -->
+      <section id="view-teleconsulta" class="view-section">
+        <div class="topbar">
+          <div>
+            <h1>Sala de Teleconsulta</h1>
+            <p>Conexão segura ponto-a-ponto com o paciente.</p>
+          </div>
+        </div>
+
+        <div id="teleAuthBlock" style="text-align:center; padding: 4rem; color:var(--text-muted)">
+          Selecione um paciente na fila ou agenda para iniciar a sessão.
+        </div>
+
+        <div id="teleActiveBlock" class="tele-grid" style="display:none;">
+          <div class="video-mock">
+            <h3 style="color:#fff;" id="lblTeleNome">Nome do Paciente</h3>
+            <div class="pip-cam"></div>
+            <div class="controls-overlay">
+              <button>M</button>
+              <button>V</button>
+              <button class="end" onclick="finalizarTeleconsulta()">X</button>
+            </div>
+          </div>
+          <div class="tele-sidebar">
+            <div style="padding: 1rem; border-bottom: 1px solid var(--border); background: #f8fafc;">
+              <h3 style="font-size:1rem;">Anotações Rápidas</h3>
+              <p style="font-size:0.8rem; color:var(--text-muted);">Sincronizado com PEP</p>
+            </div>
+            <textarea id="teleNotas" style="flex:1; padding:1rem; border:none; resize:none; outline:none; font-family:inherit; font-size:0.9rem;" placeholder="Evolução imediata..."></textarea>
+            <div style="padding: 1rem; border-top: 1px solid var(--border);">
+              <button class="btn btn-success" style="width:100%" onclick="finalizarTeleconsulta()">Encerrar e Salvar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRONTUÁRIO ELETRÔNICO (PEP) -->
+      <section id="view-pep" class="view-section">
+        <div class="topbar">
+          <div>
+            <h1>Prontuário Eletrônico (PEP)</h1>
+            <p>Histórico completo, diagnósticos e linha do tempo.</p>
+          </div>
+        </div>
+
+        <div class="pep-layout">
+          <!-- Sidebar: Search and Tree -->
+          <div class="pep-sidebar">
+            <div class="pep-search">
+              <select id="pepPatientSelect" class="form-control" onchange="carregarPEP()">
+                <option value="">-- Selecione o Paciente --</option>
+              </select>
+            </div>
+            <div class="pep-tree" id="pepTreeContainer" style="display:none;">
+              <div class="tree-node active" onclick="setPepTab('dados')">👤 Dados Básicos</div>
+              <div class="tree-node" onclick="setPepTab('timeline')">📅 Linha do Tempo</div>
+              <div class="tree-node child">↳ Consultas</div>
+              <div class="tree-node child">↳ Evoluções</div>
+              <div class="tree-node child">↳ Exames Anexados</div>
+              <div class="tree-node" onclick="setPepTab('diagnosticos')">🩺 Diagnósticos (CID)</div>
+              <div class="tree-node" onclick="setPepTab('medicamentos')">💊 Medicamentos Ativos</div>
+            </div>
+          </div>
+
+          <!-- Content Area -->
+          <div class="pep-content" id="pepContentArea">
+            <div style="color:var(--text-muted); text-align:center; margin-top: 4rem;">Pesquise e selecione um prontuário ao lado para abrir.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCUMENTOS -->
+      <section id="view-documentos" class="view-section">
+        <div class="topbar">
+          <div>
+            <h1>Emissão de Documentos</h1>
+            <p>Receituários, Atestados e Declarações com Assinatura e CID.</p>
+          </div>
+          <button class="btn btn-outline" onclick="imprimirDocumento()">🖨️ Imprimir Visualização</button>
+        </div>
+
+        <div class="grid-kpi" style="grid-template-columns: 350px 1fr;">
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">Configurar Documento</h3></div>
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label>Tipo de Documento</label>
+              <select id="docTipo" class="form-control" onchange="alterarTemplateDoc()">
+                <option value="receituario">Receituário Simples</option>
+                <option value="declaracao">Declaração (Comparecimento)</option>
+                <option value="atestado">Atestado Médico (Afastamento)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label>Paciente</label>
+              <select id="docPacSelect" class="form-control"></select>
+            </div>
+            
+            <div id="docFieldsBox">
+              <!-- Renderizados via JS -->
+            </div>
+            
+            <div class="form-group" style="margin-top:1rem;">
+              <label>Assinatura (Profissional | CRM)</label>
+              <input type="text" id="docAssinatura" class="form-control" placeholder="Dr. Nome - CRM XXXXX">
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%; margin-top:1.5rem;" onclick="gerarDocumento()">Pré-visualizar Documento</button>
+          </div>
+
+          <div class="card">
+            <div class="doc-preview-box" id="docPreviewNode">
+              O documento estruturado aparecerá aqui. Preencha os dados e clique em Gerar.
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    /*******************************************************
+     * STATE MANAGEMENT (MOCK DB)
+     *******************************************************/
+    const DB = {
+      currentUser: null,
+      pacientes: [
+        { id: 1, nome: "João Silva", cpf: "111.222.333-44", nasc: "1980-05-15", plano: "Unimed",
+          timeline: [ { data: "10/03/2026", tipo: "Evolução", desc: "Paciente relata dores leves na lombar. Prescrito repouso." } ],
+          diagnosticos: ["M54.5 - Dor baixa nas costas"],
+          medicamentos: ["Ibuprofeno 400mg - 8/8h (Em uso)"]
+        },
+        { id: 2, nome: "Maria Fernandes", cpf: "555.666.777-88", nasc: "1992-11-20", plano: "Particular", timeline: [], diagnosticos: [], medicamentos: [] }
+      ],
+      agenda: [
+        { id: 101, pacienteId: 1, dataHora: "Hoje 09:00", medico: "Dr. Admin", tipo: "Consulta", status: "Confirmado" },
+        { id: 102, pacienteId: 2, dataHora: "Hoje 10:30", medico: "Dr. Admin", tipo: "Teleconsulta", status: "Aguardando Link" }
+      ],
+      fila: [
+        // status: aguardando, em_atendimento, finalizado
+        { id: 501, pacienteId: 1, tipo: "Consulta", status: "aguardando", entrada: "08:50" }
+      ],
+      activeTeleconsulta: null,
+      activePepId: null
+    };
+
+    /*******************************************************
+     * AUTH MODULE
+     *******************************************************/
+    function doLogin() {
+      const role = document.getElementById('loginRole').value;
+      const user = document.getElementById('loginUser').value;
+      
+      DB.currentUser = { role, user, name: "Dr(a). " + user.toUpperCase() };
+      if(role === 'atendente') DB.currentUser.name = "Recepção - " + user;
+
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-container').style.display = 'grid';
+      
+      // Update Sidebar UI
+      document.getElementById('lblAvatar').innerText = user.charAt(0).toUpperCase();
+      document.getElementById('lblUserName').innerText = DB.currentUser.name;
+      document.getElementById('lblUserRole').innerText = role.toUpperCase();
+
+      buildMenuNavigation();
+      populateDropdowns();
+      switchView('view-dashboard');
+    }
+
+    function logout() {
+      DB.currentUser = null;
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('app-container').style.display = 'none';
+    }
+
+    /*******************************************************
+     * NAVIGATION ROUTER
+     *******************************************************/
+    const NAV_MAP = [
+      { id: 'view-dashboard', label: 'Monitor Dashboard', icon: 'M4 6h16M4 12h16m-7 6h7', roles: ['admin', 'medico', 'atendente'] },
+      { id: 'view-cadastro', label: 'Cadastros e Triagem', icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z', roles: ['admin', 'atendente'] },
+      { id: 'view-agenda', label: 'Agenda Médica', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', roles: ['admin', 'medico', 'atendente'] },
+      { id: 'view-fila', label: 'Fila de Espera', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', roles: ['admin', 'medico', 'atendente'] },
+      { id: 'view-teleconsulta', label: 'Teleconsulta Room', icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z', roles: ['admin', 'medico'] },
+      { id: 'view-pep', label: 'Prontuário (PEP)', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', roles: ['admin', 'medico'] },
+      { id: 'view-documentos', label: 'Receitas/Atestados', icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', roles: ['admin', 'medico'] }
+    ];
+
+    function buildMenuNavigation() {
+      const navMenu = document.getElementById('navMenu');
+      navMenu.innerHTML = '';
+      const role = DB.currentUser.role;
+
+      NAV_MAP.forEach(nav => {
+        if(nav.roles.includes(role)) {
+          const btn = document.createElement('button');
+          btn.className = 'nav-btn';
+          btn.dataset.target = nav.id;
+          btn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="${nav.icon}"></path></svg> ${nav.label}`;
+          btn.onclick = () => switchView(nav.id);
+          navMenu.appendChild(btn);
+        }
+      });
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('active');
+        if(b.dataset.target === viewId) b.classList.add('active');
+      });
+      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      
+      refreshUI();
+    }
+
+    function refreshUI() {
+      populateDropdowns();
+      
+      // Dash
+      document.getElementById('dashKpiBase').innerText = DB.pacientes.length;
+      document.getElementById('dashKpiConsulta').innerText = DB.agenda.filter(a=>a.tipo==='Consulta').length;
+      document.getElementById('dashKpiTele').innerText = DB.agenda.filter(a=>a.tipo==='Teleconsulta').length;
+      
+      const fDash = document.getElementById('dashFilaTable');
+      fDash.innerHTML = DB.fila.map(f => `<tr><td>${getPatName(f.pacienteId)}</td><td>${f.tipo}</td><td><span class="badge ${f.status=='aguardando'?'badge-warning':'badge-success'}">${f.status.toUpperCase()}</span></td><td>${f.entrada}</td></tr>`).join('');
+
+      // Agenda
+      document.getElementById('agendaTableBody').innerHTML = DB.agenda.map(a => `<tr><td>${a.dataHora}</td><td>${getPatName(a.pacienteId)}</td><td>${a.medico}</td><td>${a.tipo}</td><td><span class="badge badge-info">${a.status}</span></td><td><button class="btn btn-outline" onclick="gerarCheckin(${a.pacienteId},'${a.tipo}')">Fazer Checkin</button></td></tr>`).join('');
+
+      // Fila Monitor
+      document.getElementById('filaMonitorBody').innerHTML = DB.fila.map(f => {
+        let b = `<button class="btn btn-primary" onclick="atenderPaciente(${f.id})"> Chamar Painel </button>`;
+        if (f.tipo === 'Teleconsulta') {
+          b = `<button class="btn btn-success" onclick="abrirTeleRoom(${f.id})"> Iniciar Vídeo </button>`;
+        }
+        if (f.status === 'em_atendimento') b = `<button class="btn btn-outline" onclick="finalizarAtendimento(${f.id})"> Finalizar </button>`;
+        return `<tr><td>${f.entrada}</td><td>${getPatName(f.pacienteId)}</td><td>${f.tipo}</td><td><span class="badge ${f.status=='aguardando'?'badge-warning':'badge-success'}">${f.status.toUpperCase()}</span></td><td>${b}</td></tr>`;
+      }).join('');
+
+      // Cadastro
+      document.getElementById('cadTableBody').innerHTML = DB.pacientes.map(p => `<tr><td>P00${p.id}</td><td>${p.nome}</td><td>${p.cpf}</td><td>Ver Perfil</td></tr>`).join('');
+    }
+
+    function populateDropdowns() {
+      const selects = [document.getElementById('pepPatientSelect'), document.getElementById('docPacSelect')];
+      selects.forEach(sel => {
+        if(!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '<option value="">-- Selecione o Paciente --</option>' + DB.pacientes.map(p => `<option value="${p.id}">${p.nome} (CPF: ${p.cpf})</option>`).join('');
+        sel.value = current;
+      });
+    }
+
+    /*******************************************************
+     * HELPER FUNCTIONS
+     *******************************************************/
+    function getPatName(id) { const p = DB.pacientes.find(x => x.id === id); return p ? p.nome : 'Desconhecido'; }
+    function getPat(id) { return DB.pacientes.find(x => x.id == id); }
+
+    /*******************************************************
+     * ACTIONS
+     *******************************************************/
+    function cadastrarPaciente() {
+      const nome = document.getElementById('cadNome').value;
+      const cpf = document.getElementById('cadCpf').value;
+      if(!nome || !cpf) { alert("Preencha Nome e CPF."); return; }
+      DB.pacientes.push({ id: Date.now(), nome, cpf, nasc: document.getElementById('cadNasc').value, plano: document.getElementById('cadPlano').value, timeline: [], diagnosticos: [], medicamentos: [] });
+      alert("Paciente Cadastrado e Sincronizado com CRM.");
+      document.getElementById('cadNome').value = ''; document.getElementById('cadCpf').value = '';
+      refreshUI();
+    }
+
+    function abrirNovoAgendamento() {
+      // Mock alert, in real app opens modal
+      alert("Integração com o calendário será aberta.");
+    }
+
+    function gerarCheckin(patId, tipo) {
+      const now = new Date();
+      DB.fila.push({ id: Date.now(), pacienteId: patId, tipo, status: "aguardando", entrada: now.getHours()+":"+now.getMinutes() });
+      switchView('view-fila');
+    }
+
+    function atenderPaciente(id) {
+      const f = DB.fila.find(x => x.id === id);
+      if(f) f.status = 'em_atendimento';
+      refreshUI();
+      // Auto open PEP based on Role
+      if(DB.currentUser.role === 'medico' || DB.currentUser.role === 'admin') {
+        document.getElementById('pepPatientSelect').value = f.pacienteId;
+        carregarPEP();
+        switchView('view-pep');
+      }
+    }
+
+    function abrirTeleRoom(id) {
+      const f = DB.fila.find(x => x.id === id);
+      if(f) {
+        f.status = 'em_atendimento';
+        DB.activeTeleconsulta = f;
+        document.getElementById('teleAuthBlock').style.display = 'none';
+        document.getElementById('teleActiveBlock').style.display = 'grid';
+        document.getElementById('lblTeleNome').innerText = getPatName(f.pacienteId);
+        switchView('view-teleconsulta');
+      }
+    }
+
+    function finalizarTeleconsulta() {
+      if(DB.activeTeleconsulta) {
+        const notas = document.getElementById('teleNotas').value;
+        const pat = getPat(DB.activeTeleconsulta.pacienteId);
+        if(pat && notas) {
+          pat.timeline.push({ data: new Date().toLocaleDateString(), tipo: "Teleconsulta", desc: notas });
+        }
+        DB.activeTeleconsulta.status = 'finalizado';
+        DB.fila = DB.fila.filter(x => x.id !== DB.activeTeleconsulta.id); // Remove from queue
+        
+        DB.activeTeleconsulta = null;
+        document.getElementById('teleNotas').value = '';
+        document.getElementById('teleAuthBlock').style.display = 'block';
+        document.getElementById('teleActiveBlock').style.display = 'none';
+        switchView('view-fila');
+      }
+    }
+
+    function finalizarAtendimento(id) {
+      DB.fila = DB.fila.filter(x => x.id !== id);
+      refreshUI();
+    }
+
+    /*******************************************************
+     * Prontuário Eletrônico (PEP) Renderization
+     *******************************************************/
+    function carregarPEP() {
+      const patId = document.getElementById('pepPatientSelect').value;
+      if(patId) {
+        DB.activePepId = patId;
+        document.getElementById('pepTreeContainer').style.display = 'block';
+        setPepTab('dados');
+      } else {
+        document.getElementById('pepTreeContainer').style.display = 'none';
+        document.getElementById('pepContentArea').innerHTML = `<div style="color:var(--text-muted); text-align:center; margin-top: 4rem;">Pesquise e selecione um prontuário ao lado para abrir.</div>`;
+      }
+    }
+
+    function setPepTab(tab) {
+      document.querySelectorAll('.pep-tree .tree-node').forEach(n => n.classList.remove('active'));
+      // Basic match for tab highlighting
+      event && event.currentTarget ? event.currentTarget.classList.add('active') : null;
+
+      const pat = getPat(DB.activePepId);
+      if(!pat) return;
+
+      const area = document.getElementById('pepContentArea');
+      let html = '';
+
+      if(tab === 'dados') {
+        html = `<h2>Dados do Paciente</h2>
+                <div class="form-grid" style="margin-top:1.5rem">
+                  <div class="form-group"><label>Nome Completo</label><input type="text" class="form-control" value="${pat.nome}" readonly></div>
+                  <div class="form-group"><label>CPF</label><input type="text" class="form-control" value="${pat.cpf}" readonly></div>
+                  <div class="form-group"><label>Nascimento</label><input type="text" class="form-control" value="${pat.nasc}" readonly></div>
+                  <div class="form-group"><label>Plano de Saúde</label><input type="text" class="form-control" value="${pat.plano||'Particular'}" readonly></div>
+                </div>`;
+      }
+      else if(tab === 'timeline') {
+        html = `<h2>Linha do Tempo Clínica</h2>
+                <div class="timeline" style="margin-top:2rem">
+                  ${pat.timeline.map(t => `
+                    <div class="timeline-item">
+                      <div class="timeline-date">${t.data} - ${t.tipo}</div>
+                      <div class="timeline-box"><h4>Registro:</h4><p>${t.desc}</p></div>
+                    </div>
+                  `).join('') || '<p style="color:var(--text-muted)">Sem registros anteriores.</p>'}
+                </div>
+                <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border)">
+                  <textarea id="novaEvo" class="form-control" rows="3" placeholder="Adicionar nova evolução clínica..."></textarea>
+                  <button class="btn btn-primary" style="margin-top:1rem" onclick="salvarEvolucao()">Gravar Evolução</button>
+                </div>`;
+      }
+      else if(tab === 'diagnosticos') {
+        html = `<h2>Quadro Diagnóstico (CID-10)</h2>
+                <ul style="margin: 1.5rem 0 1.5rem 1.5rem">
+                  ${pat.diagnosticos.map(d => `<li style="margin-bottom:0.5rem"><strong>${d}</strong></li>`).join('') || '<p style="color:var(--text-muted)">Nenhum diagnóstico registrado.</p>'}
+                </ul>`;
+      }
+      else if(tab === 'medicamentos') {
+        html = `<h2>Medicamentos em Uso Contínuo</h2>
+                <ul style="margin: 1.5rem 0 1.5rem 1.5rem">
+                  ${pat.medicamentos.map(m => `<li style="margin-bottom:0.5rem"><strong>${m}</strong></li>`).join('') || '<p style="color:var(--text-muted)">Nenhum medicamento ativo.</p>'}
+                </ul>`;
+      }
+      area.innerHTML = html;
+    }
+
+    function salvarEvolucao() {
+      const text = document.getElementById('novaEvo').value;
+      if(!text) return;
+      const pat = getPat(DB.activePepId);
+      pat.timeline.unshift({ data: new Date().toLocaleDateString(), tipo: "Evolução Adicional", desc: text });
+      setPepTab('timeline');
+    }
+
+    /*******************************************************
+     * DOCUMENTS ENGINE
+     *******************************************************/
+    function alterarTemplateDoc() {
+      const tipo = document.getElementById('docTipo').value;
+      const box = document.getElementById('docFieldsBox');
+      
+      if(tipo === 'receituario') {
+         box.innerHTML = `
+          <div class="form-group"><label>Medicamento</label><input type="text" id="docD1" class="form-control" placeholder="Ex: Amoxicilina 500mg"></div>
+          <div class="form-group" style="margin-top:0.5rem"><label>Dosagem / Posologia</label><input type="text" id="docD2" class="form-control" placeholder="1 comprimido a cada 8 horas"></div>
+          <div class="form-group" style="margin-top:0.5rem"><label>Tempo de Uso</label><input type="text" id="docD3" class="form-control" placeholder="Durante 7 dias"></div>
+         `;
+      } else if (tipo === 'declaracao') {
+        box.innerHTML = `
+          <div class="form-group"><label>Motivo</label>
+            <select id="docD1" class="form-control"><option>Comparecimento à Consulta</option><option>Acompanhamento Médico</option><option>Realização de Exames</option></select>
+          </div>
+          <div class="form-group" style="margin-top:0.5rem"><label>Período (Horas)</label><input type="text" id="docD2" class="form-control" placeholder="Das 08:00 às 11:30"></div>
+        `;
+      } else if (tipo === 'atestado') {
+        box.innerHTML = `
+          <div class="form-group"><label>Dias de Afastamento</label><input type="number" id="docD1" class="form-control" value="1"></div>
+          <div class="form-group" style="margin-top:0.5rem"><label>CID (Opcional)</label><input type="text" id="docD2" class="form-control" placeholder="Ex: J01.9"></div>
+        `;
+      }
+    }
+
+    function gerarDocumento() {
+      const patId = document.getElementById('docPacSelect').value;
+      const pat = getPat(patId);
+      if(!pat) { alert("Selecione o paciente."); return; }
+
+      const tipo = document.getElementById('docTipo').value;
+      const assinatura = document.getElementById('docAssinatura').value || DB.currentUser.name;
+      const data = new Date().toLocaleDateString();
+      const preview = document.getElementById('docPreviewNode');
+      
+      let html = `<div style="text-align:center; border-bottom:2px solid #000; padding-bottom:1rem; margin-bottom:2rem;">
+        <h2 style="margin:0; text-transform:uppercase;">Clinica Holozonic Care</h2>
+        <p style="margin:5px 0 0; font-size:14px;">Departamento de Telemedicina e Saúde Integrada</p>
+      </div>`;
+
+      if(tipo === 'receituario') {
+        const med = document.getElementById('docD1').value; const pos = document.getElementById('docD2').value; const tempo = document.getElementById('docD3').value;
+        html += `<h3 style="text-align:center; text-decoration:underline;">RECEITUÁRIO MÉDICO</h3>
+                 <p style="margin-top:2rem;"><strong>Paciente:</strong> ${pat.nome}</p>
+                 <p style="font-size:1.2rem; margin-top:2rem;"><strong>Uso:</strong> Via Oral / Local</p>
+                 <div style="margin: 2rem 0 4rem 2rem;">
+                    <p style="font-size:1.2rem; margin-bottom:0.5rem;"><strong>1. ${med}</strong></p>
+                    <p style="margin-left: 1.5rem;"><em>${pos} - ${tempo}.</em></p>
+                 </div>`;
+      } else if (tipo === 'declaracao') {
+        const motivo = document.getElementById('docD1').value; const horas = document.getElementById('docD2').value;
+        html += `<h3 style="text-align:center; text-decoration:underline;">DECLARAÇÃO</h3>
+                 <p style="margin-top:3rem; text-indent: 2rem; text-align:justify; line-height:2;">Declaro para os devidos fins que o(a) Sr(a). <strong>${pat.nome}</strong>, inscrito sob o CPF ${pat.cpf}, esteve nesta unidade de saúde para fins de <strong>${motivo}</strong>, no dia ${data}, ${horas}.</p>`;
+      } else if (tipo === 'atestado') {
+        const dias = document.getElementById('docD1').value; const cid = document.getElementById('docD2').value;
+        html += `<h3 style="text-align:center; text-decoration:underline;">ATESTADO MÉDICO</h3>
+                 <p style="margin-top:3rem; text-indent: 2rem; text-align:justify; line-height:2;">Atesto para os devidos fins que o(a) paciente <strong>${pat.nome}</strong>, inscrito no CPF ${pat.cpf}, necessita de <strong>${dias} dias de afastamento</strong> de suas atividades laborativas a partir desta data, por motivos de saúde.</p>
+                 ${cid ? `<p style="margin-top:1rem;">CID 10: ${cid}</p>` : ''}`;
+      }
+
+      html += `<div style="margin-top:5rem; text-align:center;">
+                 <p>_____________________________________</p>
+                 <p><strong>${assinatura}</strong></p>
+                 <p>Data: ${data}</p>
+               </div>`;
+      
+      preview.innerHTML = html;
+    }
+
+    function imprimirDocumento() {
+      const content = document.getElementById('docPreviewNode').innerHTML;
+      if(content.includes('O documento estruturado aparecerá aqui')) { alert("Gere o documento primeiro."); return; }
+      
+      const win = window.open('', '', 'height=700,width=800');
+      win.document.write('<html><head><title>Imprimir Documento</title></head><body>');
+      win.document.write(content);
+      win.document.write('</body></html>');
+      win.document.close();
+      win.print();
+    }
+
+    // Initialize UI on load
+    alterarTemplateDoc();
+  </script>
+</body>
+</html>

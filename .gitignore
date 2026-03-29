@@ -1,0 +1,13 @@
+node_modules
+# Keep environment variables out of version control
+.env
+*.db
+*.db-journal
+/generated/prisma
+prisma-client/
+prisma-client-v2/
+prisma-client-old/
+google-key.json
+.system_generated/
+/tmp/
+*.log

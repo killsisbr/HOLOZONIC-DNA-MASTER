@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:D:/VENDA/HOLOZONIC/prisma/prod.db"
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  user         String  @unique
+  hash         String
+  role         String  // ADMIN, MEDICO, RECP
+  googleId     String? @unique
+  refreshToken String?
+}
+
+model Patient {
+  id           Int                @id @default(autoincrement())
+  name         String
+  cpf          String             @unique
+  birthDate    String
+  plan         String
+  active       Boolean            @default(true)
+  appointments Appointment[]
+  records      ClinicalRecord[]
+}
+
+model Appointment {
+  id            Int      @id @default(autoincrement())
+  patientId     Int
+  patient       Patient  @relation(fields: [patientId], references: [id])
+  dateTime      String
+  type          String   // PRESENCIAL, TELE
+  status        String   // AGUARDANDO, EM_ATENDIMENTO, FINALIZADO, CANCELADO
+  googleEventId String?
+}
+
+model ClinicalRecord {
+  id          Int      @id @default(autoincrement())
+  patientId   Int
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  date        String
+  type        String
+  description String
+  cid10       String?
+}
+
+model AILog {
+  id                Int      @id @default(autoincrement())
+  timestamp         DateTime @default(now())
+  input             String
+  distilledPattern  String?
+  confidence        Float?
+}
+
+model PotentialLead {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  phone     String?
+  email     String?
+  source    String?  // INEZ, SONO, HOSPEDAGEM
+  step      Int?
+  data      String?  // JSON stringified object
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
