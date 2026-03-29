@@ -117,6 +117,31 @@
         visibility: visible !important;
       }
     }
+
+    /* OMNISEARCH STYLES */
+    #omniSearchOverlay {
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .omni-input {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 20px rgba(77, 190, 148, 0.1);
+    }
+    .search-result-item:hover {
+        background: rgba(77, 190, 148, 0.15);
+        border-left: 4px solid var(--mint);
+    }
+    .terminal-window {
+        background: #000;
+        font-family: 'Courier New', Courier, monospace;
+        box-shadow: inset 0 0 20px rgba(77, 190, 148, 0.2);
+    }
+    .text-matrix {
+        color: #4DBE94;
+        text-shadow: 0 0 5px #4DBE94;
+    }
   </style>
 </head>
 <body class="font-sans antialiased">
@@ -161,19 +186,57 @@
     </div>
   </div>
 
+  <!-- OMNISEARCH MODAL -->
+  <div id="omniSearchOverlay" class="fixed inset-0 z-[10000] hidden flex items-start justify-center pt-[10vh] px-4">
+      <div class="w-full max-w-2xl glass rounded-[32px] overflow-hidden border border-white/10 shadow-2xl animate-fade-in">
+          <div class="p-6 border-b border-white/5 flex items-center gap-4">
+              <i class="fas fa-search text-mint text-xl"></i>
+              <input type="text" id="omniInput" autofocus oninput="debounceSearch()" 
+                     placeholder="Buscar paciente, CID-10, prontuário ou lead... (Ctrl+K)" 
+                     class="w-full bg-transparent text-xl font-medium outline-none text-white">
+              <button onclick="toggleOmniSearch()" class="text-gray-500 hover:text-white transition-colors">
+                  <kbd class="px-2 py-1 bg-white/5 rounded-lg border border-white/10 text-[10px] font-black uppercase">ESC</kbd>
+              </button>
+          </div>
+          <div id="omniResults" class="max-h-[60vh] overflow-y-auto p-2 space-y-1">
+              <!-- Results map here -->
+              <div class="p-8 text-center text-gray-600 font-medium">Digite algo para iniciar a varredura JARVIS...</div>
+          </div>
+          <div class="p-4 bg-white/5 border-t border-white/5 flex justify-between items-center text-[10px] font-black uppercase text-gray-500">
+              <div class="flex gap-4">
+                  <span><i class="fas fa-arrow-up mr-1"></i><i class="fas fa-arrow-down mr-2"></i> Navegar</span>
+                  <span><i class="fas fa-level-down-alt rotate-90 mr-1"></i> Selecionar</span>
+              </div>
+              <div class="text-mint opacity-50">OmniSearch v1.0 — Holozonic Clinical Ecosystem</div>
+          </div>
+      </div>
+  </div>
+
   <!-- MAIN APP CONTAINER -->
   <div id="app-container" class="hidden grid-cols-[280px_1fr] h-screen overflow-hidden">
     
     <!-- SIDEBAR -->
     <aside class="glass border-r border-white/5 flex flex-col p-6 overflow-y-auto">
-      <div class="mb-10 px-2">
-        <h2 class="text-2xl font-black font-display tracking-tighter text-white">HOLOZONIC</h2>
-        <span class="text-[10px] uppercase font-bold text-mint tracking-[3px]">Clinical Ecosystem</span>
+      <div class="mb-10 px-2 flex justify-between items-start">
+        <div>
+          <h2 class="text-2xl font-black font-display tracking-tighter text-white">HOLOZONIC</h2>
+          <span class="text-[10px] uppercase font-bold text-mint tracking-[3px]">Clinical Ecosystem</span>
+        </div>
+        <button onclick="toggleOmniSearch()" class="w-10 h-10 rounded-xl glass-mint flex items-center justify-center text-mint hover:scale-110 transition-transform shadow-lg shadow-mint/10">
+          <i class="fas fa-search"></i>
+        </button>
       </div>
 
       <nav id="navMenu" class="space-y-2 flex-1">
         <!-- Generative Menu -->
       </nav>
+
+      <button onclick="setView('sistema')" class="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-gray-400 hover:text-mint hover:bg-mint/5 transition-all group mb-4">
+        <div class="w-8 h-8 rounded-xl glass-mint flex items-center justify-center group-hover:scale-110 transition-transform">
+          <i class="fas fa-microchip"></i>
+        </div>
+        <span class="text-sm font-bold uppercase tracking-widest">Motor JARVIS</span>
+      </button>
 
       <div class="mt-auto pt-6 border-t border-white/10">
         <div class="flex items-center gap-4">
@@ -359,7 +422,10 @@
                           <i class="fas fa-microscope text-mint w-5 text-center"></i> Exames
                       </button>
                       <button onclick="setPepTab('receitas')" class="w-full text-left p-3 rounded-xl bg-white/5 hover:bg-mint/10 transition-colors flex items-center gap-3">
-                        <i class="fas fa-pills text-mint w-4 text-center"></i> Receitas
+                        <i class="fas fa-file-prescription text-mint w-4 text-center"></i> Receitas
+                    </button>
+                    <button onclick="setPepTab('medicamentos')" class="w-full text-left p-3 rounded-xl bg-white/5 hover:bg-mint/10 transition-colors flex items-center gap-3">
+                        <i class="fas fa-pills text-mint w-4 text-center"></i> Medicamentos Ativos
                     </button>
                   </div>
               </div>
@@ -516,6 +582,71 @@
           </div>
       </section>
 
+      <!-- SISTEMA VIEW (CORE JARVIS) -->
+      <section id="view-sistema" class="view-section hidden animate-fade-in">
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+              <div class="glass p-6 rounded-[24px] border border-mint/20">
+                  <div class="flex justify-between items-center mb-2">
+                      <span class="text-[10px] font-black text-gray-500 uppercase">CPU Load</span>
+                      <i class="fas fa-microchip text-mint text-xs"></i>
+                  </div>
+                  <div id="sysCpu" class="text-2xl font-black text-white">--</div>
+              </div>
+              <div class="glass p-6 rounded-[24px] border border-mint/20">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black text-gray-500 uppercase">RAM Usage</span>
+                    <i class="fas fa-memory text-mint text-xs"></i>
+                </div>
+                <div id="sysRam" class="text-2xl font-black text-white">--</div>
+              </div>
+              <div class="glass p-6 rounded-[24px] border border-mint/20">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black text-gray-500 uppercase">DB Status</span>
+                    <i class="fas fa-database text-mint text-xs"></i>
+                </div>
+                <div id="sysDb" class="text-2xl font-black text-mint">--</div>
+              </div>
+              <div class="glass p-6 rounded-[24px] border border-mint/20">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black text-gray-500 uppercase">Kernel Uptime</span>
+                    <i class="fas fa-clock text-mint text-xs"></i>
+                </div>
+                <div id="sysUptime" class="text-2xl font-black text-white">--</div>
+              </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div class="glass rounded-[32px] overflow-hidden flex flex-col h-[500px]">
+                  <div class="p-6 border-b border-white/5 bg-black/40 flex justify-between items-center">
+                      <h3 class="font-bold text-white flex items-center gap-2">
+                          <i class="fas fa-terminal text-mint"></i> Log Terminal (Stream)
+                      </h3>
+                      <span class="text-[8px] font-black text-mint border border-mint/30 px-2 py-1 rounded">LIVE SYNC</span>
+                  </div>
+                  <div id="sysLogTerminal" class="flex-1 terminal-window p-4 overflow-y-auto text-[10px] space-y-1">
+                      <div class="text-matrix">[SYSTEM] JARVIS Kernel initialized...</div>
+                      <div class="text-matrix">[AUTH] Firewall active (JWT/Argon2)...</div>
+                  </div>
+              </div>
+
+              <div class="glass rounded-[32px] p-8 flex flex-col">
+                  <div class="flex justify-between items-center mb-6">
+                      <h3 class="font-bold text-white flex items-center gap-2">
+                          <i class="fas fa-magic text-mint"></i> Self-Evolve Engine
+                      </h3>
+                      <button onclick="runSystemAudit()" class="bg-mint text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:scale-105 transition-transform">
+                          Executar Auditoria
+                      </button>
+                  </div>
+                  <div id="sysAuditResults" class="flex-1 space-y-4 overflow-y-auto">
+                      <div class="p-6 border border-white/5 rounded-2xl bg-white/5 text-center text-gray-600 italic">
+                          Pressione "Executar Auditoria" para iniciar a varredura de auto-evolução.
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </section>
+
       <!-- AI CHAT WIDGET (CECILIA) -->
       <div class="fixed bottom-8 right-8 z-50">
           <button id="btnAiOpen" onclick="toggleAi()" class="w-16 h-16 rounded-full bg-mint text-black text-2xl shadow-[0_0_30px_rgba(77,190,148,0.5)] hover:scale-110 transition-transform active:scale-95 flex items-center justify-center">
@@ -544,8 +675,20 @@
   </div>
 
   <script>
-    const API_URL = '/api'; // Standardized relative URL
-    let DB = { currentUser: null, pacientes: [], agenda: [], leads: [], fila: [], activeRecords: [], activeTeleId: null };
+    const API_URL = '/api'; 
+    let DB = { currentUser: null, pacientes: [], agenda: [], leads: [], fila: [], activeRecords: [], activeTeleId: null, cid10: [] };
+    let AUTH_TOKEN = localStorage.getItem('jarvis_token');
+
+    async function fetchWithAuth(url, options = {}) {
+      const headers = { ...options.headers, 'Authorization': `Bearer ${AUTH_TOKEN}` };
+      const res = await fetch(url, { ...options, headers });
+      if (res.status === 401 || res.status === 403) {
+        alert('Sessão expirada ou sem permissão.');
+        logout();
+        throw new Error('Unauthorized');
+      }
+      return res;
+    }
 
     /*******************************************************
      * AUTH MODULE
@@ -553,8 +696,7 @@
     async function doLogin() {
       const user = document.getElementById('loginUser').value;
       const pass = document.getElementById('loginPass').value;
-      const role = document.getElementById('loginRole').value;
-
+      // Note: role is now determined by server, but we skip the UI select value
       try {
           const res = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
@@ -563,8 +705,9 @@
           });
           const data = await res.json();
           if(data.success) {
-            DB.currentUser = { ...data.user, role }; // Allow overriding role for development/UI testing if needed
-            sessionStorage.setItem('jarvis_auth', JSON.stringify(DB.currentUser));
+            AUTH_TOKEN = data.token;
+            localStorage.setItem('jarvis_token', data.token);
+            DB.currentUser = data.user;
             initApp();
           } else { 
             alert('Falha na Matriz de Autenticação: ' + (data.message || 'Credenciais rejeitadas.')); 
@@ -587,11 +730,20 @@
         
         buildMenuNavigation();
         startPolling();
+        loadCid10();
         switchView('view-dashboard');
     }
 
+    async function loadCid10() {
+        try {
+            const res = await fetch('assets/data/cid10_common.json');
+            DB.cid10 = await res.json();
+            console.log("JARVIS: CID-10 DNA Loaded.");
+        } catch (e) { console.error("CID-10 Load fail:", e); }
+    }
+
     function logout() { 
-        sessionStorage.removeItem('jarvis_auth');
+        localStorage.removeItem('jarvis_token');
         location.reload(); 
     }
 
@@ -606,14 +758,16 @@
       { id: 'view-pep', label: 'Prontuários (PEP)', icon: 'fas fa-notes-medical', roles: ['admin', 'medico'] },
       { id: 'view-leads', label: 'Funil de Leads (Inêz)', icon: 'fas fa-filter', roles: ['admin', 'atendente'] },
       { id: 'view-documentos', label: 'Emissor Oficial', icon: 'fas fa-file-medical', roles: ['admin', 'medico'] },
-      { id: 'view-financeiro', label: 'Gestão Financeira', icon: 'fas fa-wallet', roles: ['admin'] }
+      { id: 'view-financeiro', label: 'Gestão Financeira', icon: 'fas fa-wallet', roles: ['admin'] },
+      { id: 'view-sistema', label: 'Motor JARVIS', icon: 'fas fa-microchip', roles: ['admin'] }
     ];
 
     function buildMenuNavigation() {
       const menu = document.getElementById('navMenu');
       menu.innerHTML = '';
+      const userRole = DB.currentUser.role.toLowerCase();
       NAV_MAP.forEach(nav => {
-        if(nav.roles.includes(DB.currentUser.role)) {
+        if(nav.roles.includes(userRole)) {
           const btn = document.createElement('button');
           btn.className = 'nav-button w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-sm font-bold text-gray-400 hover:text-white transition-all group';
           btn.id = `nav-${nav.id}`;
@@ -636,6 +790,13 @@
       document.getElementById('page-title').innerText = currentNav.label;
       
       if(viewId === 'view-pep' || viewId === 'view-documentos') populateDropdowns();
+      
+      clearInterval(sysInterval);
+      if(viewId === 'view-sistema') {
+          updateSystemStatus();
+          sysInterval = setInterval(updateSystemStatus, 3000);
+      }
+
       refreshUI();
     }
 
@@ -650,9 +811,9 @@
     async function fetchCoreData() {
       try {
         const [pRes, aRes, lRes] = await Promise.all([
-          fetch(`${API_URL}/patients`),
-          fetch(`${API_URL}/agenda`),
-          fetch(`${API_URL}/leads`)
+          fetchWithAuth(`${API_URL}/patients`),
+          fetchWithAuth(`${API_URL}/agenda`),
+          fetchWithAuth(`${API_URL}/leads`)
         ]);
         DB.pacientes = await pRes.json();
         const agendaRaw = await aRes.json();
@@ -701,12 +862,17 @@
                   <td class="px-6 py-4">
                       <span class="text-[10px] font-black uppercase px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/10 rounded">${a.status}</span>
                   </td>
-                  <td class="px-6 py-4 flex gap-2">
-                      ${a.status === 'AGUARDANDO' ? 
-                        `<button onclick="atenderPaciente(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-xs font-bold hover:scale-105 transition-all">ATENDER AGORA</button>` :
-                        `<button onclick="fazerCheckin(${a.id})" class="bg-white/5 text-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/10 transition-all">CHECK-IN</button>`
-                      }
-                  </td>
+                   <td class="px-6 py-4 flex gap-2">
+                       ${a.status === 'AGUARDANDO' ? 
+                         `<button onclick="atenderPaciente(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-xs font-bold hover:scale-105 transition-all">ATENDER AGORA</button>` :
+                         a.status === 'EM_ATENDIMENTO' ?
+                         `<div class="flex gap-2">
+                            <button onclick="finalizarAtendimento(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-xs font-bold hover:scale-105 transition-all">FINALIZAR</button>
+                            <button onclick="voltarAoPep(${a.patient.id})" class="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-500/30 transition-all">VOLTAR AO PEP</button>
+                          </div>` :
+                         `<button onclick="fazerCheckin(${a.id})" class="bg-white/5 text-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/10 transition-all">CHECK-IN</button>`
+                       }
+                   </td>
               </tr>
           `).join('');
       }
@@ -768,7 +934,7 @@
       
       if(!name || !cpf) return alert("Parâmetros insuficientes para o DNA.");
       
-      const res = await fetch(`${API_URL}/patients`, {
+      const res = await fetchWithAuth(`${API_URL}/patients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, cpf, birthDate, plan })
@@ -783,7 +949,7 @@
 
     async function fazerCheckin(id) {
         showToast("JARVIS: Iniciando Check-in de Paciente...");
-        await fetch(`${API_URL}/agenda/${id}`, { 
+        await fetchWithAuth(`${API_URL}/agenda/${id}`, { 
             method: 'PATCH', 
             headers: {'Content-Type':'application/json'}, 
             body: JSON.stringify({status:'AGUARDANDO'})
@@ -797,7 +963,7 @@
       if(f) {
         // Persistir no backend
         try {
-          await fetch(`${API_URL}/agenda/${id}`, {
+          await fetchWithAuth(`${API_URL}/agenda/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'EM_ATENDIMENTO' })
@@ -818,7 +984,7 @@
 
     async function converterLead(leadId) {
         if(!confirm("JARVIS-001: Deseja converter este Lead em Paciente Oficial no DNA?")) return;
-        const res = await fetch(`${API_URL}/leads/convert`, {
+        const res = await fetchWithAuth(`${API_URL}/leads/convert`, {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ leadId })
@@ -878,7 +1044,7 @@
     window.gerarMeetAgora = async function(id) {
         showToast("JARVIS: Solicitando matriz de conferência ao Google...");
         try {
-            const res = await fetch(`${API_URL}/agenda/${id}`, {
+            const res = await fetchWithAuth(`${API_URL}/agenda/${id}`, {
                 method: 'PATCH',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({ status: 'EM_ATENDIMENTO' }) // Trigger sync
@@ -900,7 +1066,7 @@
         showToast("Encerrando sessão P2P...");
         
         if(notas && appt) {
-            await fetch(`${API_URL}/records`, {
+            await fetchWithAuth(`${API_URL}/records`, {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({ 
@@ -911,7 +1077,7 @@
             });
         }
 
-        await fetch(`${API_URL}/agenda/${DB.activeTeleId}`, {
+        await fetchWithAuth(`${API_URL}/agenda/${DB.activeTeleId}`, {
             method: 'PATCH',
             headers: {'Content-Type':'application/json'},
             body: JSON.stringify({ status: 'FINALIZADO' })
@@ -927,10 +1093,30 @@
         showToast("Atendimento finalizado com sucesso.", "success");
     }
 
+    async function finalizarAtendimento(id) {
+        if(!confirm("JARVIS-001: Deseja FINALIZAR este atendimento?")) return;
+        showToast("Encerrando ciclo de atendimento clínico...");
+        try {
+            await fetchWithAuth(`${API_URL}/agenda/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ status: 'FINALIZADO' })
+            });
+            fetchCoreData();
+            showToast("Atendimento marcado como FINALIZADO.", "success");
+        } catch(e) { console.error(e); }
+    }
+
+    function voltarAoPep(patientId) {
+        switchView('view-pep');
+        document.getElementById('pepPatientSelect').value = patientId;
+        carregarPEP();
+    }
+
     async function carregarPEP() {
       const patId = document.getElementById('pepPatientSelect').value;
       if(!patId) return;
-      const res = await fetch(`${API_URL}/records/${patId}`);
+      const res = await fetchWithAuth(`${API_URL}/records/${patId}`);
       DB.activeRecords = await res.json();
       document.getElementById('pepTreeContainer').classList.remove('hidden');
       setPepTab('dados');
@@ -964,40 +1150,233 @@
                 <h2 class="text-2xl font-black text-white mb-8 border-l-4 border-mint pl-4">${title}</h2>
                 <div class="space-y-6 relative before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-white/10">
                   ${filteredRecords.map(r => `
-                    <div class="relative pl-12">
+                    <div class="relative pl-12 mb-8">
                         <div class="absolute left-[13px] top-2 w-2 h-2 rounded-full bg-mint shadow-[0_0_10px_#4DBE94]"></div>
-                        <div class="text-[10px] font-black text-gray-500 uppercase mb-1">${r.date || 'DATA N/D'} — ${r.type}</div>
+                        <div class="text-[10px] font-black text-gray-500 uppercase mb-1">${r.date || 'DATA N/D'} — ${r.type} ${r.cid10 ? `[CID: ${r.cid10}]` : ''}</div>
                         <div class="glass p-5 rounded-2xl border border-white/5">
-                            <p class="text-gray-300 leading-relaxed">${r.description}</p>
+                            <p class="text-gray-300 leading-relaxed mb-4">${r.description}</p>
+                            ${r.attachments && r.attachments.length ? `
+                              <div class="mt-4 pt-4 border-t border-white/5 space-y-2">
+                                ${r.attachments.map(a => `
+                                  <a href="${a.filePath}" target="_blank" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all border border-white/5 text-[10px] font-black uppercase text-mint">
+                                    <i class="fas fa-file-medical text-sm"></i>
+                                    <span>${a.fileName}</span>
+                                    <i class="fas fa-external-link-alt ml-auto opacity-50"></i>
+                                  </a>
+                                `).join('')}
+                              </div>
+                            ` : ''}
+                            ${tab === 'exames' ? `
+                              <div class="mt-4 flex gap-2">
+                                <input type="file" id="file-${r.id}" class="hidden" onchange="uploadExam(${r.id})">
+                                <button onclick="document.getElementById('file-${r.id}').click()" class="bg-white/5 text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
+                                  <i class="fas fa-upload mr-2"></i> Anexar Exame (DNA)
+                                </button>
+                              </div>
+                            ` : ''}
+                            ${tab === 'timeline' || tab === 'receitas' ? `
+                              <div class="mt-4 flex gap-2">
+                                <button onclick="emitirPDF(${r.id}, 'PRESCRIPTION')" class="bg-mint/10 text-mint text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-mint/20 hover:bg-mint/30 transition-all">
+                                  <i class="fas fa-file-prescription mr-2"></i> Emitir Receita
+                                </button>
+                                <button onclick="emitirPDF(${r.id}, 'CERTIFICATE')" class="bg-white/5 text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
+                                  <i class="fas fa-file-medical-alt mr-2"></i> Emitir Atestado
+                                </button>
+                              </div>
+                            ` : ''}
                         </div>
                     </div>
                   `).join('') || '<div class="text-center p-10 text-gray-600">Nenhum registro específico nesta categoria.</div>'}
                 </div>
                 ${tab === 'timeline' ? `
                 <div class="mt-10 p-6 glass rounded-[32px] border border-mint/10">
+                  <div class="flex gap-4 mb-4">
+                      <div class="flex-1 relative">
+                          <label class="text-[10px] font-black text-gray-500 uppercase">Diagnóstico (CID-10)</label>
+                          <input type="text" id="pepCidSearch" oninput="filterCid10()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 mt-1 text-xs outline-none focus:border-mint" placeholder="Buscar código ou nome...">
+                          <div id="cidSuggestions" class="hidden absolute left-0 right-0 bottom-full mb-2 glass border border-white/10 rounded-xl max-h-48 overflow-y-auto z-10 p-2 space-y-1"></div>
+                      </div>
+                      <div class="w-24">
+                          <label class="text-[10px] font-black text-gray-500 uppercase">Cód. Selecionado</label>
+                          <input type="text" id="pepCidValue" readonly class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 mt-1 text-xs text-mint font-bold italic">
+                      </div>
+                  </div>
                   <textarea id="novaEvo" class="w-full bg-transparent border-none outline-none text-white resize-none" rows="3" placeholder="Escrever nova evolução clínica..."></textarea>
                   <div class="mt-4 flex justify-end">
                       <button onclick="salvarEvolucao()" class="bg-mint text-black font-black px-6 py-2 rounded-full hover:scale-105 transition-transform">REGISTRAR EVOLUÇÃO</button>
                   </div>
                 </div>` : ''}
             </div>`;
+      } else if(tab === 'medicamentos') {
+        const meds = pat.medications ? pat.medications.split(';').filter(m => m.trim()) : [];
+        html = `
+            <div class="animate-fade-in">
+                <h2 class="text-2xl font-black text-white mb-8 border-l-4 border-mint pl-4">Medicamentos Ativos (Uso Contínuo)</h2>
+                <div class="space-y-4 mb-8">
+                    ${meds.map((m, idx) => `
+                        <div class="glass p-4 rounded-2xl flex justify-between items-center border border-white/5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-mint/10 flex items-center justify-center text-mint">
+                                    <i class="fas fa-capsules"></i>
+                                </div>
+                                <span class="text-white font-bold">${m}</span>
+                            </div>
+                            <button onclick="deleteMedication(${pat.id}, ${idx})" class="text-gray-600 hover:text-red-500 transition-colors px-3 py-1">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `).join('') || '<div class="text-center p-10 text-gray-600 italic">Nenhum medicamento de uso contínuo registrado.</div>'}
+                </div>
+                
+                <div class="p-6 glass rounded-[32px] border border-mint/10">
+                    <label class="text-[10px] font-black text-gray-500 uppercase">Adicionar Novo Fármaco</label>
+                    <div class="flex gap-2 mt-2">
+                        <input type="text" id="newMedInput" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint text-sm" placeholder="Ex: Metformina 850mg - 1x ao dia">
+                        <button onclick="addMedication(${pat.id})" class="bg-mint text-black font-black px-6 rounded-xl hover:scale-105 transition-transform uppercase text-[10px]">Adicionar</button>
+                    </div>
+                </div>
+            </div>`;
       }
       area.innerHTML = html;
     }
 
+    async function addMedication(patientId) {
+        const input = document.getElementById('newMedInput');
+        const newMed = input.value.trim();
+        if(!newMed) return;
+
+        const pat = DB.pacientes.find(p => p.id == patientId);
+        if(!pat) return;
+
+        let meds = pat.medications ? pat.medications.split(';') : [];
+        meds.push(newMed);
+        const updatedMeds = meds.filter(m => m.trim()).join(';');
+
+        showToast("JARVIS: Atualizando matriz farmacológica...");
+        await fetchWithAuth(`${API_URL}/patients/${patientId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ medications: updatedMeds })
+        });
+        
+        await fetchCoreData();
+        setPepTab('medicamentos');
+        showToast("Medicamento registrado com sucesso.", "success");
+    }
+
+    async function deleteMedication(patientId, index) {
+        const pat = DB.pacientes.find(p => p.id == patientId);
+        if(!pat) return;
+
+        let meds = pat.medications.split(';');
+        meds.splice(index, 1);
+        const updatedMeds = meds.filter(m => m.trim()).join(';');
+
+        showToast("JARVIS: Removendo fármaco da base...");
+        await fetchWithAuth(`${API_URL}/patients/${patientId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ medications: updatedMeds })
+        });
+        
+        await fetchCoreData();
+        setPepTab('medicamentos');
+        showToast("Fármaco removido.");
+    }
+
     async function salvarEvolucao() {
       const description = document.getElementById('novaEvo').value;
+      const cid10 = document.getElementById('pepCidValue').value;
       const patientId = parseInt(document.getElementById('pepPatientSelect').value);
       if(!description || !patientId) return;
       
       showToast("JARVIS: Persistindo evolução no DNA clínico...");
-      await fetch(`${API_URL}/records`, {
+      await fetchWithAuth(`${API_URL}/records`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ patientId, type: 'Evolução Clínica', description })
+        body: JSON.stringify({ patientId, type: 'Evolução Clínica', description, cid10 })
       });
       carregarPEP();
       showToast("Registro efetuado com sucesso.", "success");
+    }
+
+    async function emitirPDF(recordId, type) {
+        showToast(`JARVIS: Gerando ${type === 'PRESCRIPTION' ? 'Receita' : 'Atestado'}...`);
+        try {
+            const token = localStorage.getItem('jarvis_token');
+            const response = await fetch(`${API_URL}/documents/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ recordId, type })
+            });
+
+            if (!response.ok) throw new Error('Falha ao gerar PDF');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${type}_${recordId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast("Documento pronto para impressão.");
+        } catch (e) {
+            console.error(e);
+            showToast("Erro ao processar PDF.");
+        }
+    }
+
+    window.filterCid10 = function() {
+        const val = document.getElementById('pepCidSearch').value.toLowerCase();
+        const box = document.getElementById('cidSuggestions');
+        if(!val) { box.classList.add('hidden'); return; }
+        
+        const filtered = DB.cid10.filter(c => c.code.toLowerCase().includes(val) || c.name.toLowerCase().includes(val)).slice(0, 5);
+        if(filtered.length) {
+            box.innerHTML = filtered.map(c => `<button onclick="selectCid10('${c.code}', '${c.name}')" class="w-full text-left p-2 text-[10px] hover:bg-mint/20 rounded-lg transition-colors border border-white/5 mb-1"><b>${c.code}</b> — ${c.name}</button>`).join('');
+            box.classList.remove('hidden');
+        } else {
+            box.classList.add('hidden');
+        }
+    }
+
+    window.selectCid10 = function(code, name) {
+        document.getElementById('pepCidValue').value = code;
+        document.getElementById('pepCidSearch').value = `${code} - ${name}`;
+        document.getElementById('cidSuggestions').classList.add('hidden');
+    }
+
+    async function uploadExam(recordId) {
+        const fileInput = document.getElementById(`file-${recordId}`);
+        const file = fileInput.files[0];
+        if(!file) return;
+
+        showToast("JARVIS: Uploading matriz de dados clínicos...");
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('recordId', recordId);
+
+        try {
+            const res = await fetch(`${API_URL}/attachments`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }, // Use Bearer directly for FormData
+                body: formData
+            });
+            const data = await res.json();
+            if(data.success) {
+                showToast("Exame anexado com sucesso.", "success");
+                carregarPEP();
+            } else {
+                alert("Falha no upload: " + data.message);
+            }
+        } catch(e) {
+            console.error(e);
+            alert("Erro na sinapse de upload.");
+        }
     }
 
     /*******************************************************
@@ -1030,7 +1409,7 @@
         output.scrollTop = output.scrollHeight;
 
         try {
-            const res = await fetch(`${API_URL}/ai/ask`, {
+            const res = await fetchWithAuth(`${API_URL}/ai/ask`, {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({ prompt, context })
@@ -1112,16 +1491,177 @@
         </div>
         <div class="mt-auto border-t border-black pt-4 text-center">
             <b>${assinatura}</b><br>
-            <span class="text-sm">Assinado Digitalmente — Sistema JARVIS-001</span>
+      <span class="text-sm">Assinado Digitalmente — Sistema JARVIS-001</span>
         </div>
       `;
     }
 
-    // Auto-login if session exists
-    const savedAuth = sessionStorage.getItem('jarvis_auth');
-    if(savedAuth) {
-        DB.currentUser = JSON.parse(savedAuth);
-        initApp();
+    /*******************************************************
+     * OMNISEARCH (S4)
+     *******************************************************/
+    let searchTimeout;
+    function debounceSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performOmniSearch, 300);
+    }
+
+    async function performOmniSearch() {
+        const q = document.getElementById('omniInput').value;
+        const resultsBox = document.getElementById('omniResults');
+        if (!q || q.length < 2) {
+            resultsBox.innerHTML = '<div class="p-8 text-center text-gray-600 font-medium">Mínimo 2 caracteres para varredura...</div>';
+            return;
+        }
+
+        try {
+            const res = await fetchWithAuth(`${API_URL}/search?q=${encodeURIComponent(q)}`);
+            const { results } = await res.json();
+            renderOmniResults(results);
+        } catch (e) {
+            resultsBox.innerHTML = '<div class="p-8 text-center text-red-900/50 font-medium">Erro na comunicação com a base de dados.</div>';
+        }
+    }
+
+    function renderOmniResults(results) {
+        const box = document.getElementById('omniResults');
+        if (!results.length) {
+            box.innerHTML = '<div class="p-8 text-center text-gray-600 font-medium">Nenhum registro encontrado no ecossistema Holozonic.</div>';
+            return;
+        }
+
+        box.innerHTML = results.map(r => `
+            <div onclick="navigateSearchResult('${r.type}', ${r.pId || r.lId || r.id})" 
+                 class="search-result-item flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 group">
+                <div class="w-10 h-10 rounded-xl glass-mint flex items-center justify-center text-mint group-hover:scale-110 transition-transform">
+                    <i class="fas ${r.type === 'PATIENT' ? 'fa-user' : (r.type === 'RECORD' ? 'fa-file-medical' : 'fa-bullseye')}"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-black text-gray-500 uppercase">${r.type}</div>
+                    <div class="text-white font-bold">${r.title}</div>
+                    <div class="text-[10px] text-gray-400 italic">${r.subtitle}</div>
+                </div>
+                <i class="fas fa-chevron-right ml-auto text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+            </div>
+        `).join('');
+    }
+
+    function toggleOmniSearch() {
+        const modal = document.getElementById('omniSearchOverlay');
+        modal.classList.toggle('hidden');
+        if (!modal.classList.contains('hidden')) {
+            document.getElementById('omniInput').value = '';
+            document.getElementById('omniInput').focus();
+            document.getElementById('omniResults').innerHTML = '<div class="p-8 text-center text-gray-600 font-medium">Digite algo para iniciar a varredura JARVIS...</div>';
+        }
+    }
+
+    window.navigateSearchResult = function(type, id) {
+        document.getElementById('omniSearchOverlay').classList.add('hidden');
+        if (type === 'PATIENT' || type === 'RECORD') {
+            setView('prontuarios');
+            document.getElementById('pepPatientSelect').value = id;
+            carregarPEP();
+        } else if (type === 'LEAD') {
+            setView('leads');
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'k') {
+          e.preventDefault();
+          toggleOmniSearch();
+      }
+      if (e.key === 'Escape') {
+          document.getElementById('omniSearchOverlay').classList.add('hidden');
+      }
+    });
+
+    /*******************************************************
+     * SELF-EVOLVE ENGINE (S5)
+     *******************************************************/
+    let sysInterval;
+    async function loadSystemHealth() {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/system/health`);
+            const data = await res.json();
+            document.getElementById('sysCpu').innerText = data.cpu;
+            document.getElementById('sysRam').innerText = data.memory;
+            document.getElementById('sysDb').innerText = data.dbStatus;
+            document.getElementById('sysUptime').innerText = data.uptime;
+        } catch(e) { console.error("Health fail", e); }
+    }
+
+    async function loadSystemLogs() {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/ai/logs`);
+            const logs = await res.json();
+            const term = document.getElementById('sysLogTerminal');
+            if(term) {
+                term.innerHTML = logs.map(l => `<div class="text-matrix opacity-80">[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level}] ${l.message}</div>`).join('');
+                term.scrollTop = term.scrollHeight;
+            }
+        } catch(e) { console.error("Logs fail", e); }
+    }
+
+    async function runSystemAudit() {
+        const box = document.getElementById('sysAuditResults');
+        box.innerHTML = '<div class="p-8 text-center text-mint animate-pulse font-black uppercase tracking-widest">Iniciando Varredura JARVIS...</div>';
+        
+        try {
+            const res = await fetchWithAuth(`${API_URL}/system/audit`, { method: 'POST' });
+            const data = await res.json();
+            
+            box.innerHTML = `
+                <div class="space-y-4">
+                    <div class="p-4 bg-mint/10 border border-mint/30 rounded-2xl text-mint text-xs font-bold">${data.status}</div>
+                    ${data.vulnerabilities.map(v => `
+                        <div class="p-4 glass border border-red-500/30 rounded-2xl flex justify-between items-center group">
+                            <div>
+                                <div class="text-[10px] font-black text-red-500 uppercase">Vulnerabilidade ${v.level}</div>
+                                <div class="text-white font-medium text-sm">${v.msg}</div>
+                            </div>
+                            <button class="bg-red-500/20 text-red-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">${v.action}</button>
+                        </div>
+                    `).join('')}
+                    ${data.optimizations.map(o => `
+                        <div class="p-4 glass border border-mint/30 rounded-2xl flex justify-between items-center group">
+                            <div>
+                                <div class="text-[10px] font-black text-mint uppercase">Otimização ${o.level}</div>
+                                <div class="text-white font-medium text-sm">${o.msg}</div>
+                            </div>
+                            <button class="bg-mint/20 text-mint px-3 py-1 rounded-lg text-[10px] font-black uppercase hover:bg-mint hover:text-black transition-all">${o.action}</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } catch(e) {
+            box.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Falha na varredura nuclear.</div>';
+        }
+    }
+
+    function updateSystemStatus() {
+        loadSystemHealth();
+        loadSystemLogs();
+    }
+
+    // Auto-login if token exists
+    if(AUTH_TOKEN) {
+        // We'd normally fetch /api/auth/me here to verify
+        // For now we assume valid and just show container if token was found in localStorage
+        fetchWithAuth(`${API_URL}/auth/me`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              DB.currentUser = data.user || { user: 'Admin', role: 'ADMIN' };
+              initApp();
+            } else {
+               logout();
+            }
+          })
+          .catch(e => {
+            console.error("Token restore fail:", e);
+            logout();
+          });
     }
 
     setTimeout(alterarTemplateDoc, 500);

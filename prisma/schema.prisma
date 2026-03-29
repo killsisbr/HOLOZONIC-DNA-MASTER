@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -22,6 +23,7 @@ model Patient {
   cpf          String             @unique
   birthDate    String
   plan         String
+  medications  String?            // Semicolon separated medicines
   active       Boolean            @default(true)
   appointments Appointment[]
   records      ClinicalRecord[]
@@ -46,6 +48,17 @@ model ClinicalRecord {
   type        String
   description String
   cid10       String?
+  attachments Attachment[]
+}
+
+model Attachment {
+  id               Int            @id @default(autoincrement())
+  clinicalRecordId Int
+  record           ClinicalRecord @relation(fields: [clinicalRecordId], references: [id])
+  fileName         String
+  filePath         String
+  fileType         String
+  createdAt        DateTime       @default(now())
 }
 
 model AILog {

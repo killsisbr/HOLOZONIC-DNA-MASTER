@@ -11,3 +11,4 @@ google-key.json
 .system_generated/
 /tmp/
 *.log
+uploads/

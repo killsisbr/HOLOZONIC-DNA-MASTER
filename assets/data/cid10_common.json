@@ -1,0 +1,17 @@
+[
+  {"code": "G47.0", "name": "Distúrbios do início e da manutenção do sono [insônias]"},
+  {"code": "G47.1", "name": "Distúrbios do sono por sonolência excessiva [hipersônias]"},
+  {"code": "G47.3", "name": "Apneia de sono"},
+  {"code": "E61.1", "name": "Deficiência de ferro"},
+  {"code": "E61.7", "name": "Deficiência de múltiplos elementos nutricionais"},
+  {"code": "E63.9", "name": "Deficiência nutricional não especificada"},
+  {"code": "F43.0", "name": "Reação aguda ao estresse"},
+  {"code": "F43.2", "name": "Transtornos de adaptação"},
+  {"code": "F41.1", "name": "Ansiedade generalizada"},
+  {"code": "F32.9", "name": "Episódio depressivo não especificado"},
+  {"code": "R53", "name": "Mal-estar e fadiga"},
+  {"code": "M79.7", "name": "Fibromialgia"},
+  {"code": "Z00.0", "name": "Exame médico geral"},
+  {"code": "Z73.0", "name": "Esgotamento [Burn-out]"},
+  {"code": "Z73.3", "name": "Estresse não classificado em outra parte"}
+]
