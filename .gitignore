@@ -1,14 +1,58 @@
-node_modules
-# Keep environment variables out of version control
+# Holozonic DNA - Essential Gitignore
+
+# Dependencies
+node_modules/
+
+# Environment / Secrets
 .env
+google-key.json
+*.pem
+*.key
+
+# Databases (Prisma/SQLite)
 *.db
 *.db-journal
-/generated/prisma
-prisma-client/
-prisma-client-v2/
-prisma-client-old/
-google-key.json
+/prisma/migrations/
+/prisma-client-*/
+/generated/
+
+# Logs and Debug
+*.log
+*.txt
+!plano.md
+!README.md
+!task.md
+!auditoria_frontend.md
+!esqueleto.md
+!auditoria_painel.md
+!auditoria_gaps.md
+
+# Media and User Data
+uploads/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+!assets/
+
+# Temp and System
 .system_generated/
 /tmp/
-*.log
-uploads/
+.DS_Store
+Thumbs.db
+
+# Maintenance and Test Scripts
+test_*.js
+seed_*.js
+upgrade_*.js
+sqlite_init.js
+ensure_admin.js
+check_schema.js
+security_migrate.js
+ultra_server.js
+create_test_patient.js
+prisma_gen_log.txt
+prisma_debug.txt
+db_push_log.txt
+test_out.txt
