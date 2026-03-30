@@ -16,6 +16,8 @@ const setupGoogleAuth = require('./auth_google');
 const { syncAppointmentToGoogle } = require('./google_calendar');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
+const compression = require('compression');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'jarvis_dna_secret_key';
 
@@ -38,6 +40,10 @@ app.use(session({
   saveUninitialized: false
 }));
 
+app.use(helmet({
+  contentSecurityPolicy: false, // Loosened for local dashboard assets/JS
+}));
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.resolve(__dirname)));
@@ -108,6 +114,10 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'dashboard_v2.html'));
 });
 
+app.get('/app', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'app_cliente.html'));
+});
+
 // --- AUTH ---
 app.post('/api/auth/login', async (req, res) => {
   const { user, pass } = req.body;
@@ -130,6 +140,39 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// JARVIS 4.1.3: Patient Portal Auth (CPF Based)
+app.post('/api/auth/patient/login', async (req, res) => {
+  const { cpf } = req.body;
+  if (!cpf) return res.status(400).json({ error: 'CPF obrigatório' });
+
+  try {
+    // Basic normalization
+    const cleanCpf = cpf.replace(/\D/g, '');
+    const patient = await prisma.patient.findFirst({
+      where: {
+        OR: [
+          { cpf: cpf },
+          { cpf: cleanCpf }
+        ]
+      }
+    });
+
+    if (patient) {
+      const token = jwt.sign(
+        { id: patient.id, name: patient.name, role: 'PACIENTE' },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      res.json({ success: true, token });
+    } else {
+      res.status(401).json({ success: false, message: 'CPF não cadastrado no ecossistema' });
+    }
+  } catch (err) {
+    console.error('JARVIS: Patient Login Error:', err.message);
+    res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
+
 app.get('/api/auth/me', (req, res) => {
   if (req.user) { // From Passport
     return res.json({ success: true, user: req.user });
@@ -139,6 +182,35 @@ app.get('/api/auth/me', (req, res) => {
     return res.json({ success: true, userId: req.session.userId });
   }
   res.json({ success: false });
+});
+
+// Patient Personal Data
+app.get('/api/patient/data', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'PACIENTE' && req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
+
+  const patientId = req.user.id;
+  try {
+    const patient = await prisma.patient.findUnique({
+      where: { id: patientId }
+    });
+    
+    const appointments = await prisma.appointment.findMany({
+      where: { patientId },
+      orderBy: { dateTime: 'desc' }
+    });
+
+    const records = await prisma.clinicalRecord.findMany({
+      where: { patientId },
+      include: { attachments: true },
+      orderBy: { date: 'desc' }
+    });
+
+    res.json({ patient, appointments, records });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar dados do paciente' });
+  }
 });
 
 // --- PATIENTS (PROTECTED) ---
@@ -397,14 +469,24 @@ app.post('/api/ai/ask', async (req, res) => {
     const response = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',
       body: JSON.stringify({
-        model: 'llama3', // Modelo padrão sugerido para o JARVIS 4.1
+        model: 'llama3:8b', // JARVIS 4.1.4: Usando versão de 8b confirmada no ambiente
         prompt: `${systemPrompt}\n\nUsuário: ${prompt}\nCecília:`,
         stream: false
       })
     });
     
+    if (!response.ok) throw new Error(`Ollama Error: ${response.statusText}`);
+
     const data = await response.json();
+    
+    if (data.error) {
+      console.error('JARVIS: Ollama Model Error:', data.error);
+      throw new Error(data.error);
+    }
+
     const result = data.response || "Desculpe, meu motor de inteligência está processando algo pesado. Pode repetir?";
+    
+    console.log('JARVIS: Cecília respondeu via Ollama (llama3:8b).');
 
     // Auto-log the interaction
     await prisma.aILog.create({

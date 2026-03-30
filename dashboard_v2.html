@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Holozonic — Dashboard V2</title>
   
+  <!-- OFFLINE-FIRST FONTS (Fallback to system if CDN fails/offline) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+    /* Intended for local hosting of Inter/Plus Jakarta Sans for 100% Offline-lock */
+    @font-face { font-family: 'Inter'; src: local('Inter'), local('Segoe UI'), sans-serif; }
+    @font-face { font-family: 'Plus Jakarta Sans'; src: local('Plus Jakarta Sans'), local('Arial'), sans-serif; }
+  </style>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   
   <script src="assets/js/tailwind.js"></script>
@@ -731,7 +737,25 @@
         buildMenuNavigation();
         startPolling();
         loadCid10();
-        switchView('view-dashboard');
+        
+        // Fragment Routing
+        handleFragmentRoute();
+        window.addEventListener('hashchange', handleFragmentRoute);
+    }
+
+    function handleFragmentRoute() {
+        const hash = window.location.hash.substring(1);
+        if (!hash) {
+            switchView('view-dashboard');
+            return;
+        }
+        
+        // Map hash to view ID
+        const viewId = `view-${hash}`;
+        const nav = NAV_MAP.find(n => n.id === viewId);
+        if (nav) {
+            switchView(viewId);
+        }
     }
 
     async function loadCid10() {
@@ -776,6 +800,25 @@
           menu.appendChild(btn);
         }
       });
+    }
+
+    // JARVIS 4.1.3: Unified Navigation Wrapper
+    function setView(name) {
+      console.log(`JARVIS: Switching to view ${name}`);
+      const viewMap = {
+        'dashboard': 'view-dashboard',
+        'sistema': 'view-sistema',
+        'prontuarios': 'view-pep',
+        'leads': 'view-leads',
+        'agenda': 'view-agenda',
+        'cadastro': 'view-cadastro'
+      };
+      const viewId = viewMap[name] || `view-${name}`;
+      if (document.getElementById(viewId)) {
+        switchView(viewId);
+      } else {
+        console.warn(`JARVIS: View ${viewId} not found in DNA.`);
+      }
     }
 
     function switchView(viewId) {
@@ -1094,7 +1137,6 @@
     }
 
     async function finalizarAtendimento(id) {
-        if(!confirm("JARVIS-001: Deseja FINALIZAR este atendimento?")) return;
         showToast("Encerrando ciclo de atendimento clínico...");
         try {
             await fetchWithAuth(`${API_URL}/agenda/${id}`, {
@@ -1102,7 +1144,7 @@
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({ status: 'FINALIZADO' })
             });
-            fetchCoreData();
+            await fetchCoreData();
             showToast("Atendimento marcado como FINALIZADO.", "success");
         } catch(e) { console.error(e); }
     }

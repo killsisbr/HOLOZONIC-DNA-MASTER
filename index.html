@@ -3166,13 +3166,13 @@
         </a>
 
         <nav class="hidden lg:flex items-center gap-1" aria-label="Menu">
-          <a class="nav-link" href="index.html">Início</a>
-          <a class="nav-link" href="holozonic2.html">Por que Holozonic</a>
-          <a class="nav-link" href="medicina-chinesa.html">Medicina Chinesa</a>
-          <a class="nav-link" href="MIB.html">MIB</a>
-          <a class="nav-link" href="ozonio.html">Ozonioterapia</a>
-          <a class="nav-link" href="feridas.html">Feridas</a>
-          <a class="nav-link" href="app.html">App</a>
+          <a class="nav-link" href="#topo">Início</a>
+          <a class="nav-link" href="#por-que">Por que Holozonic</a>
+          <a class="nav-link" href="#medicina-chinesa">Medicina Chinesa</a>
+          <a class="nav-link" href="#mib">MIB</a>
+          <a class="nav-link" href="#ozonio">Ozonioterapia</a>
+          <a class="nav-link" href="#feridas">Feridas</a>
+          <a class="nav-link" href="#app">App</a>
         </nav>
 
         <div class="hidden lg:flex items-center gap-3">
@@ -3183,15 +3183,17 @@
           </button>
 
           <!-- JARVIS 4.1: Atalhos de Sistema -->
-          <a href="painel.html"
+          <a href="/dashboard"
             class="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-bold hover:bg-emerald-500/20 transition-all text-sm uppercase tracking-wider">
             <i class="fa-solid fa-user-shield"></i> Entrar
           </a>
 
-          <a href="treinamento.html"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-400 font-bold hover:bg-purple-500/20 transition-all text-sm uppercase tracking-wider">
-            <i class="fa-solid fa-microchip"></i> Treinamento
+          <!-- ÁREA DO PACIENTE -->
+          <a href="/app"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 font-bold hover:bg-blue-500/20 transition-all text-sm uppercase tracking-wider">
+            <i class="fa-solid fa-circle-user"></i> Sou Paciente
           </a>
+
 
           <button id="btnContatoTop" class="btn-header-green" onclick="openModal('contatoModal')">
             <i class="fa-regular fa-paper-plane"></i>
@@ -3214,16 +3216,24 @@
         <a class="mobile-link" href="#medicina-chinesa">Medicina Chinesa <i
             class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
         <a class="mobile-link" href="#mib">MIB <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
-        <a class="mobile-link" href="#feridas">Feridas <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
-        <a class="mobile-link" href="#ozonio">Oxigênio–Ozonioterapia <i
+        <a class="mobile-link" href="#ozonio">Ozonioterapia <i
             class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
+        <a class="mobile-link" href="#feridas">Feridas <i class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
         <a class="mobile-link" href="#exame-sono">Exame Sono <i
+            class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
+        <a class="mobile-link" href="#app">App <i
             class="fa-solid fa-chevron-right text-xs opacity-60"></i></a>
         <button class="mobile-link w-full text-left" onclick="openModal('contatoModal')">Contato <i
             class="fa-solid fa-chevron-right text-xs opacity-60"></i></button>
 
-        <div class="pt-2">
-          <button class="btn-header-green justify-center w-full" onclick="openModal('contatoModal')">
+        <div class="pt-2 flex flex-col gap-2">
+          <a href="/dashboard" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-bold text-sm uppercase tracking-wider">
+            <i class="fa-solid fa-user-shield"></i> Painel Clínico
+          </a>
+          <a href="/app" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 font-bold text-sm uppercase tracking-wider">
+            <i class="fa-solid fa-circle-user"></i> Área do Paciente
+          </a>
+          <button class="btn-header-green justify-center w-full mt-2" onclick="openModal('contatoModal')">
             <i class="fa-regular fa-paper-plane"></i> Entrar em contato
           </button>
         </div>
@@ -3371,7 +3381,7 @@
         </div>
       </div>
 
-      <div class="mt-10 card p-8">
+      <div id="app" class="mt-10 card p-8">
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div>
             <h3 class="font-display font-extrabold text-2xl">⌚ Monitoramento Inteligente da Saúde</h3>

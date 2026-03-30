@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Holozonic — App do Cliente</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="assets/js/tailwind.js"></script>
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui"],
+            display: ["Plus Jakarta Sans", "Inter", "ui-sans-serif"]
+          },
+          colors: {
+            mint: {
+              DEFAULT: '#4DBE94',
+              50: '#F0FDF8',
+              100: '#CCFBF1',
+              400: '#2DD4BF',
+              600: '#0D9488'
+            },
+            dark: {
+              DEFAULT: '#000000',
+              surface: '#0A0A0A',
+              card: 'rgba(20, 20, 20, 0.7)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --mint: #4DBE94;
+    }
+    
+    .glass {
+      background: rgba(15, 15, 15, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-mint {
+      background: rgba(77, 190, 148, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(77, 190, 148, 0.2);
+    }
+
+    body {
+      background: radial-gradient(circle at top right, #0F172A, #000000);
+      color: #E2E8F0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .nav-active {
+      color: var(--mint);
+      border-top: 3px solid var(--mint);
+    }
+  </style>
+</head>
+<body class="font-sans antialiased">
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black">
+    <div class="absolute inset-0 bg-no-repeat bg-cover opacity-30" style="background-image: url('image.png');"></div>
+    <div class="relative glass p-8 rounded-[32px] w-full max-w-sm border border-white/10 shadow-2xl animate-fade-in">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-black font-display text-white">HOLOZONIC</h2>
+        <p class="text-[10px] text-mint font-bold uppercase tracking-[3px] mt-1">App do Cliente</p>
+      </div>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[10px] font-black uppercase text-gray-500 mb-2">Seu CPF</label>
+          <input type="text" id="loginCpf" placeholder="000.000.000-00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint transition-all">
+        </div>
+        
+        <button onclick="doLogin()" class="w-full bg-mint hover:bg-mint-600 text-black font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-mint/20">
+          ACESSAR MEU PORTAL
+        </button>
+
+        <p class="text-[10px] text-center text-gray-500 leading-relaxed px-4">
+          Acesso seguro via DNA Holozonic. Seus dados estão protegidos por criptografia P2P.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP CONTENT (HIDDEN BY DEFAULT) -->
+  <div id="app-content" class="hidden flex-1 flex flex-col">
+    
+    <!-- HEADER -->
+    <header class="p-6 flex justify-between items-center glass border-b border-white/5 sticky top-0 z-50">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-mint rounded-xl flex items-center justify-center text-black font-black">H</div>
+        <div>
+          <h1 class="text-lg font-black text-white leading-none">Holozonic</h1>
+          <span class="text-[9px] font-bold text-mint uppercase tracking-widest">Protocolo de Cuidado</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="text-right hidden sm:block">
+          <div id="userName" class="text-sm font-bold text-white">Carregando...</div>
+          <div class="text-[9px] text-gray-500 font-bold uppercase">Paciente Verificado</div>
+        </div>
+        <button onclick="logout()" class="w-10 h-10 rounded-full glass-mint border border-white/5 flex items-center justify-center text-mint">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 p-6 pb-32">
+      
+      <!-- VIEW: HOME -->
+      <section id="view-home" class="view-section animate-fade-in space-y-8">
+        <div class="glass-mint p-8 rounded-[32px] border border-mint/20 relative overflow-hidden">
+          <div class="relative z-10">
+            <h2 class="text-3xl font-black text-white mb-2">Bem-vindo(a) à sua Jornada.</h2>
+            <p class="text-mint font-medium">Sua saúde monitorada em tempo real pelo Swarm JARVIS.</p>
+          </div>
+          <i class="fas fa-heartbeat absolute -right-4 -bottom-4 text-8xl text-mint/5"></i>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div onclick="switchView('agenda')" class="glass p-6 rounded-[24px] cursor-pointer hover:border-mint/30 transition-all group">
+            <div class="flex justify-between items-start mb-4">
+              <span class="text-[10px] font-black text-gray-500 uppercase">Próximo Agendamento</span>
+              <div class="w-8 h-8 rounded-lg bg-mint/10 flex items-center justify-center text-mint group-hover:scale-110 transition-transform">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+            </div>
+            <div id="nextAppt" class="text-lg font-bold text-white">Nenhum agendado</div>
+            <p class="text-xs text-mint mt-1">Ver todos os horários</p>
+          </div>
+
+          <div onclick="switchView('docs')" class="glass p-6 rounded-[24px] cursor-pointer hover:border-mint/30 transition-all group">
+            <div class="flex justify-between items-start mb-4">
+              <span class="text-[10px] font-black text-gray-500 uppercase">Minhas Prescrições</span>
+              <div class="w-8 h-8 rounded-lg bg-mint/10 flex items-center justify-center text-mint group-hover:scale-110 transition-transform">
+                <i class="fas fa-file-prescription"></i>
+              </div>
+            </div>
+            <div id="lastDoc" class="text-lg font-bold text-white">Em dia</div>
+            <p class="text-xs text-mint mt-1">Acessar documentos</p>
+          </div>
+        </div>
+
+        <div class="glass p-6 rounded-[24px]">
+          <h3 class="text-xs font-black text-gray-500 uppercase mb-4 tracking-widest">Protocolo de Medicamentos</h3>
+          <div id="medList" class="space-y-3">
+             <div class="text-center p-6 text-gray-600 italic text-sm">Nenhum uso contínuo registrado.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: AGENDA -->
+      <section id="view-agenda" class="view-section hidden animate-fade-in space-y-6">
+        <h2 class="text-2xl font-black text-white">Agendamentos</h2>
+        <div id="agendaList" class="space-y-4">
+           <!-- Data dynamic -->
+        </div>
+      </section>
+
+      <!-- VIEW: DOCS -->
+      <section id="view-docs" class="view-section hidden animate-fade-in space-y-6">
+        <h2 class="text-2xl font-black text-white">Documentos & Laudos</h2>
+        <div id="docsList" class="space-y-4">
+           <!-- Data dynamic -->
+        </div>
+      </section>
+
+      <!-- VIEW: AI -->
+      <section id="view-ai" class="view-section hidden animate-fade-in h-[calc(100vh-250px)] flex flex-col">
+        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="aiChat">
+           <div class="bg-mint/10 p-4 rounded-2xl rounded-tl-none border border-mint/20 text-sm">
+             Olá! Sou a Cecília. Tenho acesso aos seus registros e posso te ajudar a entender melhor seu plano de cuidado. O que deseja saber?
+           </div>
+        </div>
+        <div class="mt-4 flex gap-2">
+           <input type="text" id="aiInput" placeholder="Perguntar à Cecília..." class="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-3 outline-none focus:border-mint">
+           <button onclick="askAi()" class="w-12 h-12 bg-mint rounded-full text-black flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 glass border-t border-white/10 px-8 py-3 flex justify-between items-center z-50">
+      <button onclick="switchView('home')" id="nav-home" class="nav-btn flex flex-col items-center gap-1 text-gray-500 nav-active">
+        <i class="fas fa-home text-xl"></i>
+        <span class="text-[8px] font-black uppercase">DNA</span>
+      </button>
+      <button onclick="switchView('agenda')" id="nav-agenda" class="nav-btn flex flex-col items-center gap-1 text-gray-500">
+        <i class="fas fa-calendar-day text-xl"></i>
+        <span class="text-[8px] font-black uppercase">Agenda</span>
+      </button>
+      <button onclick="switchView('docs')" id="nav-docs" class="nav-btn flex flex-col items-center gap-1 text-gray-500">
+        <i class="fas fa-file-medical text-xl"></i>
+        <span class="text-[8px] font-black uppercase">Docs</span>
+      </button>
+      <button onclick="switchView('ai')" id="nav-ai" class="nav-btn flex flex-col items-center gap-1 text-gray-500">
+        <i class="fas fa-robot text-xl"></i>
+        <span class="text-[8px] font-black uppercase">IA</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    const API_URL = '/api';
+    let AUTH_TOKEN = localStorage.getItem('patient_token');
+    let DB = { user: null, appointments: [], records: [] };
+
+    async function doLogin() {
+      const cpf = document.getElementById('loginCpf').value;
+      if(!cpf) return alert("CPF é obrigatório.");
+      
+      try {
+        const res = await fetch(`${API_URL}/auth/patient/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cpf })
+        });
+        const data = await res.json();
+        if(data.token) {
+          AUTH_TOKEN = data.token;
+          localStorage.setItem('patient_token', data.token);
+          initApp();
+        } else {
+          alert("CPF não encontrado ou acesso negado.");
+        }
+      } catch (err) { alert("Erro ao conectar com o servidor."); }
+    }
+
+    async function initApp() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-content').classList.remove('hidden');
+      await fetchData();
+      renderUI();
+    }
+
+    async function fetchData() {
+      const res = await fetch(`${API_URL}/patient/data`, {
+        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+      });
+      const data = await res.json();
+      DB.user = data.patient;
+      DB.appointments = data.appointments;
+      DB.records = data.records;
+    }
+
+    function renderUI() {
+      document.getElementById('userName').innerText = DB.user.name;
+      
+      // Agenda
+      const aList = document.getElementById('agendaList');
+      aList.innerHTML = DB.appointments.map(a => `
+        <div class="glass p-4 rounded-2xl flex justify-between items-center">
+            <div>
+                <div class="text-[10px] font-black text-mint uppercase tracking-widest">${a.type}</div>
+                <div class="text-white font-bold">${a.dateTime}</div>
+            </div>
+            <span class="text-[10px] font-black px-2 py-1 bg-white/5 rounded text-gray-400 uppercase border border-white/5">${a.status}</span>
+        </div>
+      `).join('') || '<p class="text-center text-gray-500 py-10">Nenhum agendamento encontrado.</p>';
+
+      // Next Appt Summary
+      const next = DB.appointments.find(a => a.status === 'AGUARDANDO');
+      if(next) document.getElementById('nextAppt').innerText = next.dateTime;
+
+      // Docs
+      const dList = document.getElementById('docsList');
+      dList.innerHTML = DB.records.filter(r => r.attachments && r.attachments.length).map(r => `
+        <div class="glass p-4 rounded-2xl">
+            <div class="text-[10px] font-black text-mint uppercase mb-2">${r.date} — ${r.type}</div>
+            <div class="space-y-2">
+                ${r.attachments.map(at => `
+                    <a href="${at.filePath}" target="_blank" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl text-xs font-bold hover:bg-mint/10 transition-colors">
+                        <i class="fas fa-file-pdf text-red-400"></i> ${at.fileName}
+                    </a>
+                `).join('')}
+            </div>
+        </div>
+      `).join('') || '<p class="text-center text-gray-500 py-10">Nenhum documento disponível.</p>';
+
+      // Medications
+      const meds = DB.user.medications ? DB.user.medications.split(';').filter(m => m.trim()) : [];
+      document.getElementById('medList').innerHTML = meds.map(m => `
+        <div class="flex items-center gap-4 glass-mint p-4 rounded-2xl border border-white/5">
+            <i class="fas fa-pills text-mint"></i>
+            <span class="text-sm font-bold text-white">${m}</span>
+        </div>
+      `).join('') || '<div class="text-center p-6 text-gray-600 italic text-sm">Nenhum uso contínuo registrado.</div>';
+    }
+
+    function switchView(view) {
+      document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+      document.getElementById(`view-${view}`).classList.remove('hidden');
+      
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+      document.getElementById(`nav-${view}`).classList.add('nav-active');
+    }
+
+    async function askAi() {
+      const input = document.getElementById('aiInput');
+      const chat = document.getElementById('aiChat');
+      const val = input.value;
+      if(!val) return;
+      
+      chat.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl rounded-tr-none border border-white/5 text-sm text-right ml-10">${val}</div>`;
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+
+      const res = await fetch(`${API_URL}/ai/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AUTH_TOKEN}` },
+        body: JSON.stringify({ prompt: val, context: `Paciente: ${DB.user.name}. CPF: ${DB.user.cpf}.` })
+      });
+      const data = await res.json();
+      chat.innerHTML += `<div class="bg-mint/10 p-4 rounded-2xl rounded-tl-none border border-mint/20 text-sm animate-fade-in">${data.response}</div>`;
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function logout() {
+      localStorage.removeItem('patient_token');
+      location.reload();
+    }
+
+    // Auto-login
+    if(AUTH_TOKEN) initApp();
+  </script>
+</body>
+</html>
