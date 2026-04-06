@@ -75,7 +75,7 @@ function setupGoogleAuth(app) {
     passport.authenticate('google', { failureRedirect: '/login?error=oauth_failed' }),
     (req, res) => {
       // Sucesso! Redireciona para o painel
-      res.redirect('/dashboard');
+      res.redirect((process.env.PUBLIC_URL || '') + '/dashboard');
     }
   );
 

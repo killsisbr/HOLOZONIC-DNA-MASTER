@@ -7,7 +7,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
   
   <script src="assets/js/tailwind.js"></script>
   <link rel="stylesheet" href="assets/css/fontawesome.min.css" />
@@ -18,12 +18,13 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ["Inter", "ui-sans-serif", "system-ui"],
+            sans: ["Outfit", "ui-sans-serif", "system-ui"],
             display: ["Plus Jakarta Sans", "Inter", "ui-sans-serif"]
           },
           colors: {
             mint: {
               DEFAULT: '#4DBE94',
+              glow: 'rgba(77,190,148,0.5)',
               50: '#F0FDF8',
               100: '#CCFBF1',
               400: '#2DD4BF',
@@ -33,6 +34,16 @@
               DEFAULT: '#000000',
               surface: '#0A0A0A',
               card: 'rgba(20, 20, 20, 0.7)'
+            }
+          },
+          animation: {
+            blob: 'blob 6s infinite alternate',
+            'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '100%': { transform: 'translate(20px, -30px) scale(1.1)' }
             }
           }
         }
@@ -45,6 +56,26 @@
       --mint: #4DBE94;
     }
     
+    body {
+      background-color: #030303;
+      color: #E2E8F0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .ambient-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .orb-1 { position: absolute; top: -10%; left: -20%; width: 100vw; height: 100vw; background: radial-gradient(circle, rgba(77,190,148,0.08) 0%, transparent 60%); filter: blur(40px); animation: blob 8s infinite alternate; }
+    .orb-2 { position: absolute; bottom: 0; right: -20%; width: 80vw; height: 80vw; background: radial-gradient(circle, rgba(212,175,55,0.03) 0%, transparent 60%); filter: blur(50px); animation: blob 10s infinite alternate-reverse; }
+
+    .premium-glass {
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
     .glass {
       background: rgba(15, 15, 15, 0.6);
       backdrop-filter: blur(20px);
@@ -53,17 +84,9 @@
     }
 
     .glass-mint {
-      background: rgba(77, 190, 148, 0.1);
+      background: rgba(77, 190, 148, 0.05);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(77, 190, 148, 0.2);
-    }
-
-    body {
-      background: radial-gradient(circle at top right, #0F172A, #000000);
-      color: #E2E8F0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      border: 1px solid rgba(77, 190, 148, 0.1);
     }
 
     .animate-fade-in {
@@ -74,59 +97,94 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .nav-active {
+    .nav-btn.nav-active {
       color: var(--mint);
-      border-top: 3px solid var(--mint);
     }
+    .nav-btn.nav-active i {
+      filter: drop-shadow(0 0 8px rgba(77,190,148,0.5));
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+    /* Toast */
+    .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { pointer-events: auto; padding: 12px 20px; border-radius: 16px; font-size: 12px; font-weight: 800; animation: toastIn 0.3s ease-out; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); max-width: 90vw; text-align: center; }
+    .toast.success { background: rgba(77,190,148,0.2); color: #4DBE94; border-color: rgba(77,190,148,0.3); }
+    .toast.error { background: rgba(239,68,68,0.2); color: #EF4444; border-color: rgba(239,68,68,0.3); }
+    .toast.info { background: rgba(59,130,246,0.2); color: #3B82F6; border-color: rgba(59,130,246,0.3); }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
+
+    /* Loading spinner */
+    .spinner { width: 24px; height: 24px; border: 3px solid rgba(77,190,148,0.2); border-top-color: var(--mint); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Skeleton */
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* Pull to refresh */
+    .pull-indicator { text-align: center; padding: 12px; color: var(--mint); font-size: 11px; font-weight: 800; opacity: 0; transition: opacity 0.2s; }
+    .pull-indicator.visible { opacity: 1; }
   </style>
 </head>
 <body class="font-sans antialiased">
 
+  <div class="ambient-bg">
+    <div class="orb-1"></div>
+    <div class="orb-2"></div>
+    <div class="absolute inset-0" style="background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.5;"></div>
+  </div>
+
   <!-- LOGIN SCREEN -->
   <div id="login-screen" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black">
-    <div class="absolute inset-0 bg-no-repeat bg-cover opacity-30" style="background-image: url('image.png');"></div>
-    <div class="relative glass p-8 rounded-[32px] w-full max-w-sm border border-white/10 shadow-2xl animate-fade-in">
-      <div class="text-center mb-8">
-        <h2 class="text-3xl font-black font-display text-white">HOLOZONIC</h2>
-        <p class="text-[10px] text-mint font-bold uppercase tracking-[3px] mt-1">App do Cliente</p>
+    <div class="relative premium-glass p-10 rounded-[40px] w-full max-w-sm border border-white/10 shadow-2xl animate-fade-in mx-4">
+      <div class="text-center mb-10">
+        <h2 class="text-4xl font-black font-display text-white tracking-tighter">HOLOZONIC</h2>
+        <p class="text-[10px] text-mint font-bold uppercase tracking-[4px] mt-2 opacity-80">Portal do Paciente</p>
       </div>
       
-      <div class="space-y-4">
-        <div>
-          <label class="block text-[10px] font-black uppercase text-gray-500 mb-2">Seu CPF</label>
-          <input type="text" id="loginCpf" placeholder="000.000.000-00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-mint transition-all">
+      <div class="space-y-6">
+        <div class="group">
+          <label class="block text-[10px] font-black uppercase text-gray-500 mb-2 ml-1 tracking-widest transition-colors group-focus-within:text-mint">Identificação (CPF)</label>
+          <input type="text" id="loginCpf" placeholder="000.000.000-00" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint/50 focus:bg-white/10 transition-all text-white placeholder:text-gray-700">
         </div>
         
-        <button onclick="doLogin()" class="w-full bg-mint hover:bg-mint-600 text-black font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-mint/20">
-          ACESSAR MEU PORTAL
+        <button onclick="doLogin()" class="w-full bg-mint hover:scale-[1.02] active:scale-[0.98] text-black font-black py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(77,190,148,0.2)] uppercase text-xs tracking-widest">
+          Acessar DNA Clínico
         </button>
 
-        <p class="text-[10px] text-center text-gray-500 leading-relaxed px-4">
-          Acesso seguro via DNA Holozonic. Seus dados estão protegidos por criptografia P2P.
-        </p>
+        <div class="pt-4 border-t border-white/5">
+          <p class="text-[9px] text-center text-gray-500 leading-relaxed px-4 uppercase font-bold tracking-tight">
+            Ambiente Seguro — Criptografia Bio-Métrica JARVIS 4.1
+          </p>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- APP CONTENT (HIDDEN BY DEFAULT) -->
-  <div id="app-content" class="hidden flex-1 flex flex-col">
+  <div id="app-content" class="hidden flex-1 flex flex-col relative z-10">
     
     <!-- HEADER -->
-    <header class="p-6 flex justify-between items-center glass border-b border-white/5 sticky top-0 z-50">
+    <header class="p-6 flex justify-between items-center premium-glass border-b border-white/5 sticky top-0 z-50">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-mint rounded-xl flex items-center justify-center text-black font-black">H</div>
+        <div class="w-10 h-10 bg-mint rounded-xl flex items-center justify-center text-black font-black shadow-[0_0_15px_rgba(77,190,148,0.3)]">H</div>
         <div>
-          <h1 class="text-lg font-black text-white leading-none">Holozonic</h1>
-          <span class="text-[9px] font-bold text-mint uppercase tracking-widest">Protocolo de Cuidado</span>
+          <h1 class="text-sm font-extrabold text-white leading-none tracking-tight uppercase">Holozonic</h1>
+          <span class="text-[9px] font-bold text-mint uppercase tracking-[2px] opacity-70">Protocolo de Cuidado</span>
         </div>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="text-right hidden sm:block">
-          <div id="userName" class="text-sm font-bold text-white">Carregando...</div>
-          <div class="text-[9px] text-gray-500 font-bold uppercase">Paciente Verificado</div>
+      <div class="flex items-center gap-3">
+        <div class="text-right hidden xs:block">
+          <div id="userName" class="text-xs font-bold text-white">Carregando...</div>
+          <div class="text-[8px] text-mint font-black uppercase tracking-widest">Paciente Master</div>
         </div>
-        <button onclick="logout()" class="w-10 h-10 rounded-full glass-mint border border-white/5 flex items-center justify-center text-mint">
-          <i class="fas fa-sign-out-alt"></i>
+        <button onclick="logout()" class="w-10 h-10 rounded-xl glass-mint flex items-center justify-center text-mint hover:bg-mint/10 transition-colors">
+          <i class="fas fa-power-off text-sm"></i>
         </button>
       </div>
     </header>
@@ -136,221 +194,583 @@
       
       <!-- VIEW: HOME -->
       <section id="view-home" class="view-section animate-fade-in space-y-8">
-        <div class="glass-mint p-8 rounded-[32px] border border-mint/20 relative overflow-hidden">
+        <!-- WELCOME CARD -->
+        <div class="premium-glass p-8 rounded-[38px] border border-white/5 relative overflow-hidden shadow-2xl">
           <div class="relative z-10">
-            <h2 class="text-3xl font-black text-white mb-2">Bem-vindo(a) à sua Jornada.</h2>
-            <p class="text-mint font-medium">Sua saúde monitorada em tempo real pelo Swarm JARVIS.</p>
+            <h2 class="text-3xl font-black text-white mb-2 tracking-tight">Sua Jornada.</h2>
+            <p class="text-gray-400 text-xs font-medium max-w-[200px] leading-relaxed">Sua biologia monitorada em tempo real pelo ecossistema JARVIS.</p>
           </div>
-          <i class="fas fa-heartbeat absolute -right-4 -bottom-4 text-8xl text-mint/5"></i>
+          <div class="absolute -right-6 -bottom-6 opacity-10 transform -rotate-12">
+            <i class="fas fa-dna text-[120px] text-mint"></i>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div onclick="switchView('agenda')" class="glass p-6 rounded-[24px] cursor-pointer hover:border-mint/30 transition-all group">
-            <div class="flex justify-between items-start mb-4">
-              <span class="text-[10px] font-black text-gray-500 uppercase">Próximo Agendamento</span>
+        <div class="grid grid-cols-1 gap-5">
+          <!-- NEXT APPOINTMENT / TELEMEDICINE -->
+          <div id="nextApptCard" onclick="switchView('agenda')" class="premium-glass p-6 rounded-[28px] cursor-pointer hover:border-mint/30 transition-all group relative overflow-hidden">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+              <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Próxima Etapa</span>
               <div class="w-8 h-8 rounded-lg bg-mint/10 flex items-center justify-center text-mint group-hover:scale-110 transition-transform">
                 <i class="fas fa-calendar-alt"></i>
               </div>
             </div>
-            <div id="nextAppt" class="text-lg font-bold text-white">Nenhum agendado</div>
-            <p class="text-xs text-mint mt-1">Ver todos os horários</p>
+            <div id="nextAppt" class="text-lg font-bold text-white mb-1">Nenhum agendado</div>
+            <div id="telemedLink" class="hidden mt-3 animate-pulse">
+                <span class="inline-flex items-center gap-2 bg-mint/10 text-mint text-[10px] font-black px-4 py-2 rounded-full border border-mint/20">
+                    <i class="fas fa-video"></i> ENTRAR NA TELECONSULTA
+                </span>
+            </div>
           </div>
 
-          <div onclick="switchView('docs')" class="glass p-6 rounded-[24px] cursor-pointer hover:border-mint/30 transition-all group">
-            <div class="flex justify-between items-start mb-4">
-              <span class="text-[10px] font-black text-gray-500 uppercase">Minhas Prescrições</span>
-              <div class="w-8 h-8 rounded-lg bg-mint/10 flex items-center justify-center text-mint group-hover:scale-110 transition-transform">
-                <i class="fas fa-file-prescription"></i>
-              </div>
+          <!-- LATEST EVOLUTION (MINI TIMELINE) -->
+          <div class="premium-glass p-6 rounded-[28px]">
+            <h3 class="text-[10px] font-black text-gray-500 uppercase mb-5 tracking-[3px] flex items-center gap-2">
+                <i class="fas fa-history text-mint"></i> Sua Jornada Clínica
+            </h3>
+            <div id="miniTimeline" class="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-white/5">
+                <!-- Dynamic Content -->
+                <div class="text-center p-4 text-gray-600 italic text-xs">Carregando histórico...</div>
             </div>
-            <div id="lastDoc" class="text-lg font-bold text-white">Em dia</div>
-            <p class="text-xs text-mint mt-1">Acessar documentos</p>
           </div>
         </div>
 
-        <div class="glass p-6 rounded-[24px]">
-          <h3 class="text-xs font-black text-gray-500 uppercase mb-4 tracking-widest">Protocolo de Medicamentos</h3>
+        <!-- MEDICATIONS -->
+        <div class="premium-glass p-6 rounded-[28px]">
+          <h3 class="text-[10px] font-black text-gray-500 uppercase mb-5 tracking-[3px] flex items-center gap-2">
+              <i class="fas fa-pills text-mint"></i> Protocolo Ativo
+          </h3>
           <div id="medList" class="space-y-3">
-             <div class="text-center p-6 text-gray-600 italic text-sm">Nenhum uso contínuo registrado.</div>
+             <div class="text-center p-4 text-gray-600 italic text-xs">Nenhum uso contínuo registrado.</div>
           </div>
         </div>
       </section>
 
       <!-- VIEW: AGENDA -->
       <section id="view-agenda" class="view-section hidden animate-fade-in space-y-6">
-        <h2 class="text-2xl font-black text-white">Agendamentos</h2>
-        <div id="agendaList" class="space-y-4">
-           <!-- Data dynamic -->
-        </div>
+        <h2 class="text-2xl font-black text-white tracking-tight">Sua Agenda</h2>
+        <div id="agendaList" class="space-y-4"></div>
       </section>
 
       <!-- VIEW: DOCS -->
       <section id="view-docs" class="view-section hidden animate-fade-in space-y-6">
-        <h2 class="text-2xl font-black text-white">Documentos & Laudos</h2>
-        <div id="docsList" class="space-y-4">
-           <!-- Data dynamic -->
-        </div>
+        <h2 class="text-2xl font-black text-white tracking-tight">Arquivos & Exames</h2>
+        <div id="docsList" class="space-y-4"></div>
       </section>
 
-      <!-- VIEW: AI -->
-      <section id="view-ai" class="view-section hidden animate-fade-in h-[calc(100vh-250px)] flex flex-col">
-        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="aiChat">
-           <div class="bg-mint/10 p-4 rounded-2xl rounded-tl-none border border-mint/20 text-sm">
-             Olá! Sou a Cecília. Tenho acesso aos seus registros e posso te ajudar a entender melhor seu plano de cuidado. O que deseja saber?
+      <!-- VIEW: AI (CECILIA) -->
+      <section id="view-ai" class="view-section hidden animate-fade-in h-[calc(100vh-280px)] flex flex-col">
+        <div class="flex-1 overflow-y-auto p-2 space-y-4" id="aiChat">
+           <div class="glass-mint p-4 rounded-3xl rounded-tl-none border border-mint/10 text-[13px] leading-relaxed text-gray-300">
+             Olá! Sou a <b>Cecília</b>. Tenho acesso aos seus registros e posso te ajudar a entender melhor seu plano de cuidado. O que deseja saber hoje?
            </div>
         </div>
-        <div class="mt-4 flex gap-2">
-           <input type="text" id="aiInput" placeholder="Perguntar à Cecília..." class="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-3 outline-none focus:border-mint">
-           <button onclick="askAi()" class="w-12 h-12 bg-mint rounded-full text-black flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
+        <div class="mt-4 flex gap-2 premium-glass p-2 rounded-full border border-white/5 shadow-2xl">
+           <input type="text" id="aiInput" placeholder="Perguntar à Cecília..." class="flex-1 bg-transparent border-none outline-none px-5 py-3 text-sm text-white placeholder:text-gray-600">
+           <button onclick="askAi()" class="w-12 h-12 bg-mint rounded-full text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform"><i class="fas fa-paper-plane text-xs"></i></button>
         </div>
       </section>
 
     </main>
 
     <!-- NAVIGATION BAR -->
-    <nav class="fixed bottom-0 left-0 right-0 glass border-t border-white/10 px-8 py-3 flex justify-between items-center z-50">
-      <button onclick="switchView('home')" id="nav-home" class="nav-btn flex flex-col items-center gap-1 text-gray-500 nav-active">
-        <i class="fas fa-home text-xl"></i>
-        <span class="text-[8px] font-black uppercase">DNA</span>
+    <nav class="fixed bottom-0 left-0 right-0 premium-glass border-t border-white/10 px-8 py-4 flex justify-between items-center z-50 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+      <button onclick="switchView('home')" id="nav-home" class="nav-btn flex flex-col items-center gap-1.5 text-gray-500 nav-active transition-all">
+        <i class="fas fa-home text-lg"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest">DNA</span>
       </button>
-      <button onclick="switchView('agenda')" id="nav-agenda" class="nav-btn flex flex-col items-center gap-1 text-gray-500">
-        <i class="fas fa-calendar-day text-xl"></i>
-        <span class="text-[8px] font-black uppercase">Agenda</span>
+      <button onclick="switchView('agenda')" id="nav-agenda" class="nav-btn flex flex-col items-center gap-1.5 text-gray-500 transition-all">
+        <i class="fas fa-calendar-day text-lg"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest">Agenda</span>
       </button>
-      <button onclick="switchView('docs')" id="nav-docs" class="nav-btn flex flex-col items-center gap-1 text-gray-500">
-        <i class="fas fa-file-medical text-xl"></i>
-        <span class="text-[8px] font-black uppercase">Docs</span>
+      <button onclick="switchView('docs')" id="nav-docs" class="nav-btn flex flex-col items-center gap-1.5 text-gray-500 transition-all">
+        <i class="fas fa-file-medical text-lg"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest">Docs</span>
       </button>
-      <button onclick="switchView('ai')" id="nav-ai" class="nav-btn flex flex-col items-center gap-1 text-gray-500">
-        <i class="fas fa-robot text-xl"></i>
-        <span class="text-[8px] font-black uppercase">IA</span>
+      <button onclick="switchView('ai')" id="nav-ai" class="nav-btn flex flex-col items-center gap-1.5 text-gray-500 transition-all">
+        <i class="fas fa-robot text-lg"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest">IA</span>
       </button>
     </nav>
 
   </div>
 
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
   <script>
-    const API_URL = '/api';
+    const API_URL = 'api';
     let AUTH_TOKEN = localStorage.getItem('patient_token');
     let DB = { user: null, appointments: [], records: [] };
+    let aiSending = false;
 
+    // --- TOAST SYSTEM ---
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'toastOut 0.3s ease-in forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // --- CPF MASK ---
+    function applyCpfMask(input) {
+      let v = input.value.replace(/\D/g, '').substring(0, 11);
+      if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+      else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+      else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+      input.value = v;
+    }
+
+    // --- DATE FORMATTER ---
+    function formatDateTime(raw) {
+      if (!raw) return 'Sem data';
+      if (/^\d{2}:\d{2}$/.test(raw)) return `Check-in: ${raw}`;
+      if (/^\d{2}\/\d{2}\/\d{4}/.test(raw)) return raw;
+      try {
+        const d = new Date(raw.replace(' ', 'T'));
+        if (isNaN(d.getTime())) return raw;
+        return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } catch(e) { return raw; }
+    }
+
+    // --- LOGIN ---
     async function doLogin() {
-      const cpf = document.getElementById('loginCpf').value;
-      if(!cpf) return alert("CPF é obrigatório.");
+      const cpfInput = document.getElementById('loginCpf');
+      const cpf = cpfInput.value.replace(/\D/g, '');
+      if(!cpf || cpf.length !== 11) {
+        showToast('CPF invalido. Digite 11 digitos.', 'error');
+        return;
+      }
+      
+      cpfInput.disabled = true;
+      showToast('Autenticando...', 'info');
       
       try {
         const res = await fetch(`${API_URL}/auth/patient/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cpf })
+          body: JSON.stringify({ cpf: cpfInput.value })
         });
+
+        if (res.status === 400) {
+          const err = await res.json();
+          showToast(err.error || 'CPF invalido.', 'error');
+          cpfInput.disabled = false;
+          return;
+        }
+        if (res.status === 404) {
+          showToast('DNA nao localizado. Contate a clinica.', 'error');
+          cpfInput.disabled = false;
+          return;
+        }
+
         const data = await res.json();
         if(data.token) {
           AUTH_TOKEN = data.token;
           localStorage.setItem('patient_token', data.token);
+          showToast('Bem-vindo(a)!', 'success');
           initApp();
         } else {
-          alert("CPF não encontrado ou acesso negado.");
+          showToast('Acesso restrito. Contate a clinica.', 'error');
+          cpfInput.disabled = false;
         }
-      } catch (err) { alert("Erro ao conectar com o servidor."); }
+      } catch (err) {
+        showToast('Erro de conexao com o servidor.', 'error');
+        cpfInput.disabled = false;
+      }
     }
 
+    // --- INIT APP ---
     async function initApp() {
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('app-content').classList.remove('hidden');
-      await fetchData();
-      renderUI();
-    }
-
-    async function fetchData() {
-      const res = await fetch(`${API_URL}/patient/data`, {
-        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
-      });
-      const data = await res.json();
-      DB.user = data.patient;
-      DB.appointments = data.appointments;
-      DB.records = data.records;
-    }
-
-    function renderUI() {
-      document.getElementById('userName').innerText = DB.user.name;
+      const loginScreen = document.getElementById('login-screen');
+      const appContent = document.getElementById('app-content');
       
-      // Agenda
+      if (loginScreen) loginScreen.classList.add('hidden');
+      if (appContent) {
+        appContent.classList.remove('hidden');
+        appContent.innerHTML = buildAppHTML();
+        attachEventListeners();
+        await fetchData();
+      }
+    }
+
+    function buildAppHTML() {
+      return `
+    <!-- HEADER -->
+    <header class="p-6 flex justify-between items-center premium-glass border-b border-white/5 sticky top-0 z-50">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-mint rounded-xl flex items-center justify-center text-black font-black shadow-[0_0_15px_rgba(77,190,148,0.3)]">H</div>
+        <div>
+          <h1 class="text-sm font-extrabold text-white leading-none tracking-tight uppercase">Holozonic</h1>
+          <span class="text-[9px] font-bold text-mint uppercase tracking-[2px] opacity-70">Protocolo de Cuidado</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-right">
+          <div id="userName" class="text-xs font-bold text-white">Carregando...</div>
+          <div class="text-[8px] text-mint font-black uppercase tracking-widest">Paciente Master</div>
+        </div>
+        <button onclick="logout()" class="w-10 h-10 rounded-xl glass-mint flex items-center justify-center text-mint hover:bg-mint/10 transition-colors" aria-label="Sair">
+          <i class="fas fa-power-off text-sm"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- PULL INDICATOR -->
+    <div id="pullIndicator" class="pull-indicator">Atualizando...</div>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 p-6 pb-32" id="mainContent">
+      
+      <!-- VIEW: HOME -->
+      <section id="view-home" class="view-section animate-fade-in space-y-8">
+        <div class="premium-glass p-8 rounded-[38px] border border-white/5 relative overflow-hidden shadow-2xl">
+          <div class="relative z-10">
+            <h2 class="text-3xl font-black text-white mb-2 tracking-tight">Sua Jornada.</h2>
+            <p class="text-gray-400 text-xs font-medium max-w-[200px] leading-relaxed">Sua biologia monitorada em tempo real pelo ecossistema JARVIS.</p>
+          </div>
+          <div class="absolute -right-6 -bottom-6 opacity-10 transform -rotate-12">
+            <i class="fas fa-dna text-[120px] text-mint"></i>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-5">
+          <div id="nextApptCard" onclick="switchView('agenda')" class="premium-glass p-6 rounded-[28px] cursor-pointer hover:border-mint/30 transition-all group relative overflow-hidden">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+              <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Proxima Etapa</span>
+              <div class="w-8 h-8 rounded-lg bg-mint/10 flex items-center justify-center text-mint group-hover:scale-110 transition-transform">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+            </div>
+            <div id="nextAppt" class="text-lg font-bold text-white mb-1">Nenhum agendado</div>
+            <div id="telemedLink" class="hidden mt-3 animate-pulse"></div>
+          </div>
+
+          <div class="premium-glass p-6 rounded-[28px]">
+            <h3 class="text-[10px] font-black text-gray-500 uppercase mb-5 tracking-[3px] flex items-center gap-2">
+                <i class="fas fa-history text-mint"></i> Sua Jornada Clinica
+            </h3>
+            <div id="miniTimeline" class="space-y-6 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-white/5">
+                <div class="text-center p-4 text-gray-600 italic text-xs">Carregando historico...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="premium-glass p-6 rounded-[28px]">
+          <h3 class="text-[10px] font-black text-gray-500 uppercase mb-5 tracking-[3px] flex items-center gap-2">
+              <i class="fas fa-pills text-mint"></i> Protocolo Ativo
+          </h3>
+          <div id="medList" class="space-y-3">
+             <div class="text-center p-4 text-gray-600 italic text-xs">Nenhum uso continuo registrado.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: AGENDA -->
+      <section id="view-agenda" class="view-section hidden animate-fade-in space-y-6">
+        <div class="flex justify-between items-center">
+          <h2 class="text-2xl font-black text-white tracking-tight">Sua Agenda</h2>
+          <button onclick="refreshData()" class="text-mint text-xs font-black uppercase tracking-widest" aria-label="Atualizar">
+            <i class="fas fa-sync-alt mr-1"></i> Atualizar
+          </button>
+        </div>
+        <div id="agendaList"></div>
+      </section>
+
+      <!-- VIEW: DOCS -->
+      <section id="view-docs" class="view-section hidden animate-fade-in space-y-6">
+        <h2 class="text-2xl font-black text-white tracking-tight">Arquivos & Exames</h2>
+        <div id="docsList"></div>
+      </section>
+
+      <!-- VIEW: AI (CECILIA) -->
+      <section id="view-ai" class="view-section hidden animate-fade-in h-[calc(100vh-280px)] flex flex-col">
+        <div class="flex-1 overflow-y-auto p-2 space-y-4" id="aiChat">
+           <div class="glass-mint p-4 rounded-3xl rounded-tl-none border border-mint/10 text-[13px] leading-relaxed text-gray-300">
+             Ola! Sou a <b>Cecilia</b>. Estou aqui para te ajudar a entender seu plano de cuidado. O que deseja saber?
+           </div>
+        </div>
+        <div class="mt-4 flex gap-2 premium-glass p-2 rounded-full border border-white/5 shadow-2xl">
+           <input type="text" id="aiInput" placeholder="Perguntar a Cecilia..." class="flex-1 bg-transparent border-none outline-none px-5 py-3 text-sm text-white placeholder:text-gray-600" aria-label="Pergunta para IA">
+           <button onclick="askAi()" id="aiSendBtn" class="w-12 h-12 bg-mint rounded-full text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform" aria-label="Enviar pergunta"><i class="fas fa-paper-plane text-xs"></i></button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 premium-glass border-t border-white/10 px-8 py-4 flex justify-between items-center z-50 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]" role="navigation" aria-label="Navegacao principal">
+      <button onclick="switchView('home')" id="nav-home" class="nav-btn flex flex-col items-center gap-1.5 text-gray-500 nav-active transition-all" aria-label="Inicio">
+        <i class="fas fa-home text-lg"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest">DNA</span>
+      </button>
+      <button onclick="switchView('agenda')" id="nav-agenda" class="nav-btn flex flex-col items-center gap-1.5 text-gray-500 transition-all" aria-label="Agenda">
+        <i class="fas fa-calendar-day text-lg"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest">Agenda</span>
+      </button>
+      <button onclick="switchView('docs')" id="nav-docs" class="nav-btn flex flex-col items-center gap-1.5 text-gray-500 transition-all" aria-label="Documentos">
+        <i class="fas fa-file-medical text-lg"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest">Docs</span>
+      </button>
+      <button onclick="switchView('ai')" id="nav-ai" class="nav-btn flex flex-col items-center gap-1.5 text-gray-500 transition-all" aria-label="Inteligencia Artificial">
+        <i class="fas fa-robot text-lg"></i>
+        <span class="text-[8px] font-black uppercase tracking-widest">IA</span>
+      </button>
+    </nav>
+      `;
+    }
+
+    function attachEventListeners() {
+      document.getElementById('loginCpf')?.addEventListener('input', (e) => applyCpfMask(e.target));
+      
+      document.getElementById('aiInput')?.addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') askAi();
+      });
+
+      // Pull to refresh
+      let startY = 0;
+      const main = document.getElementById('mainContent');
+      const pullEl = document.getElementById('pullIndicator');
+      
+      main?.addEventListener('touchstart', (e) => {
+        if (main.scrollTop === 0) startY = e.touches[0].clientY;
+      }, { passive: true });
+
+      main?.addEventListener('touchmove', (e) => {
+        if (main.scrollTop === 0 && startY > 0) {
+          const diff = e.touches[0].clientY - startY;
+          if (diff > 60) pullEl.classList.add('visible');
+        }
+      }, { passive: true });
+
+      main?.addEventListener('touchend', () => {
+        if (pullEl.classList.contains('visible')) {
+          refreshData();
+        }
+        startY = 0;
+        pullEl.classList.remove('visible');
+      }, { passive: true });
+    }
+
+    // --- FETCH DATA ---
+    async function fetchData() {
+      try {
+        const res = await fetch(`${API_URL}/patient/data`, {
+          headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+        });
+
+        if (res.status === 401) {
+          showToast('Sessao expirada. Faca login novamente.', 'error');
+          setTimeout(() => {
+            localStorage.removeItem('patient_token');
+            location.reload();
+          }, 1500);
+          return false;
+        }
+
+        if (!res.ok) {
+          showToast('Erro ao carregar dados. Tente novamente.', 'error');
+          return false;
+        }
+
+        const data = await res.json();
+        DB.user = data.patient;
+        DB.appointments = data.appointments || [];
+        DB.records = data.records || [];
+        return true;
+      } catch(e) {
+        console.error("Data Fetch Error", e);
+        showToast('Sem conexao com o servidor.', 'error');
+        return false;
+      }
+    }
+
+    async function refreshData() {
+      showToast('Atualizando dados...', 'info');
+      const ok = await fetchData();
+      if (ok) {
+        renderUI();
+        showToast('Dados atualizados.', 'success');
+      }
+    }
+
+    // --- RENDER UI ---
+    function renderUI() {
+      if(!DB.user) return;
+      
+      document.getElementById('userName').innerText = DB.user.name.split(' ')[0];
+      
+      // AGENDA VIEW
       const aList = document.getElementById('agendaList');
-      aList.innerHTML = DB.appointments.map(a => `
-        <div class="glass p-4 rounded-2xl flex justify-between items-center">
-            <div>
-                <div class="text-[10px] font-black text-mint uppercase tracking-widest">${a.type}</div>
-                <div class="text-white font-bold">${a.dateTime}</div>
-            </div>
-            <span class="text-[10px] font-black px-2 py-1 bg-white/5 rounded text-gray-400 uppercase border border-white/5">${a.status}</span>
+      if (DB.appointments.length === 0) {
+        aList.innerHTML = '<p class="text-center text-gray-500 py-10 text-xs">Nenhum agendamento encontrado.</p>';
+      } else {
+        aList.innerHTML = DB.appointments.map(a => {
+          const statusColors = {
+            'AGUARDANDO': 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+            'EM_ATENDIMENTO': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+            'FINALIZADO': 'bg-mint/10 text-mint border-mint/20',
+            'CANCELADO': 'bg-red-500/10 text-red-400 border-red-500/20'
+          };
+          const sc = statusColors[a.status] || 'bg-white/5 text-gray-400 border-white/10';
+          return `
+            <div class="premium-glass p-5 rounded-[24px] flex justify-between items-center border border-white/5">
+                <div>
+                    <div class="text-[9px] font-black text-mint uppercase tracking-widest opacity-70">${a.type}</div>
+                    <div class="text-white font-bold text-sm">${formatDateTime(a.dateTime)}</div>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                    <span class="text-[8px] font-black px-2 py-1 rounded-lg uppercase border tracking-tighter ${sc}">${a.status.replace('_', ' ')}</span>
+                    ${a.meetLink && (a.status === 'AGUARDANDO' || a.status === 'EM_ATENDIMENTO') ? `<a href="${a.meetLink}" target="_blank" class="text-[8px] font-black text-mint underline tracking-tighter"><i class="fas fa-video mr-1"></i> LINK DISPONIVEL</a>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+      }
+
+      // HOME: NEXT APPT & TELEMED
+      const next = DB.appointments.find(a => a.status === 'AGUARDANDO' || a.status === 'EM_ATENDIMENTO');
+      const nextEl = document.getElementById('nextAppt');
+      const teleEl = document.getElementById('telemedLink');
+      
+      if(next) {
+        nextEl.innerText = formatDateTime(next.dateTime);
+        if(next.meetLink) {
+            teleEl.classList.remove('hidden');
+            teleEl.innerHTML = `<a href="${next.meetLink}" target="_blank" class="inline-flex items-center gap-2 bg-mint/10 text-mint text-[10px] font-black px-4 py-2 rounded-full border border-mint/20 hover:bg-mint/20 transition-all">
+                <i class="fas fa-video"></i> ENTRAR NA TELECONSULTA
+            </a>`;
+        } else {
+            teleEl.classList.add('hidden');
+        }
+      } else {
+        nextEl.innerText = "Nenhum agendado";
+        teleEl.classList.add('hidden');
+      }
+
+      // HOME: MINI TIMELINE
+      const miniTime = document.getElementById('miniTimeline');
+      const latestRecords = [...DB.records]
+        .sort((a,b) => {
+          const parseDate = (d) => {
+            if (d.includes('/')) return new Date(d.split('/').reverse().join('-'));
+            return new Date(d);
+          };
+          return parseDate(b.date) - parseDate(a.date);
+        })
+        .slice(0, 5);
+
+      miniTime.innerHTML = latestRecords.map(r => `
+        <div class="relative pl-7">
+            <div class="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-mint shadow-[0_0_8px_rgba(77,190,148,0.4)]"></div>
+            <div class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">${r.date} — ${r.type}</div>
+            <p class="text-[11px] text-gray-300 leading-relaxed line-clamp-2">${r.description}</p>
+            ${r.attachments && r.attachments.length ? `<div class="mt-2 flex gap-2 flex-wrap">${r.attachments.map(at => `<a href="${at.filePath}" target="_blank" class="text-[9px] text-mint underline"><i class="fas fa-paperclip mr-1"></i>${at.fileName}</a>`).join('')}</div>` : ''}
         </div>
-      `).join('') || '<p class="text-center text-gray-500 py-10">Nenhum agendamento encontrado.</p>';
+      `).join('') || '<div class="text-center p-4 text-gray-600 italic text-xs">Aguardando primeira evolucao...</div>';
 
-      // Next Appt Summary
-      const next = DB.appointments.find(a => a.status === 'AGUARDANDO');
-      if(next) document.getElementById('nextAppt').innerText = next.dateTime;
-
-      // Docs
+      // DOCS VIEW
       const dList = document.getElementById('docsList');
-      dList.innerHTML = DB.records.filter(r => r.attachments && r.attachments.length).map(r => `
-        <div class="glass p-4 rounded-2xl">
-            <div class="text-[10px] font-black text-mint uppercase mb-2">${r.date} — ${r.type}</div>
-            <div class="space-y-2">
-                ${r.attachments.map(at => `
-                    <a href="${at.filePath}" target="_blank" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl text-xs font-bold hover:bg-mint/10 transition-colors">
-                        <i class="fas fa-file-pdf text-red-400"></i> ${at.fileName}
-                    </a>
-                `).join('')}
-            </div>
-        </div>
-      `).join('') || '<p class="text-center text-gray-500 py-10">Nenhum documento disponível.</p>';
+      const recordsWithAttachments = DB.records.filter(r => r.attachments && r.attachments.length);
+      
+      if (recordsWithAttachments.length === 0) {
+        dList.innerHTML = '<p class="text-center text-gray-500 py-10 text-xs">Nenhum documento disponivel.</p>';
+      } else {
+        dList.innerHTML = recordsWithAttachments.map(r => `
+          <div class="premium-glass p-5 rounded-[24px] border border-white/5">
+              <div class="text-[9px] font-black text-mint uppercase tracking-widest mb-3 opacity-70">${r.date} — ${r.type}</div>
+              <div class="space-y-2">
+                  ${r.attachments.map(at => {
+                    const isPdf = at.fileName.toLowerCase().endsWith('.pdf');
+                    return `
+                      <a href="${at.filePath}" target="_blank" class="flex items-center gap-3 p-4 bg-white/5 rounded-2xl text-[11px] font-bold text-gray-300 hover:bg-mint/10 transition-all border border-white/5 group">
+                          <i class="fas ${isPdf ? 'fa-file-pdf text-red-500' : 'fa-file-medical text-mint'} group-hover:scale-110 transition-transform"></i> 
+                          <span class="flex-1 truncate">${at.fileName}</span>
+                          <i class="fas fa-download text-[10px] opacity-30"></i>
+                      </a>`;
+                  }).join('')}
+              </div>
+          </div>
+        `).join('');
+      }
 
-      // Medications
+      // MEDICATIONS
       const meds = DB.user.medications ? DB.user.medications.split(';').filter(m => m.trim()) : [];
       document.getElementById('medList').innerHTML = meds.map(m => `
-        <div class="flex items-center gap-4 glass-mint p-4 rounded-2xl border border-white/5">
-            <i class="fas fa-pills text-mint"></i>
-            <span class="text-sm font-bold text-white">${m}</span>
+        <div class="flex items-center gap-4 glass-mint p-4 rounded-2xl border border-white/5 transition-all hover:bg-mint/10">
+            <div class="w-8 h-8 rounded-lg bg-mint/10 flex items-center justify-center text-mint">
+                <i class="fas fa-pills text-xs"></i>
+            </div>
+            <span class="text-xs font-bold text-white tracking-tight">${m}</span>
         </div>
-      `).join('') || '<div class="text-center p-6 text-gray-600 italic text-sm">Nenhum uso contínuo registrado.</div>';
+      `).join('') || '<div class="text-center p-4 text-gray-600 italic text-xs tracking-tight">Nenhum uso continuo registrado.</div>';
     }
 
+    // --- NAVIGATION ---
     function switchView(view) {
       document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
-      document.getElementById(`view-${view}`).classList.remove('hidden');
+      const target = document.getElementById(`view-${view}`);
+      if (target) target.classList.remove('hidden');
       
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
-      document.getElementById(`nav-${view}`).classList.add('nav-active');
+      const activeBtn = document.getElementById(`nav-${view}`);
+      if(activeBtn) activeBtn.classList.add('nav-active');
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // --- AI CHAT ---
     async function askAi() {
+      if (aiSending) return;
+      
       const input = document.getElementById('aiInput');
       const chat = document.getElementById('aiChat');
-      const val = input.value;
+      const val = input.value.trim();
       if(!val) return;
       
-      chat.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl rounded-tr-none border border-white/5 text-sm text-right ml-10">${val}</div>`;
+      aiSending = true;
+      const sendBtn = document.getElementById('aiSendBtn');
+      sendBtn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div>';
+      
+      chat.innerHTML += `<div class="premium-glass p-4 rounded-3xl rounded-tr-none border border-white/5 text-[13px] text-right ml-12 text-white/90 animate-fade-in shadow-xl">${val}</div>`;
       input.value = '';
       chat.scrollTop = chat.scrollHeight;
 
-      const res = await fetch(`${API_URL}/ai/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AUTH_TOKEN}` },
-        body: JSON.stringify({ prompt: val, context: `Paciente: ${DB.user.name}. CPF: ${DB.user.cpf}.` })
-      });
-      const data = await res.json();
-      chat.innerHTML += `<div class="bg-mint/10 p-4 rounded-2xl rounded-tl-none border border-mint/20 text-sm animate-fade-in">${data.response}</div>`;
+      try {
+        const res = await fetch(`${API_URL}/ai/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AUTH_TOKEN}` },
+          body: JSON.stringify({ prompt: val, context: `Paciente: ${DB.user.name}. Plano: ${DB.user.plan || 'N/A'}.` })
+        });
+
+        if (res.status === 429) {
+          chat.innerHTML += `<div class="text-yellow-400 text-[10px] text-center uppercase font-black tracking-widest mt-2">Muitas perguntas. Aguarde um momento.</div>`;
+        } else {
+          const data = await res.json();
+          chat.innerHTML += `<div class="glass-mint p-4 rounded-3xl rounded-tl-none border border-mint/10 text-[13px] leading-relaxed text-gray-300 animate-fade-in shadow-xl mr-12">${data.response}</div>`;
+        }
+      } catch(e) {
+        chat.innerHTML += `<div class="text-red-400 text-[10px] text-center uppercase font-black tracking-widest mt-2">Falha na conexao neural.</div>`;
+      }
+
       chat.scrollTop = chat.scrollHeight;
+      sendBtn.innerHTML = '<i class="fas fa-paper-plane text-xs"></i>';
+      aiSending = false;
     }
 
+    // --- LOGOUT ---
     function logout() {
       localStorage.removeItem('patient_token');
       location.reload();
     }
 
-    // Auto-login
-    if(AUTH_TOKEN) initApp();
+    // --- AUTO-LOGIN ---
+    document.addEventListener('DOMContentLoaded', () => {
+      if(AUTH_TOKEN) initApp();
+    });
   </script>
 </body>
 </html>

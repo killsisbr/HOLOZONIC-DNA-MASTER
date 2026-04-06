@@ -4,11 +4,12 @@ const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 const multer = require('multer');
 const fs = require('fs');
+const os = require('os');
 const PDFDocument = require('pdfkit');
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 const path = require('path');
 const session = require('express-session');
@@ -18,8 +19,28 @@ const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const helmet = require('helmet');
 const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'jarvis_dna_secret_key';
+
+function generateValidCpf() {
+  const digits = [];
+  for (let i = 0; i < 9; i++) digits.push(Math.floor(Math.random() * 10));
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += digits[i] * (10 - i);
+  let rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  digits.push(rest);
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += digits[i] * (11 - i);
+  rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  digits.push(rest);
+
+  return digits.join('');
+}
 
 // Multer Storage Configuration
 const uploadDir = path.resolve(__dirname, 'uploads');
@@ -41,11 +62,44 @@ app.use(session({
 }));
 
 app.use(helmet({
-  contentSecurityPolicy: false, // Loosened for local dashboard assets/JS
+  contentSecurityPolicy: false,
 }));
 app.use(compression());
 app.use(cors());
 app.use(express.json());
+
+// Rate Limiting
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 1000,
+  message: { error: 'Muitas requisicoes. Tente novamente em 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1'
+});
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  message: { error: 'Muitas tentativas de autenticacao. Tente novamente em 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1'
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 500,
+  message: { error: 'Limite de consultas IA atingido. Aguarde.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1'
+});
+
+app.use('/api/auth/', authLimiter);
+app.use('/api/ai/', aiLimiter);
+app.use('/api/', apiLimiter);
+
 app.use(express.static(path.resolve(__dirname)));
 app.use('/uploads', express.static(uploadDir));
 
@@ -59,7 +113,7 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   // Ultra-permissive CSP for fixing the 'none' block
-  res.setHeader('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *; img-src * data:; font-src *; style-src * 'unsafe-inline';");
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:11434; frame-src 'self';");
   next();
 });
 
@@ -89,14 +143,6 @@ function checkRole(roles) {
 }
 
 app.get('/ping', (req, res) => res.send('PONG - JARVIS IS ALIVE'));
-
-app.get('/api/agenda/occupied', async (req, res) => {
-  const appointments = await prisma.appointment.findMany({
-    select: { dateTime: true }
-  });
-  console.log('JARVIS: Occupied slots requested:', appointments.length);
-  res.json(appointments.map(a => a.dateTime));
-});
 
 app.get('/debug-path', (req, res) => {
   res.json({
@@ -140,21 +186,39 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+function validateCpf(cpf) {
+  const clean = cpf.replace(/\D/g, '');
+  if (clean.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(clean)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(clean.charAt(i)) * (10 - i);
+  let rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  if (rest !== parseInt(clean.charAt(9))) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(clean.charAt(i)) * (11 - i);
+  rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  if (rest !== parseInt(clean.charAt(10))) return false;
+
+  return true;
+}
+
 // JARVIS 4.1.3: Patient Portal Auth (CPF Based)
 app.post('/api/auth/patient/login', async (req, res) => {
   const { cpf } = req.body;
-  if (!cpf) return res.status(400).json({ error: 'CPF obrigatório' });
+  if (!cpf) return res.status(400).json({ error: 'CPF obrigatorio' });
+
+  const cleanCpf = cpf.replace(/\D/g, '');
+  if (!validateCpf(cleanCpf)) {
+    return res.status(400).json({ error: 'CPF invalido' });
+  }
 
   try {
-    // Basic normalization
-    const cleanCpf = cpf.replace(/\D/g, '');
     const patient = await prisma.patient.findFirst({
-      where: {
-        OR: [
-          { cpf: cpf },
-          { cpf: cleanCpf }
-        ]
-      }
+      where: { cpf: cleanCpf }
     });
 
     if (patient) {
@@ -174,11 +238,23 @@ app.post('/api/auth/patient/login', async (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-  if (req.user) { // From Passport
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token) {
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+      if (!err && user) {
+        return res.json({ success: true, user });
+      }
+      res.json({ success: false });
+    });
+    return;
+  }
+
+  if (req.user) {
     return res.json({ success: true, user: req.user });
   }
-  if (req.session.userId) { // From legacy login
-    // In a real app we'd fetch from DB here
+  if (req.session.userId) {
     return res.json({ success: true, userId: req.session.userId });
   }
   res.json({ success: false });
@@ -232,11 +308,11 @@ app.get('/api/patients/:id', authenticateToken, async (req, res) => {
 
 app.patch('/api/patients/:id', authenticateToken, checkRole(['ADMIN', 'MEDICO', 'ATENDENTE']), async (req, res) => {
   const { id } = req.params;
-  const { name, birthDate, plan, medications, active } = req.body;
+  const { name, birthDate, plan, medications, active, phone } = req.body;
   try {
     const patient = await prisma.patient.update({
       where: { id: parseInt(id) },
-      data: { name, birthDate, plan, medications, active }
+      data: { name, birthDate, plan, medications, active, phone }
     });
     res.json(patient);
   } catch (e) {
@@ -249,12 +325,15 @@ app.post('/api/patients', authenticateToken, checkRole(['ADMIN', 'MEDICO', 'ATEN
   if (!name) return res.status(400).json({ error: 'Nome é obrigatório.' });
 
   try {
-    // JARVIS: Busca inteligente (Bypass phone field due to Prisma Sync Issue)
+    // JARVIS: Busca inteligente por CPF, nome ou telefone
     let condition = [];
     if (cpf && typeof cpf === 'string' && !cpf.startsWith('LEAD-')) {
       condition.push({ cpf });
     }
-    // Buscamos apenas por nome por enquanto para evitar o erro do Prisma
+    if (phone) {
+      const cleanPhone = phone.replace(/\D/g, '');
+      condition.push({ phone: cleanPhone });
+    }
     if (name) {
       condition.push({ name });
     }
@@ -271,9 +350,9 @@ app.post('/api/patients', authenticateToken, checkRole(['ADMIN', 'MEDICO', 'ATEN
         data: {
           name,
           cpf: cpf || `LEAD-${Date.now()}`,
+          phone: phone || null,
           birthDate: birthDate || "1900-01-01",
           plan: plan || "Particular"
-          // phone: phone // REMOVIDO TEMPORARIAMENTE
         }
       });
     }
@@ -285,13 +364,6 @@ app.post('/api/patients', authenticateToken, checkRole(['ADMIN', 'MEDICO', 'ATEN
 });
 
 // --- AGENDA & FILA ---
-app.get('/api/agenda/occupied', async (req, res) => {
-  const appointments = await prisma.appointment.findMany({
-    select: { dateTime: true }
-  });
-  res.json(appointments.map(a => a.dateTime));
-});
-
 app.get('/api/agenda', authenticateToken, async (req, res) => {
   const agenda = await prisma.appointment.findMany({
     include: { patient: true }
@@ -299,25 +371,28 @@ app.get('/api/agenda', authenticateToken, async (req, res) => {
   res.json(agenda);
 });
 
-app.patch('/api/agenda/:id', async (req, res) => {
+app.patch('/api/agenda/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, type, dateTime } = req.body;
   try {
     const appointment = await prisma.appointment.update({
       where: { id: parseInt(id) },
-      data: { status }
+      data: { status, type, dateTime },
+      include: { patient: true }
     });
-    
-    // Async Sync to Google
-    syncAppointmentToGoogle(appointment.id).catch(console.error);
-    
+
+    syncAppointmentToGoogle(appointment.id).catch(err => {
+      console.error('JARVIS: Google Sync Update failed:', err.message);
+    });
+
     res.json(appointment);
-  } catch (e) {
-    res.status(400).json({ error: 'Erro ao atualizar agendamento.' });
+  } catch (error) {
+    console.error('JARVIS: Agenda Update Error:', error.message);
+    res.status(500).json({ error: 'Failed to update' });
   }
 });
 
-app.post('/api/agenda/checkin', async (req, res) => {
+app.post('/api/agenda/checkin', authenticateToken, async (req, res) => {
   const { patientId, type } = req.body;
   const now = new Date();
   const entryTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -369,7 +444,7 @@ app.post('/api/attachments', authenticateToken, checkRole(['ADMIN', 'MEDICO']), 
   }
 });
 
-app.post('/api/agenda', async (req, res) => {
+app.post('/api/agenda', authenticateToken, async (req, res) => {
   const { patientId, dateTime, type, status } = req.body;
   
   try {
@@ -406,28 +481,6 @@ app.post('/api/agenda', async (req, res) => {
   } catch (error) {
     console.error('JARVIS: Agenda Create Error:', error.message);
     res.status(500).json({ error: 'Failed' });
-  }
-});
-
-app.patch('/api/agenda/:id', async (req, res) => {
-  const { id } = req.params;
-  const { status, type, dateTime } = req.body;
-  try {
-    const appointment = await prisma.appointment.update({
-      where: { id: parseInt(id) },
-      data: { status, type, dateTime },
-      include: { patient: true }
-    });
-
-    // Re-sincronizar se houver mudança relevante
-    syncAppointmentToGoogle(appointment.id).catch(err => {
-      console.error('JARVIS: Google Sync Update failed:', err.message);
-    });
-
-    res.json(appointment);
-  } catch (error) {
-    console.error('JARVIS: Agenda Update Error:', error.message);
-    res.status(500).json({ error: 'Failed to update' });
   }
 });
 
@@ -573,7 +626,90 @@ app.post('/api/leads/sync', async (req, res) => {
   }
 });
 
-app.get('/api/leads', async (req, res) => {
+app.post('/api/leads/book-appointment', async (req, res) => {
+  const { leadId } = req.body;
+  if (!leadId) return res.status(400).json({ error: "Lead ID required." });
+
+  try {
+    const lead = await prisma.potentialLead.findUnique({ where: { id: leadId } });
+    if (!lead) return res.status(404).json({ error: "Lead not found." });
+
+    let parsedData = null;
+    try { parsedData = JSON.parse(lead.data); } catch(e) { /* ignore */ }
+
+    // Support both Inez (index.html) and PWA (app_preview.html) data formats
+    const inezData = parsedData?.inezData || {};
+    const selectedProcedure = parsedData?.selectedProcedure || {};
+    const hospData = parsedData?.hospedagemData || {};
+    const sonoData = parsedData?.sonoData || {};
+    const hospFull = parsedData?.hospFullData || {};
+    const sonoFull = parsedData?.sonoFullData || {};
+
+    // Extract date/time from Inez format or PWA format
+    let dateVal = inezData.data || parsedData?.horaLoc?.split(' ')[0] || null;
+    let timeVal = inezData.hora || parsedData?.horaLoc?.split(' ')[1] || null;
+
+    if (!dateVal || !timeVal) {
+      return res.status(400).json({ error: "Lead missing date/time data." });
+    }
+
+    const dateTimeStr = `${dateVal} ${timeVal}`;
+
+    const existing = await prisma.appointment.findFirst({
+      where: { dateTime: dateTimeStr }
+    });
+    if (existing) {
+      return res.status(409).json({ error: "Slot ja ocupado." });
+    }
+
+    let patient = null;
+    const patientConditions = [];
+    if (lead.name) patientConditions.push({ name: lead.name });
+    if (lead.phone) patientConditions.push({ phone: lead.phone.replace(/\D/g, '') });
+
+    if (patientConditions.length > 0) {
+      patient = await prisma.patient.findFirst({
+        where: { OR: patientConditions }
+      });
+    }
+
+    if (!patient) {
+      patient = await prisma.patient.create({
+        data: {
+          name: lead.name || 'Paciente Inez',
+          cpf: generateValidCpf(),
+          phone: lead.phone ? lead.phone.replace(/\D/g, '') : null,
+          birthDate: "1900-01-01",
+          plan: lead.source || "Inez"
+        }
+      });
+    }
+
+    const procName = selectedProcedure.name || parsedData?.procedimento || 'CONSULTA';
+    const appointment = await prisma.appointment.create({
+      data: {
+        patientId: patient.id,
+        dateTime: dateTimeStr,
+        type: procName.toUpperCase().includes('TELE') ? 'TELE' : 'PRESENCIAL',
+        status: 'AGUARDANDO'
+      },
+      include: { patient: true }
+    });
+
+    syncAppointmentToGoogle(appointment.id).catch(err => {
+      console.error('JARVIS: Google Sync from Inez failed:', err.message);
+    });
+
+    await prisma.potentialLead.delete({ where: { id: leadId } });
+
+    res.json({ success: true, appointment });
+  } catch (error) {
+    console.error('JARVIS: Book Appointment Error:', error.message);
+    res.status(500).json({ error: "Failed to book appointment.", details: error.message });
+  }
+});
+
+app.get('/api/leads', authenticateToken, async (req, res) => {
   try {
     const leads = await prisma.potentialLead.findMany({
       orderBy: { createdAt: 'desc' }
@@ -585,34 +721,197 @@ app.get('/api/leads', async (req, res) => {
   }
 });
 
+// --- FINANCE CORE ---
+app.get('/api/dashboard', authenticateToken, async (req, res) => {
+  try {
+    const [patients, records, leads, transactions] = await Promise.all([
+      prisma.patient.findMany({
+        where: { active: true },
+        include: { records: { orderBy: { date: 'desc' }, take: 2 } },
+        orderBy: { id: 'desc' }
+      }),
+      prisma.clinicalRecord.findMany({
+        orderBy: { date: 'desc' },
+        take: 10,
+        include: { patient: true }
+      }),
+      prisma.potentialLead.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 30
+      }),
+      prisma.transaction.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 50
+      })
+    ]);
+
+    // Financial calculations
+    const revenue = transactions.filter(t => t.type === 'INCOME' && t.status === 'PAID').reduce((a, b) => a + b.amount, 0);
+    const expenses = transactions.filter(t => t.type === 'EXPENSE' && t.status === 'PAID').reduce((a, b) => a + b.amount, 0);
+    const projected = transactions.filter(t => t.type === 'INCOME' && t.status === 'PENDING').reduce((a, b) => a + b.amount, 0);
+
+    const dnaBase = patients.map(p => {
+      const lastRecord = p.records[0];
+      return {
+        id: p.id,
+        name: p.name,
+        cpf: p.cpf,
+        birthDate: p.birthDate,
+        plan: p.plan,
+        medications: p.medications ? p.medications.split(';') : [],
+        lastVisit: lastRecord ? lastRecord.date : 'N/D',
+        status: p.active ? 'Ativo' : 'Inativo'
+      }
+    });
+
+    const cidDistribution = {};
+    records.forEach(r => {
+      if(r.cid10) cidDistribution[r.cid10] = (cidDistribution[r.cid10] || 0) + 1;
+    });
+    const cidData = Object.keys(cidDistribution).map(k => ({ name: k, count: cidDistribution[k] })).sort((a,b) => b.count - a.count);
+
+    res.json({
+      pacientes: dnaBase,
+      cid10: cidData,
+      fila: [],
+      leads: leads,
+      transactions: transactions,
+      finances: { revenue, expenses, projected }
+    });
+  } catch (err) {
+    console.error('JARVIS: Dashboard Error', err);
+    res.status(500).json({ error: 'Failed to build DNA Dashboard', details: err.message });
+  }
+});
+
+app.post('/api/finance', authenticateToken, async (req, res) => {
+  const { type, amount, status, method, description, date } = req.body;
+  try {
+    const newTx = await prisma.transaction.create({
+      data: {
+        type: type || 'INCOME',
+        amount: parseFloat(amount) || 0.0,
+        status: status || 'PAID',
+        method: method || 'N/A',
+        description: description || 'Transação Avulsa',
+        date: date || new Date().toISOString()
+      }
+    });
+    res.json({ success: true, transaction: newTx });
+  } catch(e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to create transaction" });
+  }
+});
+
+app.patch('/api/finance/:id', authenticateToken, async (req, res) => {
+  try {
+    const tx = await prisma.transaction.update({
+      where: { id: parseInt(req.params.id) },
+      data: { status: req.body.status || 'PAID' }
+    });
+    res.json({ success: true, transaction: tx });
+  } catch(e) {
+    res.status(500).json({ error: "Failed to update transaction" });
+  }
+});
+
 // POST /api/leads/convert - Converter Lead em Paciente
-app.post('/api/leads/convert', async (req, res) => {
+app.post('/api/leads/convert', authenticateToken, async (req, res) => {
   const { leadId } = req.body;
   if (!leadId) return res.status(400).json({ error: "Lead ID required." });
-
+  
   try {
     const lead = await prisma.potentialLead.findUnique({ where: { id: leadId } });
     if (!lead) return res.status(404).json({ error: "Lead not found." });
 
+    // Generate valid CPF with correct check digits
+    const safeCpf = generateValidCpf();
+
     // Criar Paciente a partir do Lead
-    const patient = await prisma.patient.create({
+    const newPatient = await prisma.patient.create({
       data: {
         name: lead.name || 'Paciente s/ Nome',
-        cpf: lead.phone || `LEAD-${leadId}`, // Fallback CPF
-        email: lead.email,
-        phone: lead.phone,
-        birthDate: "1900-01-01", // Default
-        plan: "Particular"
+        cpf: safeCpf,
+        phone: lead.phone ? lead.phone.replace(/\D/g, '') : null,
+        birthDate: "1900-01-01",
+        plan: lead.source || "Lead Orgânico",
       }
     });
+
+    // Transferir Histórico do Lead para o Prontuário (DNA)
+    let leadNotes = `[ CONVERSÃO DE LEAD - INICIALIZAÇÃO DE DNA ]\n`;
+    leadNotes += `📍 Origem do Lead: ${lead.source || 'N/D'}\n`;
+    leadNotes += `📞 Telefone Integrado: ${lead.phone || 'N/D'}\n`;
+    leadNotes += `📧 E-mail Integrado: ${lead.email || 'N/D'}\n\n`;
+    
+    let txAmount = 0;
+    
+    if (lead.data) {
+       try {
+         const parsed = JSON.parse(lead.data);
+         leadNotes += `[ DADOS COLETADOS NA NEGOCIAÇÃO ]\n`;
+         
+         // Buscar valor previsto dentro do objeto
+         let foundValue = parsed.valor || parsed.procedureVal || (parsed.selectedProcedure && parsed.selectedProcedure.val) || 0;
+         if(foundValue) {
+             let numVal = parseFloat(String(foundValue).replace(/[^0-9,.-]/g, '').replace(',', '.'));
+             if(!isNaN(numVal) && numVal > 0) txAmount = numVal;
+         }
+
+         const formatObj = (obj, indent = "") => {
+           let txt = "";
+           for (const [k, v] of Object.entries(obj)) {
+             if (typeof v === 'object' && v !== null) {
+               if (Object.keys(v).length > 0) {
+                 txt += `${indent}• ${k.toUpperCase()}:\n` + formatObj(v, indent + "  ");
+               }
+             } else {
+               if (v !== '' && v !== null && v !== undefined) {
+                 txt += `${indent}• ${k}: ${v}\n`;
+               }
+             }
+           }
+           return txt;
+         };
+         
+         leadNotes += formatObj(parsed);
+       } catch(e) { 
+         leadNotes += `Dados Brutos Analisados:\n${lead.data}`; 
+       }
+    }
+
+    await prisma.clinicalRecord.create({
+      data: {
+        patientId: newPatient.id,
+        date: new Date().toLocaleDateString('pt-BR'),
+        type: 'Triagem de Lead',
+        description: leadNotes,
+        cid10: 'Z00.0'
+      }
+    });
+
+    // Se a IA capturou um valor, lança Previsão de Fluxo de Caixa Automático
+    if(txAmount > 0) {
+      await prisma.transaction.create({
+        data: {
+          type: 'INCOME',
+          amount: txAmount,
+          status: 'PENDING',
+          method: 'PIX', // Padrão
+          description: `Pré-Agendamento: ${newPatient.name}`,
+          date: new Date().toISOString()
+        }
+      });
+    }
 
     // Deletar Lead após conversão
     await prisma.potentialLead.delete({ where: { id: leadId } });
 
-    res.json({ success: true, patient });
+    res.json({ success: true, newPatient });
   } catch (error) {
     console.error('JARVIS: Lead Convert Error:', error.message);
-    res.status(500).json({ error: 'Failed to convert lead.' });
+    res.status(500).json({ error: 'Failed to convert lead.', details: error.message });
   }
 });
 
@@ -752,6 +1051,21 @@ app.get('/api/search', authenticateToken, async (req, res) => {
   }
 });
 
+// PUBLIC ROUTE - Get occupied slots for Inez front-end
+app.get('/api/agenda/occupied', async (req, res) => {
+  try {
+    const appointments = await prisma.appointment.findMany({
+      where: { status: { not: 'CANCELADO' } },
+      select: { dateTime: true }
+    });
+    const occupied = appointments.map(a => a.dateTime);
+    res.json(occupied);
+  } catch(e) {
+    console.error('JARVIS: Error fetching occupied slots:', e);
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
 app.get('/api/ai/logs', authenticateToken, async (req, res) => {
   try {
     const logs = await prisma.aILog.findMany({ take: 50, orderBy: { timestamp: 'desc' } });
@@ -763,14 +1077,33 @@ app.get('/api/ai/logs', authenticateToken, async (req, res) => {
 
 // --- SYSTEM CORE (S5) ---
 app.get('/api/system/health', authenticateToken, async (req, res) => {
-  // Simulating real-time telemetry (could use 'os' module for real data)
+  const cpus = os.cpus();
+  const cpuModel = cpus[0]?.model || 'Unknown';
+  const cpuCount = cpus.length;
+  const totalMem = os.totalmem();
+  const freeMem = os.freemem();
+  const usedMem = totalMem - freeMem;
+  const memPercent = ((usedMem / totalMem) * 100).toFixed(1);
+
   const health = {
-    cpu: Math.floor(Math.random() * 20) + 5 + "%",
-    memory: "2.4GB / 8GB",
-    uptime: Math.floor(process.uptime()) + "s",
+    cpu: {
+      model: cpuModel,
+      cores: cpuCount,
+      loadAvg: os.loadavg().map(l => l.toFixed(2)),
+      usage: `${(100 - (os.freemem() / os.totalmem() * 100)).toFixed(1)}%`
+    },
+    memory: {
+      total: `${(totalMem / 1024 / 1024 / 1024).toFixed(2)}GB`,
+      used: `${(usedMem / 1024 / 1024 / 1024).toFixed(2)}GB`,
+      free: `${(freeMem / 1024 / 1024 / 1024).toFixed(2)}GB`,
+      percent: `${memPercent}%`
+    },
+    uptime: `${Math.floor(process.uptime())}s`,
     dbStatus: "OPERATIONAL",
     jarvisCore: "ACTIVE",
-    version: "v4.1.0-Sinapse"
+    version: "v4.1.7-Sinapse",
+    platform: `${os.type()} ${os.release()}`,
+    nodeVersion: process.version
   };
   res.json(health);
 });

@@ -176,7 +176,7 @@
         </button>
 
         <div class="pt-4 text-center">
-            <a href="/auth/google" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
+            <a href="api/auth/google" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
                 <i class="fab fa-google"></i> Login via Hub Google
             </a>
         </div>
@@ -468,7 +468,10 @@
                       <p class="text-[10px] text-gray-500 uppercase font-black">Evolução de Telediagnóstico</p>
                   </div>
                   <textarea id="teleNotas" class="flex-1 bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-mint text-sm leading-relaxed" placeholder="Digite as queixas e observações do paciente em tempo real..."></textarea>
-                  <button onclick="finalizarTeleconsulta()" class="w-full bg-mint text-black font-black py-4 rounded-2xl">FINALIZAR E SALVAR</button>
+                  <div class="flex gap-3">
+                    <input type="text" id="teleCid10" class="w-40 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-mint text-sm" placeholder="CID-10 (opcional)">
+                    <button onclick="finalizarTeleconsulta()" class="flex-1 bg-mint text-black font-black py-4 rounded-2xl">FINALIZAR E SALVAR</button>
+                  </div>
               </div>
           </div>
       </section>
@@ -535,10 +538,14 @@
                       </div>
                       <div id="docFieldsBox" oninput="gerarDocumento()"></div>
                       <div>
-                        <label class="text-[10px] font-black text-gray-500 uppercase">Assinatura</label>
-                        <input type="text" id="docAssinatura" value="Dr. Jarvis - CRM 12345/SC" oninput="gerarDocumento()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1">
+                          <label class="text-[10px] font-black text-gray-500 uppercase">Assinatura</label>
+                          <input type="text" id="docAssinatura" value="Dr. Hamilton Souza" oninput="gerarDocumento()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 mt-1 text-sm outline-none focus:border-mint text-white">
                       </div>
                       <button onclick="gerarDocumento()" class="w-full bg-mint text-black font-black py-4 rounded-xl">GERAR PRÉ-VISUALIZAÇÃO</button>
+                      <div class="flex gap-2 mt-2">
+                        <button onclick="salvarDocComoRegistro()" class="flex-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 font-black py-3 rounded-xl text-[10px] uppercase hover:bg-blue-500/20">Salvar como Registro Clínico</button>
+                        <button onclick="emitirPDFFromPreview()" class="flex-1 bg-mint/10 text-mint border border-mint/20 font-black py-3 rounded-xl text-[10px] uppercase hover:bg-mint/20">Emitir PDF (via Registro)</button>
+                      </div>
                   </div>
               </div>
               <div class="lg:col-span-2 glass rounded-[32px] p-10 min-h-[600px] flex flex-col">
@@ -556,26 +563,60 @@
       <section id="view-financeiro" class="view-section hidden animate-fade-in">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
               <div class="glass p-6 rounded-[32px] border border-mint/20">
-                  <span class="text-[10px] font-black text-gray-500 uppercase">Receita Bruta (Mês)</span>
-                  <div class="text-3xl font-black text-white mt-1">R$ 14.580,00</div>
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Receita Bruta Paga (Mês)</span>
+                  <div id="finRevenue" class="text-3xl font-black text-white mt-1">R$ 0,00</div>
               </div>
               <div class="glass p-6 rounded-[32px] border border-red-500/10">
-                  <span class="text-[10px] font-black text-gray-500 uppercase">Despesas Operacionais</span>
-                  <div class="text-3xl font-black text-white mt-1">R$ 4.210,00</div>
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Despesas Operacionais Pagas</span>
+                  <div id="finExpenses" class="text-3xl font-black text-white mt-1">R$ 0,00</div>
               </div>
-              <div class="glass p-6 rounded-[32px] border border-mint/20">
-                  <span class="text-[10px] font-black text-gray-500 uppercase">Projeção Próximo Ciclo</span>
-                  <div class="text-3xl font-black text-mint mt-1">+ R$ 8.900,00</div>
+              <div class="glass p-6 rounded-[32px] border border-mint/20 relative overflow-hidden">
+                  <div class="absolute -right-4 -top-4 w-24 h-24 bg-mint/10 rounded-full blur-xl"></div>
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Projeção Próximo Ciclo (Agendamentos)</span>
+                  <div id="finProjected" class="text-3xl font-black text-mint mt-1">+ R$ 0,00</div>
               </div>
           </div>
-          <div class="glass rounded-[40px] overflow-hidden">
-              <div class="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
-                  <h3 class="font-bold text-white">Fluxo de Caixa & Pagamentos</h3>
-                  <button class="bg-mint text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase">Exportar Relatório</button>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+              <div class="lg:col-span-2 glass rounded-[40px] overflow-hidden">
+                  <div class="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                      <h3 class="font-bold text-white">Fluxo de Caixa & Pagamentos</h3>
+                      <button onclick="fetchCoreData()" class="bg-mint text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase"><i class="fas fa-sync-alt mr-1"></i> Atualizar</button>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                      <thead>
+                        <tr class="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 bg-black/20">
+                          <th class="px-8 py-4">Data / Descrição</th>
+                          <th class="px-8 py-4">Tipo</th>
+                          <th class="px-8 py-4">Status</th>
+                          <th class="px-8 py-4 text-right">Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody id="financeTableBody" class="divide-y divide-white/5 text-sm font-medium">
+                          <tr><td colspan="4" class="p-8 text-center text-gray-600 italic">Carregando DNA Financeiro...</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
               </div>
-              <div class="p-8 text-center text-gray-600 italic">
-                  <i class="fas fa-lock text-4xl mb-4 opacity-10"></i><br>
-                  Módulo Financeiro JARVIS-001 em modo somente leitura para esta sessão.
+              
+              <div class="glass rounded-[40px] p-8 border border-white/5">
+                  <h3 class="font-bold text-white mb-6">Lançamento Avulso</h3>
+                  <div class="space-y-4">
+                      <input type="text" id="txDesc" placeholder="Descrição (ex: Conta de Luz)" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint text-sm">
+                      <div class="flex gap-4">
+                          <select id="txType" class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint text-sm">
+                              <option value="INCOME">Receita (+)</option>
+                              <option value="EXPENSE">Despesa (-)</option>
+                          </select>
+                          <input type="number" id="txValue" placeholder="Valor (R$)" class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint text-sm">
+                      </div>
+                      <select id="txStatus" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint text-sm">
+                          <option value="PAID">Pago (Realizado)</option>
+                          <option value="PENDING">Pendente (Projeção)</option>
+                      </select>
+                      <button onclick="lancarTransacao()" class="w-full bg-white text-black font-black uppercase tracking-widest text-xs py-4 rounded-2xl hover:bg-mint transition-colors mt-2">Gravar no Caixa</button>
+                  </div>
               </div>
           </div>
       </section>
@@ -673,8 +714,8 @@
   </div>
 
   <script>
-    const API_URL = '/api'; 
-    let DB = { currentUser: null, pacientes: [], agenda: [], leads: [], fila: [], activeRecords: [], activeTeleId: null, cid10: [] };
+    const API_URL = 'api'; 
+    let DB = { currentUser: null, pacientes: [], agenda: [], leads: [], fila: [], activeRecords: [], activeTeleId: null, cid10: [], transactions: [], finances: {revenue:0, expenses:0, projected:0} };
     let AUTH_TOKEN = localStorage.getItem('jarvis_token');
 
     async function fetchWithAuth(url, options = {}) {
@@ -722,10 +763,11 @@
         document.getElementById('app-container').classList.add('grid');
         
         const user = DB.currentUser;
-        document.getElementById('lblAvatar').innerText = user.user.charAt(0).toUpperCase();
-        document.getElementById('lblUserName').innerText = 'Dr(a). ' + user.user.toUpperCase();
-        document.getElementById('lblUserRole').innerText = user.role.toUpperCase() + ' // PROTOCOL JARVIS';
+        document.getElementById('lblAvatar').innerText = "H";
+        document.getElementById('lblUserName').innerText = 'Dr. Hamilton Souza';
+        document.getElementById('lblUserRole').innerText = 'Diretor Clínico // HOLOZONIC';
         
+        // Também vamos renomear a variável de exibição antiga se houver (header fallback)
         buildMenuNavigation();
         startPolling();
         loadCid10();
@@ -845,17 +887,23 @@
 
     async function fetchCoreData() {
       try {
-        const [pRes, aRes, lRes] = await Promise.all([
-          fetchWithAuth(`${API_URL}/patients`),
-          fetchWithAuth(`${API_URL}/agenda`),
-          fetchWithAuth(`${API_URL}/leads`)
-        ]);
-        DB.pacientes = await pRes.json();
-        const agendaRaw = await aRes.json();
-        DB.leads = await lRes.json();
-        
-        DB.agenda = agendaRaw.filter(a => a.status !== 'FINALIZADO');
-        DB.fila = agendaRaw.filter(a => a.status === 'AGUARDANDO' || a.status === 'EM_ATENDIMENTO');
+        const pRes = await fetchWithAuth(`${API_URL}/patients`).catch(() => null);
+        const aRes = await fetchWithAuth(`${API_URL}/agenda`).catch(() => null);
+        const lRes = await fetchWithAuth(`${API_URL}/leads`).catch(() => null);
+        const dashRes = await fetchWithAuth(`${API_URL}/dashboard`).catch(() => null);
+
+        if (pRes && pRes.ok) DB.pacientes = await pRes.json();
+        if (aRes && aRes.ok) {
+          const agendaRaw = await aRes.json();
+          DB.agenda = agendaRaw.filter(a => a.status !== 'FINALIZADO');
+          DB.fila = agendaRaw.filter(a => a.status === 'AGUARDANDO' || a.status === 'EM_ATENDIMENTO');
+        }
+        if (lRes && lRes.ok) DB.leads = await lRes.json();
+        if (dashRes && dashRes.ok) {
+          const dashData = await dashRes.json();
+          DB.transactions = dashData.transactions || [];
+          DB.finances = dashData.finances || { revenue: 0, expenses: 0, projected: 0 };
+        }
         
         refreshUI();
       } catch (e) {
@@ -886,10 +934,35 @@
         </tr>
       `).join('') : '<tr><td colspan="4" class="p-10 text-center text-gray-600 italic">Fila limpa — Protocolo JARVIS em repouso.</td></tr>';
 
-      // Agenda
+      // Agenda Dinâmica (Mesclando Consultas Formais com Pré-Agendamentos de Leads)
       const aBody = document.getElementById('agendaTableBody');
       if(aBody) {
-          aBody.innerHTML = DB.agenda.map(a => `
+          const scheduledLeads = DB.leads.filter(l => {
+              const data = l.data ? JSON.parse(l.data) : {};
+              return data.horario || data.dataConsulta || (data.inezData && data.inezData.horario) || (data.selectedProcedure && data.selectedProcedure.val);
+          }).map(l => {
+              const data = JSON.parse(l.data);
+              const horarioStr = data.horario || data.dataConsulta || (data.inezData && data.inezData.horario) || 'Data à Confirmar';
+              const motivoStr = data.motivo || (data.inezData && data.inezData.motivo) || (data.selectedProcedure && data.selectedProcedure.label) || 'Triagem IA';
+              return `
+                  <tr class="hover:bg-white/5 transition-colors border-l-4 border-yellow-500/50">
+                      <td class="px-6 py-4 text-gray-400 font-mono text-xs">PREVISÃO:<br><span class="text-white">${horarioStr}</span></td>
+                      <td class="px-6 py-4">
+                        <div class="text-white font-bold">${l.name || 'Lead Anônimo'}</div>
+                        <div class="text-[10px] text-gray-500 uppercase mt-1">Via: ${l.source}</div>
+                      </td>
+                      <td class="px-6 py-4 text-gray-400 font-medium text-xs capitalize truncate max-w-[150px]">${motivoStr}</td>
+                      <td class="px-6 py-4">
+                          <span class="text-[10px] font-black uppercase px-2 py-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded">PRÉ-AGENDAMENTO (LEAD)</span>
+                      </td>
+                      <td class="px-6 py-4 flex gap-2">
+                         <button onclick="switchView('view-leads')" class="bg-yellow-500 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all outline-none">Tratar Lead</button>
+                      </td>
+                  </tr>
+              `;
+          });
+
+          const regularAgenda = DB.agenda.map(a => `
               <tr class="hover:bg-white/5 transition-colors">
                   <td class="px-6 py-4 text-gray-400 font-mono">${a.dateTime}</td>
                   <td class="px-6 py-4 text-white font-bold">${a.patient.name}</td>
@@ -899,17 +972,20 @@
                   </td>
                    <td class="px-6 py-4 flex gap-2">
                        ${a.status === 'AGUARDANDO' ? 
-                         `<button onclick="atenderPaciente(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-xs font-bold hover:scale-105 transition-all">ATENDER AGORA</button>` :
+                         `<button onclick="atenderPaciente(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all outline-none">Atender Agora</button>` :
                          a.status === 'EM_ATENDIMENTO' ?
                          `<div class="flex gap-2">
-                            <button onclick="finalizarAtendimento(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-xs font-bold hover:scale-105 transition-all">FINALIZAR</button>
-                            <button onclick="voltarAoPep(${a.patient.id})" class="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-500/30 transition-all">VOLTAR AO PEP</button>
+                            <button onclick="finalizarAtendimento(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:scale-105 transition-all outline-none">Finalizar</button>
+                            <button onclick="voltarAoPep(${a.patient.id})" class="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-blue-500/30 transition-all outline-none">Voltar ao PEP</button>
                           </div>` :
-                         `<button onclick="fazerCheckin(${a.id})" class="bg-white/5 text-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/10 transition-all">CHECK-IN</button>`
+                         `<button onclick="fazerCheckin(${a.id})" class="bg-white/5 text-gray-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-white/10 transition-all outline-none">Check-in</button>`
                        }
                    </td>
               </tr>
-          `).join('');
+          `);
+
+          const combinedHTML = scheduledLeads.join('') + regularAgenda.join('');
+          aBody.innerHTML = combinedHTML || '<tr><td colspan="5" class="p-10 text-center text-gray-600 italic">Nenhum agendamento ou pré-agendamento no momento.</td></tr>';
       }
 
       // Patient Table
@@ -932,7 +1008,7 @@
       if(lBody) {
           lBody.innerHTML = DB.leads.map(l => {
               const data = l.data ? JSON.parse(l.data) : {};
-              const context = data.interested_in || data.note || 'Negociação Geral';
+              const context = data.interested_in || data.motivo || data.note || 'Negociação Geral';
               return `
                 <tr class="hover:bg-white/5 transition-colors">
                     <td class="px-6 py-4 font-bold text-white">${l.name || 'Anônimo'}</td>
@@ -945,6 +1021,37 @@
                 </tr>
               `;
           }).join('');
+      }
+
+      // Financeiro Table
+      const money = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+      document.getElementById('finRevenue').innerText = money(DB.finances.revenue);
+      document.getElementById('finExpenses').innerText = money(DB.finances.expenses);
+      document.getElementById('finProjected').innerText = "+" + money(DB.finances.projected);
+      
+      const finBody = document.getElementById('financeTableBody');
+      if(finBody) {
+          finBody.innerHTML = DB.transactions.length ? DB.transactions.map(t => `
+            <tr class="hover:bg-white/5 transition-colors cursor-pointer" onclick="toggleTxStatus(${t.id}, '${t.status}')">
+                <td class="px-8 py-4">
+                  <div class="text-white font-bold">${t.description}</div>
+                  <div class="text-gray-500 font-mono text-[10px] uppercase mt-1"> ${new Date(t.date).toLocaleDateString()} — ${t.method}</div>
+                </td>
+                <td class="px-8 py-4">
+                  <span class="px-2 py-1 rounded text-[10px] font-black uppercase ${t.type === 'INCOME' ? 'bg-mint/10 text-mint' : 'bg-red-500/10 text-red-500'}">
+                    ${t.type === 'INCOME' ? 'Receita' : 'Despesa'}
+                  </span>
+                </td>
+                <td class="px-8 py-4">
+                    <span class="px-2 py-1 border border-white/10 rounded text-[10px] font-black uppercase ${t.status === 'PAID' ? 'text-gray-300' : 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20'}">
+                      ${t.status === 'PAID' ? '<i class="fas fa-check text-mint mr-1"></i> Pago' : 'Pendente'}
+                    </span>
+                </td>
+                <td class="px-8 py-4 text-right font-mono font-bold ${t.type === 'INCOME' ? 'text-mint' : 'text-red-400'}">
+                  ${t.type === 'INCOME' ? '+' : '-'}${money(t.amount)}
+                </td>
+            </tr>
+          `).join('') : '<tr><td colspan="4" class="p-8 text-center text-gray-600 italic">Nenhum lançamento no ciclo.</td></tr>';
       }
     }
 
@@ -1017,16 +1124,57 @@
       }
     }
 
+    function showConfirm(msg) {
+      return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md opacity-0 transition-opacity duration-300 p-4';
+        overlay.innerHTML = `
+          <div class="bg-[#0a0a0e] border border-white/10 p-6 rounded-2xl max-w-sm w-full shadow-2xl transform scale-95 transition-all duration-300">
+            <h3 class="text-mint font-bold text-xs tracking-widest uppercase mb-3"><i class="fas fa-exclamation-triangle mr-1"></i> Ação Necessária</h3>
+            <p class="text-gray-200 text-sm leading-relaxed mb-6">${msg}</p>
+            <div class="flex gap-3 justify-end">
+              <button class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 font-bold uppercase text-[10px] tracking-widest transition-colors" id="btnCancelX">Cancear</button>
+              <button class="px-4 py-2 rounded-lg bg-mint/10 hover:bg-mint/20 text-mint border border-mint/20 font-bold uppercase text-[10px] tracking-widest transition-colors" id="btnOkX">Confirmar</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        void overlay.offsetWidth;
+        overlay.classList.remove('opacity-0');
+        overlay.children[0].classList.remove('scale-95');
+
+        const close = (result) => {
+          overlay.classList.add('opacity-0');
+          overlay.children[0].classList.add('scale-95');
+          setTimeout(() => overlay.remove(), 300);
+          resolve(result);
+        };
+
+        overlay.querySelector('#btnCancelX').onclick = () => close(false);
+        overlay.querySelector('#btnOkX').onclick = () => close(true);
+      });
+    }
+
     async function converterLead(leadId) {
-        if(!confirm("JARVIS-001: Deseja converter este Lead em Paciente Oficial no DNA?")) return;
-        const res = await fetchWithAuth(`${API_URL}/leads/convert`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ leadId })
-        });
-        if(res.ok) {
-            alert("Lead convertido com sucesso.");
-            fetchCoreData();
+        const ok = await showConfirm("JARVIS-001: Deseja converter este Lead em Paciente Oficial no DNA?");
+        if(!ok) return;
+
+        try {
+            const res = await fetchWithAuth(`${API_URL}/leads/convert`, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ leadId })
+            });
+            if(res.ok) {
+                showToast("Lead convertido e ativado no DNA com sucesso.", "success");
+                fetchCoreData();
+            } else {
+                const err = await res.json();
+                showToast("Falha ao converter: " + (err.error || 'Erro'), "error");
+            }
+        } catch(e) {
+            console.error(e);
+            showToast("Erro na comunicação com a base de Leads.", "error");
         }
     }
 
@@ -1096,6 +1244,7 @@
     async function finalizarTeleconsulta() {
         if(!DB.activeTeleId) return;
         const notas = document.getElementById('teleNotas').value;
+        const cid10 = document.getElementById('teleCid10')?.value || '';
         const appt = DB.agenda.find(a => a.id === DB.activeTeleId);
         
         showToast("Encerrando sessão P2P...");
@@ -1107,7 +1256,8 @@
                 body: JSON.stringify({ 
                     patientId: appt.patientId, 
                     type: 'Evolução Teleconsulta', 
-                    description: notas 
+                    description: notas,
+                    cid10: cid10
                 })
             });
         }
@@ -1121,6 +1271,7 @@
         document.getElementById('teleAuthBlock').classList.remove('hidden');
         document.getElementById('teleActiveBlock').classList.add('hidden');
         document.getElementById('teleNotas').value = '';
+        if(document.getElementById('teleCid10')) document.getElementById('teleCid10').value = '';
         DB.activeTeleId = null;
         
         switchView('view-dashboard');
@@ -1150,8 +1301,11 @@
     async function carregarPEP() {
       const patId = document.getElementById('pepPatientSelect').value;
       if(!patId) return;
-      const res = await fetchWithAuth(`${API_URL}/records/${patId}`);
-      DB.activeRecords = await res.json();
+      showToast("JARVIS: Recuperando sequência completa de DNA clínico...");
+      const res = await fetchWithAuth(`${API_URL}/patients/${patId}`);
+      const data = await res.json();
+      DB.activeRecords = data.records || [];
+      DB.activeAppointments = data.appointments || [];
       document.getElementById('pepTreeContainer').classList.remove('hidden');
       setPepTab('dados');
     }
@@ -1176,54 +1330,65 @@
                 </div>
             </div>`;
       } else if(tab === 'timeline' || tab === 'exames' || tab === 'receitas') {
-        const filteredRecords = tab === 'timeline' ? DB.activeRecords : DB.activeRecords.filter(r => r.type.toLowerCase().includes(tab.slice(0, -1)));
+        const filteredRecords = tab === 'timeline' ? DB.activeRecords : 
+          tab === 'exames' ? DB.activeRecords.filter(r => r.attachments && r.attachments.length > 0) : 
+          DB.activeRecords;
         const title = tab === 'timeline' ? 'Linha do Tempo' : (tab === 'exames' ? 'Exames & Laudos' : 'Receitas Emitidas');
         
-        html = `
-            <div class="animate-fade-in">
-                <h2 class="text-2xl font-black text-white mb-8 border-l-4 border-mint pl-4">${title}</h2>
-                <div class="space-y-6 relative before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-white/10">
-                  ${filteredRecords.map(r => `
-                    <div class="relative pl-12 mb-8">
-                        <div class="absolute left-[13px] top-2 w-2 h-2 rounded-full bg-mint shadow-[0_0_10px_#4DBE94]"></div>
-                        <div class="text-[10px] font-black text-gray-500 uppercase mb-1">${r.date || 'DATA N/D'} — ${r.type} ${r.cid10 ? `[CID: ${r.cid10}]` : ''}</div>
-                        <div class="glass p-5 rounded-2xl border border-white/5">
-                            <p class="text-gray-300 leading-relaxed mb-4">${r.description}</p>
-                            ${r.attachments && r.attachments.length ? `
-                              <div class="mt-4 pt-4 border-t border-white/5 space-y-2">
-                                ${r.attachments.map(a => `
-                                  <a href="${a.filePath}" target="_blank" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all border border-white/5 text-[10px] font-black uppercase text-mint">
-                                    <i class="fas fa-file-medical text-sm"></i>
-                                    <span>${a.fileName}</span>
-                                    <i class="fas fa-external-link-alt ml-auto opacity-50"></i>
-                                  </a>
-                                `).join('')}
-                              </div>
-                            ` : ''}
-                            ${tab === 'exames' ? `
-                              <div class="mt-4 flex gap-2">
-                                <input type="file" id="file-${r.id}" class="hidden" onchange="uploadExam(${r.id})">
-                                <button onclick="document.getElementById('file-${r.id}').click()" class="bg-white/5 text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
-                                  <i class="fas fa-upload mr-2"></i> Anexar Exame (DNA)
-                                </button>
-                              </div>
-                            ` : ''}
-                            ${tab === 'timeline' || tab === 'receitas' ? `
-                              <div class="mt-4 flex gap-2">
-                                <button onclick="emitirPDF(${r.id}, 'PRESCRIPTION')" class="bg-mint/10 text-mint text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-mint/20 hover:bg-mint/30 transition-all">
-                                  <i class="fas fa-file-prescription mr-2"></i> Emitir Receita
-                                </button>
-                                <button onclick="emitirPDF(${r.id}, 'CERTIFICATE')" class="bg-white/5 text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
-                                  <i class="fas fa-file-medical-alt mr-2"></i> Emitir Atestado
-                                </button>
-                              </div>
-                            ` : ''}
+        if (tab === 'timeline') {
+          // SORT DATA
+          const records = [...DB.activeRecords].sort((a,b) => new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-')));
+          const appts = [...DB.activeAppointments].sort((a,b) => new Date(b.dateTime) - new Date(a.dateTime));
+
+          html = `
+            <div class="animate-fade-in h-full flex flex-col">
+                <h2 class="text-2xl font-black text-white mb-8 border-l-4 border-mint pl-4">Matriz Histórica Unificada</h2>
+                
+                <div class="grid grid-cols-2 gap-8 flex-1 overflow-hidden">
+                    <!-- COLUNA: EVOLUÇÕES -->
+                    <div class="flex flex-col h-full">
+                        <h3 class="text-xs font-black text-mint uppercase tracking-[3px] mb-4 flex items-center gap-2">
+                            <i class="fas fa-notes-medical"></i> Evoluções Clínicas
+                        </h3>
+                        <div class="flex-1 overflow-y-auto pr-4 space-y-4">
+                            ${records.map(r => `
+                                <div class="glass p-5 rounded-2xl border border-white/5 hover:border-mint/20 transition-all">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="text-[10px] font-black text-gray-500 uppercase">${r.date}</span>
+                                        <span class="text-[9px] font-bold text-mint bg-mint/5 px-2 py-0.5 rounded">${r.type}</span>
+                                    </div>
+                                    <p class="text-gray-300 text-xs leading-relaxed">${r.description}</p>
+                                    ${r.cid10 ? `<div class="mt-2 text-[9px] font-bold text-gray-500 uppercase italic">[CID: ${r.cid10}]</div>` : ''}
+                                </div>
+                            `).join('') || '<div class="text-gray-600 italic text-xs">Nenhuma evolução registrada.</div>'}
                         </div>
                     </div>
-                  `).join('') || '<div class="text-center p-10 text-gray-600">Nenhum registro específico nesta categoria.</div>'}
+
+                    <!-- COLUNA: CONSULTAS -->
+                    <div class="flex flex-col h-full border-l border-white/5 pl-8">
+                        <h3 class="text-xs font-black text-blue-400 uppercase tracking-[3px] mb-4 flex items-center gap-2">
+                            <i class="fas fa-calendar-check"></i> Histórico de Consultas
+                        </h3>
+                        <div class="flex-1 overflow-y-auto pr-2 space-y-4">
+                            ${appts.map(a => `
+                                <div class="glass p-5 rounded-2xl border border-white/5 hover:border-blue-500/20 transition-all">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="text-[10px] font-black text-gray-500 uppercase">${a.dateTime}</span>
+                                        <span class="text-[9px] font-bold text-blue-400 bg-blue-500/5 px-2 py-0.5 rounded">${a.type}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full ${a.status === 'FINALIZADO' ? 'bg-mint' : 'bg-yellow-500'}"></span>
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase">${a.status}</span>
+                                    </div>
+                                    ${a.meetLink ? `<a href="${a.meetLink}" target="_blank" class="mt-3 block text-[9px] font-black text-blue-400 hover:underline"><i class="fas fa-video mr-1"></i> Link da Teleconsulta</a>` : ''}
+                                </div>
+                            `).join('') || '<div class="text-gray-600 italic text-xs">Nenhum agendamento encontrado.</div>'}
+                        </div>
+                    </div>
                 </div>
-                ${tab === 'timeline' ? `
-                <div class="mt-10 p-6 glass rounded-[32px] border border-mint/10">
+
+                <!-- NEW EVOLUTION EDITOR -->
+                <div class="mt-8 p-6 glass rounded-[32px] border border-mint/10">
                   <div class="flex gap-4 mb-4">
                       <div class="flex-1 relative">
                           <label class="text-[10px] font-black text-gray-500 uppercase">Diagnóstico (CID-10)</label>
@@ -1235,12 +1400,59 @@
                           <input type="text" id="pepCidValue" readonly class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 mt-1 text-xs text-mint font-bold italic">
                       </div>
                   </div>
-                  <textarea id="novaEvo" class="w-full bg-transparent border-none outline-none text-white resize-none" rows="3" placeholder="Escrever nova evolução clínica..."></textarea>
+                  <textarea id="novaEvo" class="w-full bg-transparent border-none outline-none text-white resize-none text-sm" rows="2" placeholder="Escrever nova evolução clínica..."></textarea>
                   <div class="mt-4 flex justify-end">
-                      <button onclick="salvarEvolucao()" class="bg-mint text-black font-black px-6 py-2 rounded-full hover:scale-105 transition-transform">REGISTRAR EVOLUÇÃO</button>
+                      <button onclick="salvarEvolucao()" class="bg-mint text-black font-black px-6 py-2 rounded-full hover:scale-105 transition-transform uppercase text-[10px]">Registrar no DNA</button>
                   </div>
-                </div>` : ''}
+                </div>
             </div>`;
+        } else {
+            // ORIGINAL TABS (Exames, Receitas)
+            html = `
+                <div class="animate-fade-in">
+                    <h2 class="text-2xl font-black text-white mb-8 border-l-4 border-mint pl-4">${title}</h2>
+                    <div class="space-y-6 relative before:absolute before:left-4 before:top-0 before:bottom-0 before:w-px before:bg-white/10">
+                      ${filteredRecords.map(r => `
+                        <div class="relative pl-12 mb-8">
+                            <div class="absolute left-[13px] top-2 w-2 h-2 rounded-full bg-mint shadow-[0_0_10px_#4DBE94]"></div>
+                            <div class="text-[10px] font-black text-gray-500 uppercase mb-1">${r.date || 'DATA N/D'} — ${r.type} ${r.cid10 ? `[CID: ${r.cid10}]` : ''}</div>
+                            <div class="glass p-5 rounded-2xl border border-white/5">
+                                <p class="text-gray-300 leading-relaxed mb-4">${r.description}</p>
+                                ${r.attachments && r.attachments.length ? `
+                                  <div class="mt-4 pt-4 border-t border-white/5 space-y-2">
+                                    ${r.attachments.map(a => `
+                                      <a href="${a.filePath}" target="_blank" class="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all border border-white/5 text-[10px] font-black uppercase text-mint">
+                                        <i class="fas fa-file-medical text-sm"></i>
+                                        <span>${a.fileName}</span>
+                                        <i class="fas fa-external-link-alt ml-auto opacity-50"></i>
+                                      </a>
+                                    `).join('')}
+                                  </div>
+                                ` : ''}
+                                ${tab === 'exames' ? `
+                                  <div class="mt-4 flex gap-2">
+                                    <input type="file" id="file-${r.id}" class="hidden" onchange="uploadExam(${r.id})">
+                                    <button onclick="document.getElementById('file-${r.id}').click()" class="bg-white/5 text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
+                                      <i class="fas fa-upload mr-2"></i> Anexar Exame (DNA)
+                                    </button>
+                                  </div>
+                                ` : ''}
+                                ${tab === 'receitas' ? `
+                                  <div class="mt-4 flex gap-2">
+                                    <button onclick="emitirPDF(${r.id}, 'PRESCRIPTION')" class="bg-mint/10 text-mint text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-mint/20 hover:bg-mint/30 transition-all">
+                                      <i class="fas fa-file-prescription mr-2"></i> Emitir Receita
+                                    </button>
+                                    <button onclick="emitirPDF(${r.id}, 'CERTIFICATE')" class="bg-white/5 text-[10px] font-black uppercase px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">
+                                      <i class="fas fa-file-medical-alt mr-2"></i> Emitir Atestado
+                                    </button>
+                                  </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                      `).join('') || '<div class="text-center p-10 text-gray-600">Nenhum registro específico nesta categoria.</div>'}
+                    </div>
+                </div>`;
+        }
       } else if(tab === 'medicamentos') {
         const meds = pat.medications ? pat.medications.split(';').filter(m => m.trim()) : [];
         html = `
@@ -1302,7 +1514,7 @@
         const pat = DB.pacientes.find(p => p.id == patientId);
         if(!pat) return;
 
-        let meds = pat.medications.split(';');
+        let meds = (pat.medications || '').split(';').filter(m => m.trim());
         meds.splice(index, 1);
         const updatedMeds = meds.filter(m => m.trim()).join(';');
 
@@ -1332,6 +1544,43 @@
       });
       carregarPEP();
       showToast("Registro efetuado com sucesso.", "success");
+    }
+
+    async function emitirPDFFromPreview() {
+      const patId = document.getElementById('docPacSelect').value;
+      const pat = DB.pacientes.find(p => p.id == patId);
+      if (!pat) return alert('Selecione um paciente primeiro.');
+
+      const tipo = document.getElementById('docTipo').value;
+      const body = document.getElementById('docD1') ? document.getElementById('docD1').value : '';
+      const tipoMap = {
+        'receituario': 'Receituário',
+        'atestado': 'Atestado',
+        'encaminhamento': 'Encaminhamento',
+        'solicitacao': 'Solicitação de Exames',
+        'declaracao': 'Declaração'
+      };
+
+      try {
+        const res = await fetchWithAuth(`${API_URL}/records`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId: pat.id,
+            type: tipoMap[tipo] || 'Documento',
+            description: body || 'Documento gerado sem conteudo adicional.',
+            cid10: ''
+          })
+        });
+
+        if (res.ok) {
+          const record = await res.json();
+          const pdfType = (tipo === 'receituario') ? 'PRESCRIPTION' : 'CERTIFICATE';
+          await emitirPDF(record.id, pdfType);
+        }
+      } catch(e) {
+        alert('Erro ao gerar PDF.');
+      }
     }
 
     async function emitirPDF(recordId, type) {
@@ -1457,14 +1706,60 @@
     }
 
     function showToast(msg, type="info") {
-        const toast = document.createElement('div');
-        toast.className = `fixed bottom-32 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full glass border ${type==='success'?'border-mint/50 text-mint':'border-white/20 text-white'} text-xs font-black uppercase tracking-widest z-[9999] shadow-2xl animate-fade-in`;
-        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-info-circle'} mr-2"></i> ${msg}`;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
+      const toast = document.createElement('div');
+      toast.className = `fixed top-10 right-10 p-5 rounded-2xl shadow-2xl transform transition-all duration-500 translate-x-20 opacity-0 z-50 min-w-[300px] border ${type === 'success' ? 'bg-mint text-black border-mint' : type === 'error' ? 'bg-red-500 text-white border-red-400' : 'bg-white/10 text-white backdrop-blur-md border-white/20'}`;
+      toast.innerHTML = `<div class="flex items-center gap-3"><i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'} text-lg"></i> <span class="font-bold text-sm leading-tight">${msg}</span></div>`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-x-20', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('translate-x-20', 'opacity-0');
+        setTimeout(() => toast.remove(), 500);
+      }, 4000);
+    }
+
+    // MÉTODOS FINANCEIROS
+    async function lancarTransacao() {
+      const desc = document.getElementById('txDesc').value;
+      const val = document.getElementById('txValue').value;
+      const type = document.getElementById('txType').value;
+      const status = document.getElementById('txStatus').value;
+      
+      if(!desc || !val) return showToast("Preencha descrição e valor.", "error");
+
+      try {
+        const res = await fetchWithAuth(`${API_URL}/finance`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ type, amount: val, status, description: desc })
+        });
+        if(res.ok) {
+          showToast("Transação inserida no Caixa.", "success");
+          document.getElementById('txDesc').value = '';
+          document.getElementById('txValue').value = '';
+          fetchCoreData();
+        }
+      } catch(e) { showToast("Falha na API Financeira.", "error"); }
+    }
+
+    async function toggleTxStatus(id, currentStatus) {
+      if(currentStatus === 'PAID') return; // Apenas move PENDING para PAID
+      const ok = await showConfirm(`Deseja liquidar (marcar como PAGO) esta transação que estava projetada?`);
+      if(!ok) return;
+      try {
+        const res = await fetchWithAuth(`${API_URL}/finance/${id}`, {
+          method: 'PATCH',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ status: 'PAID' })
+        });
+        if(res.ok) {
+           showToast("Título liquidado. Receita bruta recebida!", "success");
+           fetchCoreData();
+        }
+      } catch(e){ showToast("Falha ao atualizar pagamento.", "error"); }
     }
 
     /*******************************************************
@@ -1505,11 +1800,27 @@
       const assinatura = document.getElementById('docAssinatura').value;
 
       let content = '';
-      if(tipo==='atestado') content = `Atesto para os devidos fins que o(a) paciente <b>${nomeDoc}</b>${pat ? `, portador(a) do CPF ${pat.cpf},` : ''} necessita de repouso por um período de ${body} dia(s) a partir desta data.`;
-      else if (tipo === 'receituario') content = `<div class="whitespace-pre-wrap">${body}</div>`;
-      else if (tipo === 'encaminhamento') content = `Encaminho o(a) paciente <b>${nomeDoc}</b> para avaliação com especialista em <b>${body}</b>, devido a quadro clínico sob investigação.`;
-      else if (tipo === 'solicitacao') content = `Solicito para o(a) paciente <b>${nomeDoc}</b> a realização dos seguintes exames para auxílio diagnóstico:<br><br><div class="whitespace-pre-wrap">${body}</div>`;
-      else content = `Declaro que o(a) paciente <b>${nomeDoc}</b> compareceu a esta unidade de saúde para atendimento clínico nesta data e horário.`;
+      let docTypeLabel = '';
+      if(tipo==='atestado') {
+        content = `Atestado para os devidos fins que o(a) paciente <b>${nomeDoc}</b>${pat ? `, portador(a) do CPF ${pat.cpf},` : ''} necessita de repouso por um período de ${body} dia(s) a partir desta data.`;
+        docTypeLabel = 'Atestado Médico';
+      }
+      else if (tipo === 'receituario') {
+        content = `<div class="whitespace-pre-wrap">${body}</div>`;
+        docTypeLabel = 'Receituário';
+      }
+      else if (tipo === 'encaminhamento') {
+        content = `Encaminho o(a) paciente <b>${nomeDoc}</b> para avaliação com especialista em <b>${body}</b>, devido a quadro clínico sob investigação.`;
+        docTypeLabel = 'Encaminhamento';
+      }
+      else if (tipo === 'solicitacao') {
+        content = `Solicito para o(a) paciente <b>${nomeDoc}</b> a realização dos seguintes exames para auxílio diagnóstico:<br><br><div class="whitespace-pre-wrap">${body}</div>`;
+        docTypeLabel = 'Solicitação de Exames';
+      }
+      else {
+        content = `Declaro que o(a) paciente <b>${nomeDoc}</b> compareceu a esta unidade de saúde para atendimento clínico nesta data e horário.`;
+        docTypeLabel = 'Declaração de Comparecimento';
+      }
 
       node.classList.remove('mix-blend-screen', 'opacity-90');
       node.innerHTML = `
@@ -1519,7 +1830,7 @@
             <div class="w-20 h-1 bg-black mx-auto mt-4"></div>
         </div>
         <div class="mb-10 text-right">${localDoc}, ${dataDoc}</div>
-        <div class="text-center font-bold text-2xl uppercase underline mb-10">${tipo}</div>
+        <div class="text-center font-bold text-2xl uppercase mb-10">${docTypeLabel}</div>
         <div class="mb-20">
             ${content}
         </div>
@@ -1528,6 +1839,43 @@
       <span class="text-sm">Assinado Digitalmente — Sistema JARVIS-001</span>
         </div>
       `;
+    }
+
+    window.salvarDocComoRegistro = async function() {
+      const patId = document.getElementById('docPacSelect').value;
+      const pat = DB.pacientes.find(p => p.id == patId);
+      if (!pat) return alert('Selecione um paciente primeiro.');
+
+      const tipo = document.getElementById('docTipo').value;
+      const body = document.getElementById('docD1') ? document.getElementById('docD1').value : '';
+      const tipoMap = {
+        'receituario': 'Receituário',
+        'atestado': 'Atestado',
+        'encaminhamento': 'Encaminhamento',
+        'solicitacao': 'Solicitação de Exames',
+        'declaracao': 'Declaração'
+      };
+
+      try {
+        const res = await fetchWithAuth(`${API_URL}/records`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId: pat.id,
+            type: tipoMap[tipo] || 'Documento',
+            description: body || 'Documento gerado sem conteudo adicional.',
+            cid10: ''
+          })
+        });
+
+        if (res.ok) {
+          const record = await res.json();
+          alert('Documento salvo como registro clínico. Agora pode gerar o PDF.');
+          await refreshUI();
+        }
+      } catch(e) {
+        alert('Erro ao salvar documento como registro.');
+      }
     }
 
     /*******************************************************
@@ -1618,8 +1966,8 @@
         try {
             const res = await fetchWithAuth(`${API_URL}/system/health`);
             const data = await res.json();
-            document.getElementById('sysCpu').innerText = data.cpu;
-            document.getElementById('sysRam').innerText = data.memory;
+            document.getElementById('sysCpu').innerText = `${data.cpu.cores} cores | ${data.cpu.loadAvg.join(' / ')} load | ${data.cpu.usage}`;
+            document.getElementById('sysRam').innerText = `${data.memory.used} / ${data.memory.total} (${data.memory.percent})`;
             document.getElementById('sysDb').innerText = data.dbStatus;
             document.getElementById('sysUptime').innerText = data.uptime;
         } catch(e) { console.error("Health fail", e); }
@@ -1631,7 +1979,7 @@
             const logs = await res.json();
             const term = document.getElementById('sysLogTerminal');
             if(term) {
-                term.innerHTML = logs.map(l => `<div class="text-matrix opacity-80">[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level}] ${l.message}</div>`).join('');
+                term.innerHTML = logs.map(l => `<div class="text-matrix opacity-80">[${new Date(l.timestamp).toLocaleTimeString()}] ${l.distilledPattern || l.input}</div>`).join('');
                 term.scrollTop = term.scrollHeight;
             }
         } catch(e) { console.error("Logs fail", e); }
@@ -1678,10 +2026,30 @@
         loadSystemLogs();
     }
 
-    // Auto-login if token exists
+    // Auto-login: check JWT token first, then fallback to OAuth session
+    async function tryAutoLogin() {
+      try {
+        const res = await fetch(`${API_URL}/auth/me`, {
+          credentials: 'include'
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          if (AUTH_TOKEN && data.user) {
+            DB.currentUser = data.user;
+          } else if (data.user) {
+            DB.currentUser = data.user;
+          } else if (data.userId) {
+            DB.currentUser = { user: 'Admin', role: 'ADMIN', id: data.userId };
+          }
+          initApp();
+        }
+      } catch(e) {
+        console.log("No active session or token.");
+      }
+    }
+
     if(AUTH_TOKEN) {
-        // We'd normally fetch /api/auth/me here to verify
-        // For now we assume valid and just show container if token was found in localStorage
         fetchWithAuth(`${API_URL}/auth/me`)
           .then(res => res.json())
           .then(data => {
@@ -1689,13 +2057,14 @@
               DB.currentUser = data.user || { user: 'Admin', role: 'ADMIN' };
               initApp();
             } else {
-               logout();
+               tryAutoLogin();
             }
           })
           .catch(e => {
-            console.error("Token restore fail:", e);
-            logout();
+            tryAutoLogin();
           });
+    } else {
+        tryAutoLogin();
     }
 
     setTimeout(alterarTemplateDoc, 500);

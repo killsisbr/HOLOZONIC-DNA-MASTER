@@ -30,11 +30,24 @@ async function syncAppointmentToGoogle(appointmentId) {
 
     const calendar = google.calendar({ version: 'v3', auth });
 
-    // Tratar formatos: ISO, YYYY-MM-DD HH:mm, etc.
+    // Handle multiple dateTime formats
     let startDateTimeStr = appointment.dateTime;
-    if (appointment.dateTime.includes(' ') && !appointment.dateTime.includes('T')) {
+    
+    // Format "YYYY-MM-DD HH:MM"
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(appointment.dateTime)) {
       const [datePart, timePart] = appointment.dateTime.split(' ');
       startDateTimeStr = `${datePart}T${timePart}:00`;
+    }
+    // Format "HH:MM" only (checkin appointments) — skip Google sync
+    else if (/^\d{2}:\d{2}$/.test(appointment.dateTime)) {
+      console.log(`JARVIS: Skipping Google sync for checkin appointment (no date): ${appointment.dateTime}`);
+      return;
+    }
+    // Format "DD/MM/YYYY HH:MM"
+    else if (/^\d{2}\/\d{2}\/\d{4}/.test(appointment.dateTime)) {
+      const [datePart, timePart] = appointment.dateTime.split(' ');
+      const [day, month, year] = datePart.split('/');
+      startDateTimeStr = `${year}-${month}-${day}T${timePart || '00:00'}:00`;
     }
     
     const startDate = new Date(startDateTimeStr);
@@ -43,7 +56,7 @@ async function syncAppointmentToGoogle(appointmentId) {
     }
 
     const event = {
-      summary: `HOLOZONIC [TELE]: ${appointment.patient.name}`,
+      summary: `HOLOZONIC [${appointment.type}]: ${appointment.patient.name}`,
       description: `Procedimento: ${appointment.type}\nStatus: ${appointment.status}\nAgendado via Jarvis 4.1 Sync.`,
       start: {
         dateTime: startDate.toISOString(),

@@ -3183,13 +3183,13 @@
           </button>
 
           <!-- JARVIS 4.1: Atalhos de Sistema -->
-          <a href="/dashboard"
+          <a href="dashboard"
             class="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-bold hover:bg-emerald-500/20 transition-all text-sm uppercase tracking-wider">
             <i class="fa-solid fa-user-shield"></i> Entrar
           </a>
 
           <!-- ÁREA DO PACIENTE -->
-          <a href="/app"
+          <a href="app"
             class="flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 font-bold hover:bg-blue-500/20 transition-all text-sm uppercase tracking-wider">
             <i class="fa-solid fa-circle-user"></i> Sou Paciente
           </a>
@@ -3227,10 +3227,10 @@
             class="fa-solid fa-chevron-right text-xs opacity-60"></i></button>
 
         <div class="pt-2 flex flex-col gap-2">
-          <a href="/dashboard" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-bold text-sm uppercase tracking-wider">
+          <a href="dashboard" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-bold text-sm uppercase tracking-wider">
             <i class="fa-solid fa-user-shield"></i> Painel Clínico
           </a>
-          <a href="/app" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 font-bold text-sm uppercase tracking-wider">
+          <a href="app" class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 font-bold text-sm uppercase tracking-wider">
             <i class="fa-solid fa-circle-user"></i> Área do Paciente
           </a>
           <button class="btn-header-green justify-center w-full mt-2" onclick="openModal('contatoModal')">
@@ -4221,7 +4221,7 @@
         if (!dataToSync.phone && !dataToSync.email) return;
 
         try {
-          await fetch('/api/leads/sync', {
+          await fetch('api/leads/sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dataToSync)
@@ -4434,7 +4434,7 @@
       showCeciliaTyping(true);
 
       try {
-        const res = await fetch('http://localhost:3001/api/ai/ask', {
+        const res = await fetch('api/ai/ask', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: text, context: 'Chat livre com Cecília no site' })
@@ -4517,13 +4517,56 @@
       showHospedagemStep(prev);
     }
 
-    function agendarHospedagem(programa) {
+    async function agendarHospedagem(programa) {
       const programas = {
         '2_3': 'Programa de 2 a 3 dias (R$ 1.497)',
         '5': 'Programa de 5 dias (R$ 2.497)',
         '7': 'Programa de 7 dias (R$ 3.497)',
         '10_14': 'Programa Intensivo 10-14 dias (R$ 5.997)'
       };
+
+      const objetivos = [];
+      document.querySelectorAll('#hospedagemStep3 input[type="checkbox"]:checked').forEach(cb => objetivos.push(cb.value));
+      const outroObj = document.getElementById('hospOutroObjetivo')?.value || '';
+
+      const diagnosticoSim = document.querySelector('input[name="hospDiagnostico"]:checked')?.value;
+      const qualDiagnostico = document.getElementById('hospQualDiagnostico')?.value || '';
+      const comorbidades = [];
+      document.querySelectorAll('#hospedagemStep4 input[type="checkbox"]:checked').forEach(cb => comorbidades.push(cb.value));
+      const outroDiag = document.getElementById('hospOutroDiagnostico')?.value || '';
+
+      const medicamentosSim = document.querySelector('input[name="hospMedicamentos"]:checked')?.value;
+      const quaisMedicamentos = document.getElementById('hospQuaisMedicamentos')?.value || '';
+      const qualidadeSono = document.getElementById('hospSonoQualidade')?.value || '';
+      const horasSono = document.getElementById('hospSonoHoras')?.value || '';
+      const tabagismo = document.querySelector('input[name="hospTabagismo"]:checked')?.value;
+      const atividadeFisica = document.getElementById('hospAtividade')?.value || '';
+
+      const hospFullData = {
+        programa,
+        programaLabel: programas[programa],
+        objetivos, outroObj,
+        diagnosticoSim, qualDiagnostico, comorbidades, outroDiag,
+        medicamentosSim, quaisMedicamentos,
+        qualidadeSono, horasSono, tabagismo, atividadeFisica
+      };
+
+      try {
+        await fetch('api/leads/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: hospedagemData.nome,
+            phone: hospedagemData.telefone,
+            email: hospedagemData.email || null,
+            source: 'HOSPEDAGEM',
+            step: 7,
+            data: { hospedagemData, hospFullData }
+          })
+        });
+      } catch(e) {
+        console.warn('JARVIS: Hospedagem sync failed (offline):', e);
+      }
 
       const mensagem = `🌿 *HOSPEDAGEM INTEGRATIVA*\n\n` +
         `Olá! Gostaria de reservar a hospedagem.\n\n` +
@@ -4536,10 +4579,6 @@
 
       const url = WPP + "?text=" + encodeURIComponent(mensagem);
       window.open(url, '_blank');
-
-      setTimeout(() => {
-        alert('✅ Link de pagamento enviado! Você receberá todas as instruções após a confirmação.');
-      }, 1000);
 
       closeModal('hospedagemModal');
     }
@@ -4589,7 +4628,49 @@
       showSonoStep(prev);
     }
 
-    function agendarExameSono() {
+    async function agendarExameSono() {
+      const motivos = [];
+      document.querySelectorAll('#sonoStep3 input[type="checkbox"]:checked').forEach(cb => motivos.push(cb.value));
+      const outroMotivo = document.getElementById('sonoOutroMotivo')?.value || '';
+      const tempoQueixa = document.querySelector('input[name="sonoTempo"]:checked')?.value || '';
+
+      const dormir = document.getElementById('sonoDormir')?.value || '';
+      const acordar = document.getElementById('sonoAcordar')?.value || '';
+      const tempoAdormecer = document.getElementById('sonoTempoAdormecer')?.value || '';
+      const despertares = document.getElementById('sonoDespertares')?.value || '';
+      const sensacao = document.getElementById('sonoSensacao')?.value || '';
+      const observacoes = [];
+      document.querySelectorAll('#sonoStep4 .checkbox-group input[type="checkbox"]:checked').forEach(cb => observacoes.push(cb.value));
+
+      const condicoes = [];
+      document.querySelectorAll('#sonoStep5 .checkbox-group input[type="checkbox"]:checked').forEach(cb => condicoes.push(cb.value));
+      const outroDiag = document.getElementById('sonoOutroDiagnostico')?.value || '';
+      const medicamentos = document.getElementById('sonoMedicamentos')?.value || '';
+      const medicamentosSono = document.getElementById('sonoMedicamentosSono')?.value || '';
+
+      const sonoFullData = {
+        motivos, outroMotivo, tempoQueixa,
+        dormir, acordar, tempoAdormecer, despertares, sensacao, observacoes,
+        condicoes, outroDiag, medicamentos, medicamentosSono
+      };
+
+      try {
+        await fetch('api/leads/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: sonoData.nome,
+            phone: sonoData.telefone,
+            email: null,
+            source: 'SONO',
+            step: 6,
+            data: { sonoData, sonoFullData }
+          })
+        });
+      } catch(e) {
+        console.warn('JARVIS: Sono sync failed (offline):', e);
+      }
+
       const mensagem = `🌙 *EXAME DO SONO*\n\n` +
         `Olá! Gostaria de agendar o exame de polissonografia.\n\n` +
         `*Dados:*\n` +
@@ -4601,10 +4682,6 @@
 
       const url = WPP + "?text=" + encodeURIComponent(mensagem);
       window.open(url, '_blank');
-
-      setTimeout(() => {
-        alert('✅ Link de pagamento enviado! Você receberá as orientações para o exame.');
-      }, 1000);
 
       closeModal('sonoModal');
     }
@@ -4724,12 +4801,19 @@
 
       let occupied = [];
       try {
-        const res = await fetch(window.location.origin + '/api/agenda/occupied');
-        occupied = await res.json();
-      } catch (e) { console.error("Erro ao buscar horários ocupados"); }
+        const res = await fetch('api/agenda/occupied');
+        if (res.ok) occupied = await res.json();
+      } catch (e) {
+        console.error("Erro ao buscar horários da agenda", e);
+      }
 
       slots.innerHTML = availableTimeSlots.map(hour => {
-        const isBusy = occupied.includes(`${inezData.data} ${hour}`);
+        const isBusy = occupied.some(slot => {
+          const normalized = String(slot).trim();
+          return normalized === `${inezData.data} ${hour}` ||
+                 normalized === `${inezData.data}T${hour}` ||
+                 normalized === `${inezData.data} ${hour}:00`;
+        });
         return `
           <button type="button" 
             class="time-slot ${inezData.hora === hour ? "active" : ""} ${isBusy ? "busy" : ""}" 
@@ -4936,71 +5020,29 @@
     }
 
     async function syncInezToBackend() {
-      const API_URL = window.location.origin + '/api';
+      console.log("JARVIS: Sincronizando agendamento via Neural Network...");
+      
       try {
-        // 1. Cadastra Paciente como Lead
-        const pRes = await fetch(`${API_URL}/patients`, {
+        const dataToSync = {
+          name: inezData.nome,
+          phone: inezData.telefone,
+          email: inezData.email,
+          source: 'INEZ',
+          step: 8,
+          data: { inezData, selectedProcedure }
+        };
+
+        const syncRes = await fetch('api/leads/sync', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: inezData.nome,
-            phone: inezData.telefone,
-            cpf: `LEAD-${Date.now()}`, // CPF temporário para Lead
-            birthDate: '01/01/2000',
-            plan: 'Inêz - Lead Site'
-          })
-        });
-        const patient = await pRes.json();
-
-        if (!patient || !patient.id) {
-          console.error('JARVIS: Falha ao obter ID do paciente', patient);
-          alert("Erro ao processar seus dados. Por favor, tente novamente.");
-          return;
-        }
-
-        // 2. Cria record com o motivo (Self-Evolve)
-        await fetch(`${API_URL}/records`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            patientId: patient.id,
-            type: 'Triagem IA',
-            description: `Motivo: ${inezData.motivo} | Procedimento: ${selectedProcedure.name} | Horário: ${inezData.data} ${inezData.hora}`
-          })
+          body: JSON.stringify(dataToSync)
         });
 
-        // 3. Log para Treinamento (Swarm)
-        await fetch(`${API_URL}/ai/logs`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            input: `NOVO LEAD: ${inezData.nome} quer ${selectedProcedure.name}`,
-            distilledPattern: inezData.motivo,
-            confidence: 0.88
-          })
-        });
-
-        // 4. Cria Agendamento Real na Agenda (Agenda Central) - JARVIS 4.1 Sync
-        const aRes = await fetch(`${API_URL}/agenda`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            patientId: patient.id,
-            dateTime: `${inezData.data} ${inezData.hora}`,
-            type: selectedProcedure.name,
-            status: 'AGUARDANDO'
-          })
-        });
-
-        if (aRes.status === 409) {
-          alert("Este horário acabou de ser preenchido por outro paciente. Por favor, escolha outro horário.");
-          goToInezStep(4);
-          return;
-        }
-
-        console.log('JARVIS: Sincronismo Inêz -> Backend concluído.');
+        if (!syncRes.ok) throw new Error("Falha na sincronização");
+        
+        console.log('JARVIS: Sincronismo Inêz -> Backend (Lead) concluído.');
       } catch (e) {
-        console.error('Falha no sincronismo JARVIS (Offline?)');
+        console.error('Falha no sincronismo JARVIS (Offline?)', e);
       }
     }
 
@@ -5042,8 +5084,44 @@
         .catch(() => alert('Não foi possível copiar automaticamente. Copie manualmente o código exibido.'));
     }
 
-    function confirmPixPayment() {
+    async function confirmPixPayment() {
       inezData.pagamentoConfirmado = true;
+
+      try {
+        const syncRes = await fetch('api/leads/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: inezData.nome,
+            phone: inezData.telefone,
+            email: inezData.email,
+            source: 'INEZ',
+            step: 8,
+            data: { inezData, selectedProcedure }
+          })
+        });
+
+        if (syncRes.ok) {
+          const syncData = await syncRes.json();
+          const leadId = syncData.leadId;
+
+          const bookRes = await fetch('api/leads/book-appointment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ leadId })
+          });
+
+          if (bookRes.ok) {
+            console.log('JARVIS: Appointment criado com sucesso via Inez.');
+          } else {
+            const errData = await bookRes.json().catch(() => ({}));
+            console.warn('JARVIS: Falha ao criar appointment:', errData.error || 'Unknown');
+          }
+        }
+      } catch (e) {
+        console.error('JARVIS: Erro ao criar appointment via Inez:', e);
+      }
+
       refreshInezSummary();
       goToInezStep(7);
     }

@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+  <title>Holozonic App - Dr. Hamilton Souza</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  
+  <script src="assets/js/tailwind.js"></script>
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { 
+            sans: ["Outfit", "sans-serif"],
+            display: ["Plus Jakarta Sans", "sans-serif"]
+          },
+          colors: {
+            mint: { DEFAULT: '#4DBE94', 400: '#2DD4BF', glow: 'rgba(77,190,148,0.5)' },
+            gold: { DEFAULT: '#D4AF37', light: '#F9E596' },
+            dark: { base: '#050508', surface: 'rgba(15,15,20,0.65)' }
+          },
+          animation: {
+            blob: 'blob 6s infinite alternate',
+            'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            fadeInUp: 'fadeInUp 0.4s ease-out forwards',
+          },
+          keyframes: {
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '100%': { transform: 'translate(20px, -30px) scale(1.1)' }
+            },
+            'pulse-glow': {
+              '0%, 100%': { filter: 'drop-shadow(0 0 10px rgba(77,190,148,0.2))' },
+              '50%': { filter: 'drop-shadow(0 0 25px rgba(77,190,148,0.6))' }
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(15px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #030303;
+      color: #ffffff;
+      margin: 0; padding: 0;
+      height: 100vh; width: 100vw;
+      overflow: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .ambient-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .orb-1 { position: absolute; top: -10%; left: -20%; width: 70vw; height: 70vw; background: radial-gradient(circle, rgba(77,190,148,0.08) 0%, transparent 60%); filter: blur(40px); animation: blob 8s infinite alternate; }
+    .orb-2 { position: absolute; bottom: 0; right: -20%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 60%); filter: blur(50px); animation: blob 10s infinite alternate-reverse; }
+
+    .premium-glass {
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid rgba(255,255,255,0.15);
+      border-left: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+    
+    .premium-card:active { transform: scale(0.97); }
+
+    .modal-overlay {
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .text-gradient { background: linear-gradient(135deg, #FFF, #A0A0A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .gold-gradient { background: linear-gradient(135deg, #F9E596, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    ::-webkit-scrollbar { display: none; }
+
+    .nav-item { color: #475569; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .nav-item.active { color: #fff; }
+    .nav-item.active i { color: var(--tw-colors-mint-DEFAULT); filter: drop-shadow(0 0 8px var(--tw-colors-mint-glow)); }
+    
+    .view { transition: opacity 0.3s, transform 0.3s; }
+    .view.hidden { opacity: 0; transform: scale(0.98); pointer-events: none; position: absolute; }
+    .view.visible { opacity: 1; transform: scale(1); pointer-events: auto; position: relative; }
+
+    /* WIZARD INÊZ COMPONENTS */
+    .step-indicator { display: flex; gap: 6px; justify-content: center; margin-bottom: 24px; }
+    .step-dot { height: 4px; border-radius: 2px; flex: 1; background: rgba(255,255,255,0.1); transition: 0.3s; }
+    .step-dot.active { background: var(--tw-colors-mint-DEFAULT); box-shadow: 0 0 10px var(--tw-colors-mint-glow); }
+    
+    .chat-step { display: none; }
+    .chat-step.active { display: block; animation: fadeInUp 0.4s ease-out forwards; }
+    
+    .user-input-group label { display: block; margin-bottom: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #9ca3af; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .user-input-group input, .user-input-group textarea { width: 100%; padding: 14px 18px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: #fff; margin-bottom: 16px; font-size: 14px; outline: none; transition: 0.3s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+    .user-input-group input:focus, .user-input-group textarea:focus { border-color: var(--tw-colors-mint-DEFAULT); background: rgba(255,255,255,0.06); }
+    
+    .btn-next { background: var(--tw-colors-mint-DEFAULT); color: #000; font-weight: 800; text-transform: uppercase; padding: 16px; border-radius: 16px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(77,190,148,0.2); transition: 0.2s; }
+    .btn-next:active { transform: scale(0.97); }
+    .btn-back { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-weight: 800; text-transform: uppercase; padding: 16px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 12px; cursor: pointer; flex: 1; transition: 0.2s; }
+    .btn-back:active { transform: scale(0.97); background: rgba(255,255,255,0.15); }
+
+    .ai-bubble { background: rgba(255,255,255,0.05); border-left: 3px solid var(--tw-colors-mint-DEFAULT); padding: 16px; border-radius: 16px; border-top-left-radius: 4px; font-size: 13px; color: #e2e8f0; line-height: 1.6; margin-bottom: 24px; position: relative; }
+    
+    .procedure-grid { display: grid; grid-template-columns: 1fr; gap: 12px; max-height: 40vh; overflow-y: auto; padding-right: 4px; }
+    .proc-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 4px; }
+    .proc-card.active { border-color: var(--tw-colors-mint-DEFAULT); background: rgba(77,190,148,0.05); }
+    
+    /* Calendar Extracted CSS */
+    .mini-calendar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-top: 10px; scroll-snap-type: x mandatory; }
+    .cal-day { flex: 0 0 65px; height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; scroll-snap-align: start; transition: 0.3s; }
+    .cal-day.active { background: var(--tw-colors-mint-DEFAULT); color: #000; border-color: transparent; }
+    .cal-day small { font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.7; }
+    .cal-day strong { font-size: 18px; font-weight: 800; }
+    .cal-day span { font-size: 10px; opacity: 0.5; }
+    
+    .time-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+    .time-slot { padding: 10px 0; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; font-size: 13px; font-weight: 600; transition: 0.2s; }
+    .time-slot.active { background: var(--tw-colors-mint-DEFAULT); color: #000; border-color: transparent; }
+    .time-slot.busy { opacity: 0.3; text-decoration: line-through; pointer-events: none; }
+
+    .summary-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 16px; margin-bottom: 20px; font-size: 12px; }
+    .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .summary-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .summary-row strong { color: #9ca3af; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-bg">
+    <div class="orb-1"></div>
+    <div class="orb-2"></div>
+    <div class="absolute inset-0" style="background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.5;"></div>
+  </div>
+
+  <main class="relative z-10 w-full h-[calc(100vh-75px)] flex flex-col pt-8 px-6 overflow-hidden">
+    
+    <header class="flex justify-between items-center mb-8 flex-shrink-0">
+      <div>
+        <h1 class="text-sm font-extrabold font-display tracking-widest text-[#ffffff] uppercase leading-none">HOLOZONIC</h1>
+        <p class="text-[10px] text-mint uppercase tracking-[0.2em] font-bold mt-1">Clínica de Longevidade</p>
+      </div>
+      
+      <div class="premium-glass rounded-full px-3 py-1 flex items-center gap-2 cursor-pointer" onclick="openModal('modalApresentacao')">
+        <span class="text-[9px] font-bold text-gray-300">Dr. Hamilton</span>
+        <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-gold to-yellow-200 p-[1px]">
+          <img src="https://ui-avatars.com/api/?name=Hamilton+Souza&background=D4AF37&color=fff" class="w-full h-full rounded-full object-cover">
+        </div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto pb-6 relative">
+      
+      <div id="view-home" class="view visible flex flex-col h-full gap-5">
+        
+        <div class="premium-glass rounded-[32px] p-8 flex flex-col justify-end relative overflow-hidden min-h-[220px] mb-2 premium-card transition-transform group cursor-pointer" onclick="openAgendamentoModal()">
+          <div class="absolute -right-12 -top-12 opacity-20 transform rotate-12 transition-transform duration-700 group-hover:rotate-0">
+            <i class="fas fa-dna text-[180px] text-mint"></i>
+          </div>
+          <div class="relative z-10">
+            <h2 class="text-[28px] font-display font-extrabold leading-tight mb-1 text-gradient">Medicina <br>Milenar.</h2>
+            <p class="text-[11px] text-gray-400 font-medium mb-5">Compreender o corpo antes de adoecer. Tradição, Tecnologia e Bioenergia.</p>
+            
+            <div class="inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-md rounded-full px-4 py-2 border border-white/10">
+              <span class="w-2 h-2 rounded-full bg-mint animate-pulse"></span>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-white">Agendar Avaliação</span>
+              <i class="fas fa-arrow-right text-[10px] ml-1 text-mint"></i>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-[11px] font-bold tracking-widest uppercase text-gray-500 mt-2">Atalhos</h3>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="premium-glass rounded-[24px] p-5 premium-card transition-all flex flex-col gap-3 group" onclick="window.location.href='app'">
+            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:bg-blue-500/20 transition-colors">
+              <i class="fas fa-fingerprint text-blue-400 text-lg"></i>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-white leading-tight">Sou Paciente</h4>
+              <p class="text-[9px] text-gray-400 mt-1">Acessar Prontuários</p>
+            </div>
+          </div>
+
+          <div class="premium-glass rounded-[24px] p-5 premium-card transition-all flex flex-col gap-3 group" onclick="openSrv('assinaturas')">
+            <div class="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center border border-gold/20 group-hover:bg-gold/20 transition-colors">
+              <i class="fas fa-gem text-gold text-lg"></i>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-white leading-tight gold-gradient">Longevidade</h4>
+              <p class="text-[9px] text-gray-400 mt-1">Planos de Vida</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="view-servicos" class="view hidden flex flex-col gap-4">
+        <h2 class="text-2xl font-display font-extrabold text-gradient mb-2">Terapias Reais</h2>
+        
+        <div class="grid grid-cols-2 gap-4 auto-rows-max pb-8">
+          <div class="premium-glass rounded-[28px] p-5 premium-card group" onclick="openSrv('mib')">
+            <i class="fas fa-brain text-2xl text-emerald-400 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"></i>
+            <h4 class="text-sm font-bold">Consulta<br>MIB®</h4>
+          </div>
+          <div class="premium-glass rounded-[28px] p-5 premium-card group" onclick="openSrv('med_chinesa')">
+            <i class="fas fa-yin-yang text-2xl text-orange-400 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"></i>
+            <h4 class="text-sm font-bold">Medicina<br>Chinesa</h4>
+          </div>
+          <div class="premium-glass rounded-[28px] p-5 premium-card group" onclick="openSrv('ozonio')">
+            <i class="fas fa-wind text-2xl text-blue-400 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"></i>
+            <h4 class="text-sm font-bold">O3 &<br>Sistêmico</h4>
+          </div>
+          <div class="premium-glass rounded-[28px] p-5 premium-card group" onclick="openSrv('feridas')">
+            <i class="fas fa-band-aid text-2xl text-red-400 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"></i>
+            <h4 class="text-sm font-bold">Clínica de<br>Feridas</h4>
+          </div>
+          <div class="premium-glass rounded-[28px] p-5 premium-card group" onclick="openSrv('sono')">
+            <i class="fas fa-moon text-2xl text-purple-400 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"></i>
+            <h4 class="text-sm font-bold">Teste do<br>Sono</h4>
+          </div>
+          <div class="premium-glass rounded-[28px] p-5 premium-card group overflow-hidden relative" onclick="openSrv('spa')">
+            <div class="absolute inset-0 bg-gold/10"></div>
+            <i class="fas fa-leaf text-2xl text-gold mb-4 opacity-80 group-hover:opacity-100 transition-opacity relative z-10"></i>
+            <h4 class="text-sm font-bold relative z-10">Retiro &<br>Hospedagem</h4>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODALS -->
+  <div id="modalOverlay" class="modal-overlay fixed inset-0 z-50 flex flex-col justify-end p-0 opacity-0 pointer-events-none transition-opacity duration-300">
+    
+    <!-- MODAL WIZARD INÊZ (Agendamento Inteligente) -->
+    <div id="modalAgendamento" class="premium-glass rounded-t-[32px] w-full h-[90vh] transform translate-y-full transition-all duration-400 flex flex-col relative overflow-hidden hidden" style="background: rgba(15,15,20,0.95);">
+      <div class="w-12 h-1 bg-white/20 rounded-full mx-auto mt-4 mb-2"></div>
+      
+      <div class="px-6 pb-2 flex justify-between items-center relative z-10">
+        <div>
+          <span class="text-[10px] uppercase font-bold text-mint tracking-widest"><i class="fas fa-magic"></i> Assistente</span>
+          <h2 class="text-xl font-display font-extrabold text-white">Agendamento</h2>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="px-6 mt-4">
+        <div class="step-indicator" id="inezDots">
+          <div class="step-dot active" id="dot-1"></div>
+          <div class="step-dot" id="dot-2"></div>
+          <div class="step-dot" id="dot-3"></div>
+          <div class="step-dot" id="dot-4"></div>
+          <div class="step-dot" id="dot-5"></div>
+          <div class="step-dot" id="dot-6"></div>
+          <div class="step-dot" id="dot-7"></div>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-6 pb-24" id="inezBody">
+        
+        <!-- Passo 1: Dados Lead -->
+        <div id="step-1" class="chat-step active">
+          <div class="flex items-center gap-3 mb-3">
+             <div class="w-8 h-8 rounded-full bg-mint flex items-center justify-center text-black text-xs font-bold ring-2 ring-mint/30"><i class="fas fa-robot"></i></div>
+             <span class="text-xs font-bold text-gray-300 uppercase tracking-widest">Inêz</span>
+          </div>
+          <div class="ai-bubble">
+            Olá! Sou a Inêz, assistente da Holozonic. Primeiro, preciso dos seus dados para iniciar o pré-agendamento com segurança.
+          </div>
+          <div class="user-input-group mt-2">
+            <label>Seu Nome Completo</label>
+            <input type="text" id="aiNome" placeholder="Ex: João da Silva">
+            
+            <label>WhatsApp</label>
+            <input type="tel" id="aiTelefone" placeholder="(00) 00000-0000">
+            
+            <label>E-mail (Para Notificações)</label>
+            <input type="email" id="aiEmail" placeholder="voce@email.com">
+          </div>
+          <button class="btn-next mt-6" onclick="nextStep(1, 2)">Avançar <i class="fas fa-arrow-right"></i></button>
+        </div>
+
+        <!-- Passo 2: Sintomas -->
+        <div id="step-2" class="chat-step">
+          <div class="flex items-center gap-3 mb-3">
+             <div class="w-8 h-8 rounded-full bg-mint flex items-center justify-center text-black text-xs font-bold ring-2 ring-mint/30"><i class="fas fa-robot"></i></div>
+             <span class="text-xs font-bold text-gray-300 uppercase tracking-widest">Inêz</span>
+          </div>
+          <div class="ai-bubble">
+            Prazer, <span id="displayName" class="font-bold text-mint"></span>! Antes de escolher o procedimento, me conte brevemente o que você está sentindo hoje.
+          </div>
+          <div class="user-input-group mt-2">
+            <label>Sintomas / Motivos da Busca</label>
+            <textarea id="aiMotivo" rows="4" placeholder="Ex: Dores crônicas, cansaço frequente, ansiedade, acompanhamento preventivo..."></textarea>
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button class="btn-back" onclick="goToStep(1)"><i class="fas fa-arrow-left"></i> Voltar</button>
+            <button class="btn-next" style="flex: 2" onclick="nextStep(2, 3)">Avançar <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Passo 3: Procedimento -->
+        <div id="step-3" class="chat-step">
+          <div class="flex items-center gap-3 mb-3">
+             <div class="w-8 h-8 rounded-full bg-mint flex items-center justify-center text-black text-xs font-bold ring-2 ring-mint/30"><i class="fas fa-robot"></i></div>
+             <span class="text-xs font-bold text-gray-300 uppercase tracking-widest">Inêz</span>
+          </div>
+          <div class="ai-bubble">
+            Agora escolha o procedimento ideal para o seu atendimento.
+          </div>
+          <div class="procedure-grid" id="procedureGridOutput">
+            <!-- Dynamic Injection from JS -->
+          </div>
+          <div class="flex gap-3 mt-6">
+            <button class="btn-back" onclick="goToStep(2)"><i class="fas fa-arrow-left"></i> Voltar</button>
+            <button class="btn-next" style="flex: 2" onclick="nextStep(3, 4)">Avançar <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Passo 4: Calendário -->
+        <div id="step-4" class="chat-step">
+          <div class="flex items-center gap-3 mb-3">
+             <div class="w-8 h-8 rounded-full bg-mint flex items-center justify-center text-black text-xs font-bold ring-2 ring-mint/30"><i class="fas fa-robot"></i></div>
+             <span class="text-xs font-bold text-gray-300 uppercase tracking-widest">Inêz</span>
+          </div>
+          <div class="ai-bubble">
+            Perfeito. Escolha a data e o horário preferencial para iniciarmos:
+          </div>
+          
+          <div class="user-input-group mt-2">
+            <label>Selecione a Data</label>
+            <div id="miniCalendar" class="mini-calendar"></div>
+            
+            <label class="mt-4">Horários Disponíveis</label>
+            <div id="timeSlots" class="time-slots"></div>
+          </div>
+          
+          <div class="flex gap-3 mt-6">
+            <button class="btn-back" onclick="goToStep(3)"><i class="fas fa-arrow-left"></i> Voltar</button>
+            <button class="btn-next" style="flex: 2" onclick="nextStep(4, 5)">Avançar <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Passo 5: Resumo e Pagamento -->
+        <div id="step-5" class="chat-step">
+          <div class="flex items-center gap-3 mb-3">
+             <div class="w-8 h-8 rounded-full bg-mint flex items-center justify-center text-black text-xs font-bold ring-2 ring-mint/30"><i class="fas fa-robot"></i></div>
+             <span class="text-xs font-bold text-gray-300 uppercase tracking-widest">Inêz</span>
+          </div>
+          <div class="ai-bubble">
+            Tudo anotado! Confira o resumo do atendimento e prossiga para a garantia da reserva (Padrão PIX).
+          </div>
+          
+          <div class="summary-box">
+             <div class="summary-row"><strong>Nome</strong> <span id="resName"></span></div>
+             <div class="summary-row"><strong>Serviço</strong> <span id="resProc"></span></div>
+             <div class="summary-row"><strong>Valor</strong> <span id="resVal"></span></div>
+             <div class="summary-row"><strong>Data</strong> <span id="resData"></span></div>
+             <div class="summary-row"><strong>Horário</strong> <span id="resHora"></span></div>
+          </div>
+
+          <div class="flex gap-3 mt-6">
+            <button class="btn-back" onclick="goToStep(4)"><i class="fas fa-arrow-left"></i> Voltar</button>
+            <button class="btn-next" style="flex: 2" onclick="nextStep(5, 6)"><i class="fas fa-qrcode"></i> Gerar PIX</button>
+          </div>
+        </div>
+
+        <!-- Passo 6: PIX Display -->
+        <div id="step-6" class="chat-step">
+          <div class="flex items-center gap-3 mb-3">
+             <div class="w-8 h-8 rounded-full bg-mint flex items-center justify-center text-black text-xs font-bold ring-2 ring-mint/30"><i class="fas fa-robot"></i></div>
+             <span class="text-xs font-bold text-gray-300 uppercase tracking-widest">Inêz</span>
+          </div>
+          <div class="ai-bubble">
+            Pagamento em processamento. Efetue o repasse para o Checkout do Agendamento usando a Chave Pix abaixo:
+          </div>
+          
+          <div class="bg-black/40 border border-white/10 rounded-2xl p-4 text-center break-all text-[11px] font-mono text-gray-400" id="pixCodeDisplay">
+             00020126580014BR.GOV.BCB.PIX0136holozonic.agendamento52040000...
+          </div>
+
+          <button class="btn-back w-full mt-3 flex justify-center !text-mint" onclick="copyPix()"><i class="fas fa-copy mr-2"></i> Copiar Código PIX</button>
+          
+          <button class="btn-next mt-6" onclick="nextStep(6, 7)"><i class="fas fa-check-double"></i> Já efetuei o pagamento</button>
+        </div>
+
+        <!-- Passo 7: Success! -->
+        <div id="step-7" class="chat-step">
+          <div class="flex items-center gap-3 mb-3">
+             <div class="w-8 h-8 rounded-full bg-mint flex items-center justify-center text-black text-xs font-bold ring-2 ring-mint/30"><i class="fas fa-robot"></i></div>
+             <span class="text-xs font-bold text-gray-300 uppercase tracking-widest">Inêz</span>
+          </div>
+          <div class="ai-bubble">
+            Maravilha! Agendamento foi criado no nosso sistema central (JARVIS). Um link da teleconsulta/físico te aguarda.
+          </div>
+
+          <div class="summary-box !bg-mint/10 !border-mint/30">
+            <div class="flex items-center justify-center mb-4">
+              <i class="fas fa-check-circle text-4xl text-mint animate-pulse-glow"></i>
+            </div>
+            <h4 class="text-center font-bold text-white mb-2">AGENDAMENTO LIBERADO</h4>
+            <div class="summary-row"><strong>Paciente</strong> <span id="okName"></span></div>
+            <div class="summary-row"><strong>Procedimento</strong> <span id="okProc"></span></div>
+            <div class="summary-row"><strong>Previsão</strong> <span id="okDataHora"></span></div>
+          </div>
+
+          <button class="btn-next mt-4" onclick="finishFlowToWhatsApp()"><i class="fab fa-whatsapp"></i> Receber Comprovante no WhatsApp</button>
+          <button class="btn-back w-full mt-3" onclick="closeModal()">Sair</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Modal Antigo de Detalhes de Serviço -->
+    <div id="modalSrv" class="premium-glass rounded-[32px] p-6 w-full max-w-sm transform scale-95 opacity-0 transition-all duration-300 flex flex-col relative overflow-hidden hidden h-[85vh] overflow-y-auto">
+      <div id="srvGlow" class="absolute -top-10 -left-10 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+
+      <div class="flex justify-between items-start mb-4 relative z-10">
+        <div id="srvIconWrap" class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl">
+          <i id="srvIcon" class="fas fa-star"></i>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+      </div>
+      
+      <h2 id="srvTitle" class="text-2xl font-display font-extrabold mb-2 relative z-10">Título Serviço</h2>
+      
+      <div id="srvTags" class="flex flex-wrap gap-2 mb-4 relative z-10"></div>
+      
+      <div id="srvDesc" class="text-sm text-gray-300 font-medium leading-relaxed mb-6 relative z-10 flex-1"></div>
+
+      <div id="srvPriceBox" class="bg-black/50 border border-white/10 rounded-2xl p-4 mb-6 relative z-10 hidden">
+        <span class="text-[10px] uppercase tracking-widest text-mint font-bold block mb-1">Investimento & Planos</span>
+        <div id="srvPrice" class="text-lg font-extrabold text-white">R$ 0,00</div>
+      </div>
+
+      <!-- Modified the CTA to trigger Inêz flow specific to the service -->
+      <button id="srvCallBtn" class="w-full py-4 rounded-xl text-black font-extrabold uppercase tracking-wide text-[11px] flex justify-center items-center gap-2 hover:opacity-90 transition-opacity shadow-[0_4px_20px_rgba(77,190,148,0.3)] relative z-10 sticky bottom-0">
+        AGENDAR VAGA <i class="fas fa-arrow-right text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Modal Doctor -->
+    <div id="modalApresentacao" class="premium-glass rounded-[32px] p-8 w-full max-w-sm hidden flex flex-col relative text-center">
+      <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-tr from-mint to-blue-500 p-1 mb-5 shadow-[0_0_30px_rgba(77,190,148,0.3)]">
+        <img src="https://ui-avatars.com/api/?name=Hamilton+Souza&background=0f172a&color=fff" class="w-full h-full rounded-full object-cover">
+      </div>
+      <h2 class="text-xl font-display font-extrabold mb-1">Dr. Hamilton Souza</h2>
+      <p class="text-[10px] text-mint uppercase tracking-widest font-bold mb-6">CEO & Criador do Método MIB®</p>
+      
+      <p class="text-sm text-gray-300 font-medium leading-relaxed mb-8">
+        "Tratar o ser humano em sua totalidade — não apenas em suas partes." <br><br>Especialista em Medicina Chinesa, o Dr. Hamilton une a sabedoria oriental milenar às tecnologias mais avançadas de monitoramento para antecipar os desequilíbrios na sua saúde.
+      </p>
+
+      <button onclick="closeModal()" class="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-white font-extrabold uppercase tracking-wide text-xs hover:bg-white/10 transition-colors">Fechar</button>
+    </div>
+
+  </div> <!-- /Overlay -->
+
+  <!-- NATIVE BOTTOM NAVIGATION -->
+  <nav class="fixed bottom-0 left-0 w-full h-[75px] premium-glass rounded-t-[32px] border-b-0 border-l-0 border-r-0 flex justify-between items-center px-8 z-40 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+    <button class="nav-item active flex flex-col items-center gap-1 w-12" onclick="switchNav('home', this)">
+      <i class="fas fa-compass text-xl"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wide">Início</span>
+    </button>
+    
+    <button class="nav-item flex flex-col items-center gap-1 w-12" onclick="switchNav('servicos', this)">
+      <i class="fas fa-briefcase-medical text-xl"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wide">Clínica</span>
+    </button>
+
+    <div class="relative -top-6">
+      <div class="absolute inset-0 bg-[#25D366] rounded-full blur-md opacity-40 animate-pulse-glow pointer-events-none"></div>
+      <!-- Modificado botão para chamar Agendamento Flow -->
+      <button class="w-16 h-16 rounded-full bg-gradient-to-tr from-mint to-[#10b981] flex items-center justify-center text-black text-[28px] shadow-xl relative z-10 active:scale-90 transition-transform" onclick="openAgendamentoModal()">
+        <i class="fas fa-magic"></i>
+      </button>
+    </div>
+
+    <button class="nav-item flex flex-col items-center gap-1 w-12" onclick="openModal('modalApresentacao')">
+      <i class="fas fa-user-md text-xl"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wide">Doutor</span>
+    </button>
+
+    <button class="nav-item flex flex-col items-center gap-1 w-12" onclick="window.location.href='dashboard'">
+      <i class="fas fa-shield-alt text-xl"></i>
+      <span class="text-[9px] font-bold uppercase tracking-wide">Painel</span>
+    </button>
+  </nav>
+
+  <script>
+    const DB_SERVICES = {
+      'mib': { title: 'Consulta Integrada MIB', color: '#10b981', icon: 'fa-brain', price: 'R$ 297', tags: ['Diagnóstico', 'Causa Raiz', 'Preventivo'], desc: '<p class="mb-3">A MIB é uma consulta profunda...</p>' },
+      'assinaturas': { title: 'Assinaturas Vip', color: '#D4AF37', icon: 'fa-gem', price: 'R$ 597', tags: ['Wearables', 'Acompanhamento'], desc: '<p class="mb-3">Ecossistema de saúde contínua.</p>' },
+      'med_chinesa': { title: 'Medicina Chinesa', color: '#f59e0b', icon: 'fa-yin-yang', price: 'R$ 150', tags: ['Laser', 'Ventosaterapia'], desc: '<p class="mb-3">Técnicas milenares aliadas à tecnologia...</p>' },
+      'ozonio': { title: 'Sessão de Ozonioterapia', color: '#3b82f6', icon: 'fa-wind', price: 'R$ 150', tags: ['Imunidade', 'Assepsia'], desc: '<p class="mb-3">Protocolos de O³...</p>' },
+      'feridas': { title: 'Protocolo de Feridas', color: '#ef4444', icon: 'fa-band-aid', price: 'Avaliação', tags: ['Curativos', 'Domicílio'], desc: '<p class="mb-3">Acompanhamento domiciliar...</p>' },
+      'sono': { title: 'Exame de Polissonografia', color: '#8b5cf6', icon: 'fa-moon', price: 'R$ 450', tags: ['Teleconsulta', 'Apneia'], desc: '<p class="mb-3">Exame domiciliar do sono...</p>' },
+      'spa': { title: 'Hospedagem & Retiro', color: '#D4AF37', icon: 'fa-leaf', price: 'R$ 1.497', tags: ['Natureza', 'Lages'], desc: '<p class="mb-3">Imersão em chácara de apoio clínico...</p>' }
+    };
+
+    function switchNav(targetId, btn) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.view').forEach(v => { v.classList.remove('visible'); v.classList.add('hidden'); });
+      const targ = document.getElementById('view-' + targetId);
+      targ.classList.remove('hidden');
+      setTimeout(() => targ.classList.add('visible'), 20);
+    }
+
+    const overlay = document.getElementById('modalOverlay');
+    let actMod = null;
+    let modalTimeout = null;
+
+    function openModal(id) {
+      if(modalTimeout) clearTimeout(modalTimeout);
+      
+      if (id === 'modalAgendamento') {
+         overlay.className = 'modal-overlay fixed inset-0 z-50 flex flex-col justify-end p-0 transition-opacity duration-300 opacity-0 pointer-events-none';
+      } else {
+         overlay.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center p-5 transition-opacity duration-300 opacity-0 pointer-events-none';
+      }
+
+      document.querySelectorAll('.modal-overlay > div').forEach(el => {
+         if(el.id !== id) el.classList.add('hidden');
+         else {
+           el.classList.remove('hidden');
+           actMod = el;
+         }
+      });
+
+      overlay.classList.remove('pointer-events-none');
+      overlay.style.opacity = '1';
+      
+      setTimeout(() => {
+        if(actMod.id === 'modalAgendamento') actMod.classList.remove('translate-y-full');
+        else actMod.classList.remove('scale-95', 'opacity-0');
+      }, 10);
+    }
+
+    function closeModal() {
+      let targetMod = actMod; // Captura instancia atual
+      if(targetMod) {
+        if(targetMod.id === 'modalAgendamento') targetMod.classList.add('translate-y-full');
+        else targetMod.classList.add('scale-95', 'opacity-0');
+      }
+      
+      overlay.style.opacity = '0';
+      overlay.classList.add('pointer-events-none');
+      
+      modalTimeout = setTimeout(() => { 
+        if(targetMod) targetMod.classList.add('hidden'); 
+      }, 400);
+    }
+
+    function openSrv(srvId) {
+      const data = DB_SERVICES[srvId];
+      if(!data) return;
+
+      document.getElementById('srvTitle').innerText = data.title;
+      document.getElementById('srvTitle').style.color = data.color;
+      document.getElementById('srvDesc').innerHTML = data.desc;
+      
+      const tagsBox = document.getElementById('srvTags');
+      tagsBox.innerHTML = '';
+      data.tags.forEach(t => { tagsBox.innerHTML += `<span class="bg-white/10 text-white rounded-full px-3 py-1 text-[9px] uppercase tracking-widest border border-white/5 font-bold">${t}</span>`; });
+
+      const priceBox = document.getElementById('srvPriceBox');
+      priceBox.classList.remove('hidden');
+      document.getElementById('srvPrice').innerHTML = `<span class="text-xl"></span>${data.price}`;
+      
+      const actBtn = document.getElementById('srvCallBtn');
+      actBtn.style.backgroundColor = data.color;
+      actBtn.style.color = (data.color === '#F9E596' || data.color === '#10b981' || data.color === '#D4AF37' || data.color === '#f59e0b') ? '#000' : '#fff';
+
+      actBtn.onclick = () => { 
+        closeModal();
+        openAgendamentoModal(srvId);
+      };
+
+      const icw = document.getElementById('srvIconWrap');
+      icw.innerHTML = `<i class="fas ${data.icon}"></i>`;
+      icw.style.color = data.color;
+      icw.style.backgroundColor = data.color + '20'; 
+      icw.style.borderColor = data.color + '40';
+      document.getElementById('srvGlow').style.backgroundColor = data.color;
+      
+      openModal('modalSrv');
+    }
+
+    /* INÊZ SCHEDULER WIZARD LOGIC */
+    let inezState = {
+      name: '', phone: '', email: '', motivo: '',
+      procedureId: '', procedureName: '', procedureVal: '',
+      date: '', hour: ''
+    };
+
+    function generatePix() {
+      const valText = inezState.procedureVal.replace(/[^\d]/g, "");
+      const finalVal = valText ? valText : "29700";
+      return `00020126580014BR.GOV.BCB.PIX0136holozonic.agendamento5204000053039865404${finalVal}5802BR5913HOLOZONIC6009LAGES-SC62070503***6304ABCD`;
+    }
+
+    function syncUI() {
+      // Name refresh
+      const n = document.getElementById('aiNome').value;
+      if(n) document.getElementById('displayName').innerText = n;
+      
+      // Updates Summaries
+      document.getElementById('resName').innerText = inezState.name || '-';
+      document.getElementById('resProc').innerText = inezState.procedureName || '-';
+      document.getElementById('resVal').innerText = inezState.procedureVal || 'R$ -';
+      document.getElementById('resData').innerText = inezState.date || 'dd/mm/aaaa';
+      document.getElementById('resHora').innerText = inezState.hour || '00:00';
+      
+      document.getElementById('okName').innerText = inezState.name;
+      document.getElementById('okProc').innerText = inezState.procedureName;
+      document.getElementById('okDataHora').innerText = `${inezState.date} às ${inezState.hour}`;
+    }
+
+    function openAgendamentoModal(prefillProcId = null) {
+      goToStep(1);
+      openModal('modalAgendamento');
+      
+      // Build Grid
+      const grid = document.getElementById("procedureGridOutput");
+      grid.innerHTML = '';
+      for (const [id, proc] of Object.entries(DB_SERVICES)) {
+        grid.innerHTML += `
+          <div class="proc-card ${inezState.procedureId === id ? "active" : ""}" onclick="selectProc('${id}')" id="proc_${id}">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-sm text-white">${proc.title}</span>
+              <span class="text-xs font-bold" style="color:${proc.color}">${proc.price}</span>
+            </div>
+          </div>
+        `;
+      }
+      
+      if(prefillProcId) {
+        selectProc(prefillProcId);
+        // Maybe jump to step 4 if they already provided data before?
+      }
+
+      renderMiniCalendar();
+    }
+
+    function selectProc(id) {
+      inezState.procedureId = id;
+      inezState.procedureName = DB_SERVICES[id].title;
+      inezState.procedureVal = DB_SERVICES[id].price;
+      
+      document.querySelectorAll('.proc-card').forEach(n => n.classList.remove('active'));
+      const activeBtn = document.getElementById('proc_'+id);
+      if(activeBtn) activeBtn.classList.add('active');
+      
+      syncUI();
+    }
+
+    function goToStep(s) {
+      document.querySelectorAll('.chat-step').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.step-dot').forEach((d, i) => {
+         d.classList.toggle('active', i < s);
+      });
+      document.getElementById(`step-${s}`).classList.add('active');
+    }
+
+    async function nextStep(curr, nx) {
+      if(curr === 1) {
+        inezState.name = document.getElementById('aiNome').value;
+        inezState.phone = document.getElementById('aiTelefone').value;
+        inezState.email = document.getElementById('aiEmail').value;
+        if(!inezState.name || !inezState.phone) return alert('Por favor, digite seu Nome e WhatsApp!');
+      }
+      if(curr === 2) {
+        inezState.motivo = document.getElementById('aiMotivo').value;
+      }
+      if(curr === 3) {
+        if(!inezState.procedureId) return alert('Selecione um procedimento para prosseguir.');
+      }
+      if(curr === 4) {
+        if(!inezState.date || !inezState.hour) return alert('Escolha Data e Horário.');
+      }
+      if(curr === 5) { // Gerar Pix
+        document.getElementById('pixCodeDisplay').innerText = generatePix();
+        
+        // Disparo assíncrono para o Backend (JARVIS 4.1 Sync)
+        try {
+          fetch('/api/leads/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: inezState.name,
+              phone: inezState.phone,
+              email: inezState.email,
+              source: 'PWA - Inez Form',
+              step: 5,
+              data: { motivo: inezState.motivo, procedimento: inezState.procedureName, valor: inezState.procedureVal, horaLoc: `${inezState.date} ${inezState.hour}` }
+            })
+          }).catch(e=>console.log(e));
+        } catch(e){}
+      }
+
+      syncUI();
+      goToStep(nx);
+    }
+
+    /* Calender Simples Extracted */
+    function renderMiniCalendar() {
+      const cal = document.getElementById("miniCalendar");
+      cal.innerHTML = '';
+      const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+      const td = new Date();
+      for(let i=0; i<6; i++) {
+        const date = new Date(td); date.setDate(td.getDate() + i);
+        const dfmt = `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}`;
+        
+        cal.innerHTML += `
+          <button class="cal-day ${inezState.date === dfmt ? "active" : ""}" onclick="setDate('${dfmt}', this)">
+            <small>${dias[date.getDay()]}</small>
+            <strong>${String(date.getDate()).padStart(2,'0')}</strong>
+          </button>`;
+      }
+      
+      const slots = document.getElementById("timeSlots");
+      const hours = ["08:00", "09:00", "10:00", "14:00", "15:00", "16:00"];
+      slots.innerHTML = hours.map(h => `
+        <button class="time-slot ${inezState.hour === h ? "active" : ""}" onclick="setHour('${h}', this)">${h}</button>
+      `).join('');
+    }
+
+    function setDate(val, btn) {
+      inezState.date = val;
+      document.querySelectorAll('.cal-day').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      syncUI();
+    }
+    
+    function setHour(val, btn) {
+      inezState.hour = val;
+      document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      syncUI();
+    }
+
+    function copyPix() {
+      navigator.clipboard.writeText(document.getElementById('pixCodeDisplay').innerText);
+      alert('Chave Fixa copiada! Pague no App do seu banco.');
+    }
+
+    async function finishFlowToWhatsApp() {
+      try {
+        const syncRes = await fetch('/api/leads/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: inezState.name,
+            phone: inezState.phone,
+            email: inezState.email,
+            source: 'PWA - Inez Form',
+            step: 7,
+            data: { motivo: inezState.motivo, procedimento: inezState.procedureName, valor: inezState.procedureVal, horaLoc: `${inezState.date} ${inezState.hour}` }
+          })
+        });
+
+        if (syncRes.ok) {
+          const syncData = await syncRes.json();
+          const leadId = syncData.leadId;
+
+          await fetch('/api/leads/book-appointment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              leadId,
+              date: inezState.date,
+              hour: inezState.hour,
+              procedureName: inezState.procedureName
+            })
+          });
+        }
+      } catch(e) {
+        console.warn('JARVIS: Erro ao criar appointment PWA:', e);
+      }
+
+      const ms = encodeURIComponent(`🩺 Olá! Agendamento Inteligente finalizado pelo WebApp PWA.\n\n*Nome:* ${inezState.name}\n*Protocolo:* ${inezState.procedureName}\n*Agendamento:* ${inezState.date} às ${inezState.hour}\n✅ Pago (PIX)`);
+      window.location.href = `https://wa.me/5548991288212?text=${ms}`;
+    }
+  </script>
+</body>
+</html>

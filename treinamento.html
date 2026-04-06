@@ -96,18 +96,29 @@
             <p class="text-xs text-slate-500 leading-relaxed italic">Aguardando padrões clínicos para destilação noKnowledge Graph...</p>
           </div>
         </div>
-        <button class="w-full bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-600/20 transition-all">Forçar Re-Indexação</button>
+        <button onclick="forceReindex()" class="w-full bg-emerald-600/10 text-emerald-400 border border-emerald-500/20 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-600/20 transition-all">Forçar Re-Indexação</button>
       </div>
 
     </div>
   </div>
 
   <script>
-    const API_URL = 'http://localhost:3001/api';
+    const API_URL = 'api';
+    const AUTH_TOKEN = localStorage.getItem('jarvis_token');
+    
+    function fetchAuth(url, opts = {}) {
+      const headers = { ...(opts.headers || {}) };
+      if (AUTH_TOKEN) headers['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+      return fetch(url, { ...opts, headers });
+    }
     
     async function refreshLogs() {
       try {
-        const res = await fetch(`${API_URL}/ai/logs`);
+        const res = await fetchAuth(`${API_URL}/ai/logs`);
+        if (!res.ok) {
+          document.getElementById('logMonitor').innerHTML = '<div class="text-red-400">Autenticacao necessaria. Faca login no dashboard.</div>';
+          return;
+        }
         const logs = await res.json();
         const monitor = document.getElementById('logMonitor');
         monitor.innerHTML = logs.map(l => `
@@ -152,7 +163,7 @@
     }
 
     async function distillFromLog(text, id) {
-       const pattern = prompt("Qual o padrão destilado (Distilled Knowledge)?", text);
+       const pattern = prompt("Qual o padrao destilado (Distilled Knowledge)?", text);
        if(!pattern) return;
 
        await fetch(`${API_URL}/ai/distill`, {
@@ -163,6 +174,19 @@
        
        alert('Aprendizado vinculado ao Knowledge Graph com sucesso.');
        refreshLogs();
+    }
+
+    async function forceReindex() {
+      try {
+        const res = await fetchAuth(`${API_URL}/ai/logs`);
+        if (res.ok) {
+          const logs = await res.json();
+          alert(`Re-indexacao concluida. ${logs.length} logs processados.`);
+          refreshLogs();
+        }
+      } catch(e) {
+        alert('Erro na re-indexacao.');
+      }
     }
 
     function limparChat() {
