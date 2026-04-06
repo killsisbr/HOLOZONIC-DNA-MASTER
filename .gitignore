@@ -42,7 +42,8 @@ uploads/
 .DS_Store
 Thumbs.db
 
-# Maintenance and Test Scripts
+# Maintenance and Deploy Scripts (contain secrets)
+scripts/
 test_*.js
 seed_*.js
 upgrade_*.js
