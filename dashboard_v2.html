@@ -5,18 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Holozonic — Dashboard V2</title>
   
-  <!-- OFFLINE-FIRST FONTS (Fallback to system if CDN fails/offline) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- OFFLINE-FIRST FONTS (System fallbacks, no CDN) -->
   <style>
-    /* Intended for local hosting of Inter/Plus Jakarta Sans for 100% Offline-lock */
-    @font-face { font-family: 'Inter'; src: local('Inter'), local('Segoe UI'), sans-serif; }
-    @font-face { font-family: 'Plus Jakarta Sans'; src: local('Plus Jakarta Sans'), local('Arial'), sans-serif; }
+    @font-face { font-family: 'Inter'; src: local('Inter'), local('Segoe UI'), local('Arial'), sans-serif; }
+    @font-face { font-family: 'Plus Jakarta Sans'; src: local('Plus Jakarta Sans'), local('Arial'), local('Helvetica Neue'), sans-serif; }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   
   <script src="assets/js/tailwind.js"></script>
   <link rel="stylesheet" href="assets/css/fontawesome.min.css" />
+  <script src="assets/js/chart.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
 
   <script>
     tailwind.config = {
@@ -75,6 +73,15 @@
       background: linear-gradient(90deg, var(--mint-glow), transparent);
       border-left: 4px solid var(--mint);
     }
+
+    .rich-editor-toolbar button { transition: all 0.15s; }
+    [contenteditable][data-placeholder]:empty::before {
+      content: attr(data-placeholder);
+      color: #6b7280;
+    }
+    [contenteditable] h3 { font-size: 1.125rem; font-weight: 700; margin: 0.5rem 0; }
+    [contenteditable] blockquote { border-left: 3px solid #4DBE94; padding-left: 0.75rem; color: #9ca3af; margin: 0.5rem 0; }
+    [contenteditable] ul, [contenteditable] ol { padding-left: 1.5rem; margin: 0.25rem 0; }
 
     body {
       background: radial-gradient(circle at top right, #0F172A, #000000);
@@ -246,6 +253,10 @@
           <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition-colors p-2">
             <i class="fas fa-sign-out-alt text-lg"></i>
           </button>
+        </div>
+        <div class="flex items-center gap-2 mt-4">
+          <div id="wsStatus" class="w-2 h-2 rounded-full bg-mint animate-pulse"></div>
+          <span class="text-[10px] text-gray-500 uppercase tracking-wider">Real-Time Sync</span>
         </div>
       </div>
     </aside>
@@ -447,20 +458,19 @@
 
           <div id="teleActiveBlock" class="hidden grid-cols-1 lg:grid-cols-3 gap-8">
               <div class="lg:col-span-2 relative glass rounded-[40px] overflow-hidden aspect-video group">
-                  <div class="absolute inset-0 bg-black flex items-center justify-center">
+                  <video id="remoteVideo" class="absolute inset-0 w-full h-full object-cover bg-black" autoplay playsinline></video>
+                  <div id="remoteVideoPlaceholder" class="absolute inset-0 bg-black flex items-center justify-center">
                     <div class="text-center">
                         <div id="lblTeleNome" class="text-2xl font-black text-white mb-2">Paciente</div>
-                        <div class="text-mint text-[10px] font-black uppercase tracking-widest bg-mint/10 px-4 py-1 rounded-full">Sessão Criptografada P2P</div>
+                        <div id="teleStatusText" class="text-mint text-[10px] font-black uppercase tracking-widest bg-mint/10 px-4 py-1 rounded-full">Conectando...</div>
                     </div>
                   </div>
                   <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 glass-mint p-4 rounded-full">
-                      <button class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"><i class="fas fa-microphone"></i></button>
-                      <button class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"><i class="fas fa-video"></i></button>
+                      <button id="btnMic" onclick="toggleMic()" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"><i class="fas fa-microphone"></i></button>
+                      <button id="btnCam" onclick="toggleCam()" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"><i class="fas fa-video"></i></button>
                       <button onclick="finalizarTeleconsulta()" class="w-12 h-12 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white transition-all shadow-lg"><i class="fas fa-phone-slash"></i></button>
                   </div>
-                  <div class="absolute top-6 right-6 w-48 h-32 glass border border-white/20 rounded-2xl overflow-hidden">
-                      <div class="w-full h-full bg-gray-900 flex items-center justify-center text-gray-600 font-bold italic">Sua Cam</div>
-                  </div>
+                  <video id="localVideo" class="absolute top-6 right-6 w-48 h-32 glass border border-white/20 rounded-2xl overflow-hidden object-cover" autoplay playsinline muted></video>
               </div>
               <div class="glass p-8 rounded-[40px] flex flex-col gap-6">
                   <div class="border-l-4 border-mint pl-4">
@@ -561,9 +571,9 @@
       </section>
       <!-- FINANCEIRO SECTION -->
       <section id="view-financeiro" class="view-section hidden animate-fade-in">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
               <div class="glass p-6 rounded-[32px] border border-mint/20">
-                  <span class="text-[10px] font-black text-gray-500 uppercase">Receita Bruta Paga (Mês)</span>
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Receita Bruta Paga (Mes)</span>
                   <div id="finRevenue" class="text-3xl font-black text-white mt-1">R$ 0,00</div>
               </div>
               <div class="glass p-6 rounded-[32px] border border-red-500/10">
@@ -572,11 +582,26 @@
               </div>
               <div class="glass p-6 rounded-[32px] border border-mint/20 relative overflow-hidden">
                   <div class="absolute -right-4 -top-4 w-24 h-24 bg-mint/10 rounded-full blur-xl"></div>
-                  <span class="text-[10px] font-black text-gray-500 uppercase">Projeção Próximo Ciclo (Agendamentos)</span>
-                  <div id="finProjected" class="text-3xl font-black text-mint mt-1">+ R$ 0,00</div>
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Lucro Liquido</span>
+                  <div id="finProfit" class="text-3xl font-black text-mint mt-1">R$ 0,00</div>
+              </div>
+              <div class="glass p-6 rounded-[32px] border border-blue-500/10">
+                  <span class="text-[10px] font-black text-gray-500 uppercase">Margem de Lucro</span>
+                  <div id="finMargin" class="text-3xl font-black text-blue-400 mt-1">0%</div>
               </div>
           </div>
           
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div class="glass rounded-[40px] p-8">
+                  <h3 class="font-bold text-white mb-6">Evolucao Mensal (Receitas vs Despesas)</h3>
+                  <canvas id="financeLineChart" height="200"></canvas>
+              </div>
+              <div class="glass rounded-[40px] p-8">
+                  <h3 class="font-bold text-white mb-6">Distribuicao Atual</h3>
+                  <canvas id="financeChart" height="200"></canvas>
+              </div>
+          </div>
+
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
               <div class="lg:col-span-2 glass rounded-[40px] overflow-hidden">
                   <div class="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center">
@@ -587,7 +612,7 @@
                     <table class="w-full text-left border-collapse">
                       <thead>
                         <tr class="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 bg-black/20">
-                          <th class="px-8 py-4">Data / Descrição</th>
+                          <th class="px-8 py-4">Data / Descricao</th>
                           <th class="px-8 py-4">Tipo</th>
                           <th class="px-8 py-4">Status</th>
                           <th class="px-8 py-4 text-right">Valor</th>
@@ -601,9 +626,9 @@
               </div>
               
               <div class="glass rounded-[40px] p-8 border border-white/5">
-                  <h3 class="font-bold text-white mb-6">Lançamento Avulso</h3>
+                  <h3 class="font-bold text-white mb-6">Lancamento Avulso</h3>
                   <div class="space-y-4">
-                      <input type="text" id="txDesc" placeholder="Descrição (ex: Conta de Luz)" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint text-sm">
+                      <input type="text" id="txDesc" placeholder="Descricao (ex: Conta de Luz)" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint text-sm">
                       <div class="flex gap-4">
                           <select id="txType" class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint text-sm">
                               <option value="INCOME">Receita (+)</option>
@@ -613,7 +638,7 @@
                       </div>
                       <select id="txStatus" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-mint text-sm">
                           <option value="PAID">Pago (Realizado)</option>
-                          <option value="PENDING">Pendente (Projeção)</option>
+                          <option value="PENDING">Pendente (Projecao)</option>
                       </select>
                       <button onclick="lancarTransacao()" class="w-full bg-white text-black font-black uppercase tracking-widest text-xs py-4 rounded-2xl hover:bg-mint transition-colors mt-2">Gravar no Caixa</button>
                   </div>
@@ -710,13 +735,208 @@
           </div>
       </div>
 
+      <!-- AUTOMATION SECTION -->
+      <section id="view-automacao" class="view-section hidden animate-fade-in">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div class="glass p-8 rounded-[32px]">
+                  <h3 class="font-bold text-white mb-6 flex items-center gap-2">
+                      <i class="fas fa-robot text-mint"></i> Centro de Automação
+                  </h3>
+                  <div class="space-y-4">
+                      <div class="p-4 bg-white/5 rounded-xl">
+                          <div class="flex justify-between items-center mb-2">
+                              <span class="text-sm font-bold text-white">Status WhatsApp</span>
+                              <span id="waStatus" class="text-xs font-black px-3 py-1 rounded-full bg-gray-500 text-white">OFFLINE</span>
+                          </div>
+                          <div id="waQrContainer" class="hidden mt-4 text-center">
+                              <img id="waQrCode" src="" class="w-48 h-48 mx-auto border rounded-lg">
+                              <p class="text-xs text-gray-500 mt-2">Escaneie com WhatsApp</p>
+                          </div>
+                          <div class="flex gap-2 mt-4">
+                              <button onclick="startWhatsApp()" class="flex-1 bg-mint text-black font-black py-2 rounded-lg text-sm">Conectar</button>
+                              <button onclick="getWaStatus()" class="bg-white/10 text-white py-2 px-4 rounded-lg text-sm">Status</button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              
+              <div class="glass p-8 rounded-[32px]">
+                  <h3 class="font-bold text-white mb-6 flex items-center gap-2">
+                      <i class="fas fa-file-alt text-mint"></i> Relatórios Automáticos
+                  </h3>
+                  <div class="space-y-4">
+                      <button onclick="generateReport('daily')" class="w-full bg-white/5 hover:bg-mint/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-all">
+                          <i class="fas fa-calendar-day text-mint text-xl"></i>
+                          <div class="text-left">
+                              <div class="text-sm font-bold text-white">Relatório Diário</div>
+                              <div class="text-xs text-gray-500">Resumo das últimas 24h</div>
+                          </div>
+                      </button>
+                      <button onclick="generateReport('weekly')" class="w-full bg-white/5 hover:bg-mint/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-all">
+                          <i class="fas fa-calendar-week text-mint text-xl"></i>
+                          <div class="text-left">
+                              <div class="text-sm font-bold text-white">Relatório Semanal</div>
+                              <div class="text-xs text-gray-500">Análise dos últimos 7 dias</div>
+                          </div>
+                      </button>
+                      <button onclick="generateReport('monthly')" class="w-full bg-white/5 hover:bg-mint/10 border border-white/10 p-4 rounded-xl flex items-center gap-4 transition-all">
+                          <i class="fas fa-calendar-alt text-mint text-xl"></i>
+                          <div class="text-left">
+                              <div class="text-sm font-bold text-white">Relatório Mensal</div>
+                              <div class="text-xs text-gray-500">Dashboard completo do mês</div>
+                          </div>
+                      </button>
+                  </div>
+              </div>
+          </div>
+          
+          <div class="glass p-8 rounded-[32px]">
+              <h3 class="font-bold text-white mb-6 flex items-center gap-2">
+                  <i class="fas fa-list text-mint"></i> Resultados dos Relatórios
+              </h3>
+              <div id="reportOutput" class="bg-black/40 p-6 rounded-xl font-mono text-xs text-gray-400 whitespace-pre-wrap max-h-[400px] overflow-y-auto">
+                  Clique em um relatório acima para gerar...
+              </div>
+          </div>
+      </section>
+
     </main>
+
+    <!-- MODAL DE REAGENDAMENTO -->
+    <div id="rescheduleModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="glass p-8 rounded-[32px] w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto border border-white/10">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-black text-white flex items-center gap-3">
+            <i class="fas fa-calendar-check text-mint"></i>
+            Reagendar Consulta
+          </h3>
+          <button onclick="closeRescheduleModal()" class="text-gray-400 hover:text-white transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Info do Agendamento Original -->
+        <div id="rescheduleOriginalInfo" class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
+          <div class="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Agendamento Original</div>
+          <div class="text-white font-bold" id="reschedulePatientName">-</div>
+          <div class="text-gray-400 text-sm mt-1" id="rescheduleOriginalDate">-</div>
+          <div class="text-gray-500 text-xs mt-1" id="rescheduleOriginalType">-</div>
+          <div class="text-yellow-500 text-xs mt-1 hidden" id="rescheduleWarning">
+            <i class="fas fa-exclamation-triangle"></i> <span id="rescheduleWarningText"></span>
+          </div>
+        </div>
+
+        <!-- Sugestoes da IA -->
+        <div id="rescheduleAiSuggestions" class="mb-6">
+          <div class="flex items-center gap-2 mb-3">
+            <i class="fas fa-robot text-mint"></i>
+            <span class="text-[10px] font-black text-gray-500 uppercase tracking-wider">Sugestoes da IA (Cecilia)</span>
+            <span id="rescheduleLoading" class="text-xs text-mint animate-pulse">Analisando agenda...</span>
+          </div>
+          <div id="rescheduleSlotsGrid" class="grid grid-cols-2 gap-3">
+            <!-- Slots serao inseridos via JS -->
+          </div>
+        </div>
+
+        <!-- Motivo do Reagendamento -->
+        <div class="mb-6">
+          <label class="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2 block">Motivo do Reagendamento</label>
+          <select id="rescheduleReasonSelect" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-mint text-sm text-white mb-3" onchange="toggleCustomReason()">
+            <option value="">Selecionar motivo...</option>
+            <option value="Paciente solicitou mudanca">Paciente solicitou mudanca</option>
+            <option value="Conflito de horario">Conflito de horario</option>
+            <option value="Motivo medico">Motivo medico</option>
+            <option value="Problema de transporte">Problema de transporte</option>
+            <option value="Outro">Outro</option>
+          </select>
+          <input type="text" id="rescheduleCustomReason" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-mint text-sm text-white hidden" placeholder="Descreva o motivo...">
+        </div>
+
+        <!-- Acoes -->
+        <div class="flex gap-3">
+          <button onclick="closeRescheduleModal()" class="flex-1 bg-white/5 text-gray-400 font-black uppercase tracking-widest text-xs py-4 rounded-2xl hover:bg-white/10 transition-colors">Cancelar</button>
+          <button onclick="confirmReschedule()" id="confirmRescheduleBtn" class="flex-1 bg-mint text-black font-black uppercase tracking-widest text-xs py-4 rounded-2xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fas fa-check mr-1"></i> Confirmar Reagendamento
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE CANCELAMENTO -->
+    <div id="cancelModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="glass p-8 rounded-[32px] w-full max-w-md mx-4 border border-white/10">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-black text-white flex items-center gap-3">
+            <i class="fas fa-calendar-xmark text-red-400"></i>
+            Cancelar Consulta
+          </h3>
+          <button onclick="closeCancelModal()" class="text-gray-400 hover:text-white transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
+          <div class="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Consulta</div>
+          <div class="text-white font-bold" id="cancelPatientName">-</div>
+          <div class="text-gray-400 text-sm mt-1" id="cancelDate">-</div>
+        </div>
+
+        <div class="mb-6">
+          <label class="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2 block">Motivo do Cancelamento</label>
+          <select id="cancelReasonSelect" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-mint text-sm text-white mb-3" onchange="toggleCustomCancelReason()">
+            <option value="">Selecionar motivo...</option>
+            <option value="Paciente desistiu">Paciente desistiu</option>
+            <option value="Paciente nao compareceu (No-Show)">Paciente nao compareceu (No-Show)</option>
+            <option value="Cancelamento medico">Cancelamento medico</option>
+            <option value="Problema clinico">Problema clinico</option>
+            <option value="Outro">Outro</option>
+          </select>
+          <input type="text" id="cancelCustomReason" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-mint text-sm text-white hidden" placeholder="Descreva o motivo...">
+        </div>
+
+        <div class="flex gap-3">
+          <button onclick="closeCancelModal()" class="flex-1 bg-white/5 text-gray-400 font-black uppercase tracking-widest text-xs py-4 rounded-2xl hover:bg-white/10 transition-colors">Voltar</button>
+          <button onclick="confirmCancel()" class="flex-1 bg-red-500 text-white font-black uppercase tracking-widest text-xs py-4 rounded-2xl hover:bg-red-600 transition-all">
+            <i class="fas fa-times mr-1"></i> Confirmar Cancelamento
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE NOTAS -->
+    <div id="notesModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="glass p-8 rounded-[32px] w-full max-w-md mx-4 border border-white/10">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-black text-white flex items-center gap-3">
+            <i class="fas fa-sticky-note text-yellow-400"></i>
+            Notas da Consulta
+          </h3>
+          <button onclick="closeNotesModal()" class="text-gray-400 hover:text-white transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <div class="mb-6">
+          <label class="text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2 block">Notas Internas</label>
+          <textarea id="notesTextarea" rows="4" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-mint text-sm text-white resize-none" placeholder="Adicione notas internas sobre esta consulta..."></textarea>
+        </div>
+
+        <div class="flex gap-3">
+          <button onclick="closeNotesModal()" class="flex-1 bg-white/5 text-gray-400 font-black uppercase tracking-widest text-xs py-4 rounded-2xl hover:bg-white/10 transition-colors">Cancelar</button>
+          <button onclick="saveNotes()" class="flex-1 bg-mint text-black font-black uppercase tracking-widest text-xs py-4 rounded-2xl hover:scale-105 transition-all">
+            <i class="fas fa-save mr-1"></i> Salvar Notas
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
     const API_URL = 'api'; 
     let DB = { currentUser: null, pacientes: [], agenda: [], leads: [], fila: [], activeRecords: [], activeTeleId: null, cid10: [], transactions: [], finances: {revenue:0, expenses:0, projected:0} };
     let AUTH_TOKEN = localStorage.getItem('jarvis_token');
+    let socket = null;
 
     async function fetchWithAuth(url, options = {}) {
       const headers = { ...options.headers, 'Authorization': `Bearer ${AUTH_TOKEN}` };
@@ -771,10 +991,132 @@
         buildMenuNavigation();
         startPolling();
         loadCid10();
+        initSocket();
         
         // Fragment Routing
         handleFragmentRoute();
         window.addEventListener('hashchange', handleFragmentRoute);
+    }
+
+    function initSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}`;
+        
+        socket = io(wsUrl);
+        
+        socket.on('connect', () => {
+            console.log('[WS] JARVIS Connected — Real-time active');
+            showToast('Sincronização Real-Time Ativada', 'success');
+            const wsEl = document.getElementById('wsStatus');
+            if(wsEl) { wsEl.classList.remove('bg-red-500'); wsEl.classList.add('bg-mint'); }
+        });
+        
+        socket.on('patients:updated', (patient) => {
+            console.log('[WS] Patient updated:', patient.name);
+            fetchCoreData();
+        });
+        
+        socket.on('agenda:updated', (appointment) => {
+            console.log('[WS] Agenda updated:', appointment.id);
+            fetchCoreData();
+        });
+        
+        socket.on('leads:updated', (lead) => {
+            console.log('[WS] Lead updated:', lead.name);
+            fetchCoreData();
+        });
+        
+        socket.on('leads:converted', (patient) => {
+            console.log('[WS] Lead converted:', patient.name);
+            fetchCoreData();
+            showToast(`Novo paciente: ${patient.name}`, 'success');
+        });
+
+        socket.on('teleconsulta:started', (data) => {
+            console.log('[WS] Teleconsulta started:', data.roomId);
+            fetchCoreData();
+        });
+
+        socket.on('disconnect', () => {
+            console.log('[WS] Desconectado - modo offline');
+            document.getElementById('wsStatus')?.classList.add('text-red-500');
+        });
+
+        socket.on('system:log', (log) => {
+            const term = document.getElementById('sysLogTerminal');
+            if(term) {
+                const div = document.createElement('div');
+                const color = log.level === 'error' ? 'text-red-400' : log.level === 'warn' ? 'text-yellow-400' : 'text-mint';
+                div.className = color;
+                div.textContent = log.message;
+                term.appendChild(div);
+                if(term.children.length > 200) term.removeChild(term.firstChild);
+                term.scrollTop = term.scrollHeight;
+            }
+        });
+    }
+
+    /*******************************************************
+     * LOCAL STORAGE PERSISTENCE (OFFLINE-FIRST)
+     *******************************************************/
+    function saveToStorage(key, data) {
+        try {
+            localStorage.setItem(`holozonic_${key}`, JSON.stringify(data));
+        } catch(e) {
+            console.warn('[STORAGE] Erro ao salvar:', e.message);
+        }
+    }
+
+    function loadFromStorage(key) {
+        try {
+            const data = localStorage.getItem(`holozonic_${key}`);
+            return data ? JSON.parse(data) : null;
+        } catch(e) {
+            console.warn('[STORAGE] Erro ao carregar:', e.message);
+            return null;
+        }
+    }
+
+    function saveCurrentFlow() {
+        const flowData = {
+            pacientes: DB.pacientes,
+            agenda: DB.agenda,
+            leads: DB.leads,
+            timestamp: Date.now()
+        };
+        saveToStorage('current_flow', flowData);
+    }
+
+    function loadSavedFlow() {
+        const saved = loadFromStorage('current_flow');
+        if(saved && saved.pacientes) {
+            DB.pacientes = saved.pacientes;
+            DB.agenda = saved.agenda;
+            DB.leads = saved.leads;
+            console.log('[STORAGE] Fluxo restaurado do cache local');
+            return true;
+        }
+        return false;
+    }
+
+    function saveDraftLead(leadData) {
+        const drafts = loadFromStorage('lead_drafts') || [];
+        const existing = drafts.findIndex(d => d.phone === leadData.phone);
+        if(existing >= 0) {
+            drafts[existing] = { ...drafts[existing], ...leadData, timestamp: Date.now() };
+        } else {
+            drafts.push({ ...leadData, timestamp: Date.now() });
+        }
+        saveToStorage('lead_drafts', drafts);
+    }
+
+    function getDraftLeads() {
+        return loadFromStorage('lead_drafts') || [];
+    }
+
+    function clearDraftLead(phone) {
+        const drafts = getDraftLeads().filter(d => d.phone !== phone);
+        saveToStorage('lead_drafts', drafts);
     }
 
     function handleFragmentRoute() {
@@ -817,6 +1159,7 @@
       { id: 'view-leads', label: 'Funil de Leads (Inêz)', icon: 'fas fa-filter', roles: ['admin', 'atendente'] },
       { id: 'view-documentos', label: 'Emissor Oficial', icon: 'fas fa-file-medical', roles: ['admin', 'medico'] },
       { id: 'view-financeiro', label: 'Gestão Financeira', icon: 'fas fa-wallet', roles: ['admin'] },
+      { id: 'view-automacao', label: 'Automação', icon: 'fas fa-robot', roles: ['admin', 'medico'] },
       { id: 'view-sistema', label: 'Motor JARVIS', icon: 'fas fa-microchip', roles: ['admin'] }
     ];
 
@@ -881,6 +1224,8 @@
      * DATA SYNC
      *******************************************************/
     function startPolling() {
+      // Tentar carregar do cache local primeiro (offline-first)
+      const loadedFromCache = loadSavedFlow();
       fetchCoreData();
       setInterval(fetchCoreData, 10000);
     }
@@ -904,6 +1249,9 @@
           DB.transactions = dashData.transactions || [];
           DB.finances = dashData.finances || { revenue: 0, expenses: 0, projected: 0 };
         }
+        
+        // Persistir cache local para offline
+        saveCurrentFlow();
         
         refreshUI();
       } catch (e) {
@@ -962,27 +1310,46 @@
               `;
           });
 
-          const regularAgenda = DB.agenda.map(a => `
+          const regularAgenda = DB.agenda.map(a => {
+              const statusColors = {
+                  'AGUARDANDO': 'bg-blue-500/10 text-blue-400 border-blue-500/10',
+                  'EM_ATENDIMENTO': 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+                  'FINALIZADO': 'bg-green-500/10 text-green-400 border-green-500/10',
+                  'CANCELADO': 'bg-red-500/10 text-red-400 border-red-500/10',
+                  'REAGENDADO': 'bg-purple-500/10 text-purple-400 border-purple-500/10',
+                  'NO_SHOW': 'bg-gray-500/10 text-gray-400 border-gray-500/10'
+              };
+              const statusClass = statusColors[a.status] || statusColors['AGUARDANDO'];
+              const rescheduleBadge = a.rescheduleCount > 0 ? `<span class="ml-1 text-[9px] text-yellow-500">(${a.rescheduleCount}x reagendado)</span>` : '';
+              const notesIndicator = a.notes ? `<span class="ml-1 text-[9px] text-mint" title="${a.notes}"><i class="fas fa-sticky-note"></i></span>` : '';
+              
+              return `
               <tr class="hover:bg-white/5 transition-colors">
-                  <td class="px-6 py-4 text-gray-400 font-mono">${a.dateTime}</td>
-                  <td class="px-6 py-4 text-white font-bold">${a.patient.name}</td>
+                  <td class="px-6 py-4 text-gray-400 font-mono">${a.dateTime}${notesIndicator}</td>
+                  <td class="px-6 py-4 text-white font-bold">${a.patient.name}${rescheduleBadge}</td>
                   <td class="px-6 py-4 text-gray-400 font-medium text-xs capitalize">${a.type.toLowerCase()}</td>
                   <td class="px-6 py-4">
-                      <span class="text-[10px] font-black uppercase px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/10 rounded">${a.status}</span>
+                      <span class="text-[10px] font-black uppercase px-2 py-1 border rounded ${statusClass}">${a.status}</span>
                   </td>
-                   <td class="px-6 py-4 flex gap-2">
-                       ${a.status === 'AGUARDANDO' ? 
-                         `<button onclick="atenderPaciente(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all outline-none">Atender Agora</button>` :
-                         a.status === 'EM_ATENDIMENTO' ?
-                         `<div class="flex gap-2">
-                            <button onclick="finalizarAtendimento(${a.id})" class="bg-mint text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:scale-105 transition-all outline-none">Finalizar</button>
-                            <button onclick="voltarAoPep(${a.patient.id})" class="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-blue-500/30 transition-all outline-none">Voltar ao PEP</button>
-                          </div>` :
-                         `<button onclick="fazerCheckin(${a.id})" class="bg-white/5 text-gray-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-white/10 transition-all outline-none">Check-in</button>`
-                       }
+                   <td class="px-6 py-4 flex gap-1 flex-wrap">
+                       ${a.status === 'AGUARDANDO' || a.status === 'REAGENDADO' ? `
+                         <button onclick="openRescheduleModal(${a.id})" class="bg-purple-500/20 text-purple-400 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-purple-500/30 transition-all outline-none" title="Reagendar"><i class="fas fa-calendar-alt"></i></button>
+                         <button onclick="openCancelModal(${a.id})" class="bg-red-500/20 text-red-400 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-red-500/30 transition-all outline-none" title="Cancelar"><i class="fas fa-times"></i></button>
+                         <button onclick="openNotesModal(${a.id})" class="bg-yellow-500/20 text-yellow-400 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-yellow-500/30 transition-all outline-none" title="Notas"><i class="fas fa-sticky-note"></i></button>
+                         <button onclick="atenderPaciente(${a.id})" class="bg-mint text-black px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all outline-none">Atender</button>
+                       ` : a.status === 'EM_ATENDIMENTO' ? `
+                         <button onclick="finalizarAtendimento(${a.id})" class="bg-mint text-black px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:scale-105 transition-all outline-none">Finalizar</button>
+                         <button onclick="voltarAoPep(${a.patient.id})" class="bg-blue-500/20 text-blue-400 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-blue-500/30 transition-all outline-none">PEP</button>
+                       ` : a.status === 'CANCELADO' ? `
+                         <span class="text-[10px] text-gray-500">${a.cancelReason || ''}</span>
+                       ` : a.status === 'NO_SHOW' ? `
+                         <button onclick="openRescheduleModal(${a.id})" class="bg-purple-500/20 text-purple-400 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-purple-500/30 transition-all outline-none">Reagendar</button>
+                       ` : `
+                         <button onclick="fazerCheckin(${a.id})" class="bg-white/5 text-gray-300 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-white/10 transition-all outline-none">Check-in</button>
+                       `}
                    </td>
               </tr>
-          `);
+          `}).join('');
 
           const combinedHTML = scheduledLeads.join('') + regularAgenda.join('');
           aBody.innerHTML = combinedHTML || '<tr><td colspan="5" class="p-10 text-center text-gray-600 italic">Nenhum agendamento ou pré-agendamento no momento.</td></tr>';
@@ -1027,7 +1394,10 @@
       const money = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
       document.getElementById('finRevenue').innerText = money(DB.finances.revenue);
       document.getElementById('finExpenses').innerText = money(DB.finances.expenses);
-      document.getElementById('finProjected').innerText = "+" + money(DB.finances.projected);
+      const profit = DB.finances.revenue - DB.finances.expenses;
+      const margin = DB.finances.revenue > 0 ? ((profit / DB.finances.revenue) * 100).toFixed(1) : 0;
+      document.getElementById('finProfit').innerText = money(profit);
+      document.getElementById('finMargin').innerText = margin + '%';
       
       const finBody = document.getElementById('financeTableBody');
       if(finBody) {
@@ -1051,8 +1421,86 @@
                   ${t.type === 'INCOME' ? '+' : '-'}${money(t.amount)}
                 </td>
             </tr>
-          `).join('') : '<tr><td colspan="4" class="p-8 text-center text-gray-600 italic">Nenhum lançamento no ciclo.</td></tr>';
+          `).join('') : '<tr><td colspan="4" class="p-8 text-center text-gray-600 italic">Nenhum lancamento no ciclo.</td></tr>';
       }
+      
+      updateFinanceChart();
+    }
+
+    let financeChartInstance = null;
+    let financeLineChartInstance = null;
+    function updateFinanceChart() {
+        const ctx = document.getElementById('financeChart');
+        if(!ctx) return;
+        
+        const income = DB.transactions.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + t.amount, 0);
+        const expense = DB.transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0);
+        
+        if(financeChartInstance) financeChartInstance.destroy();
+        financeChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Receitas', 'Despesas', 'Lucro'],
+                datasets: [{
+                    data: [income, expense, Math.max(0, income - expense)],
+                    backgroundColor: ['#4DBE94', '#EF4444', '#3B82F6'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#9CA3AF', font: { size: 11 } } }
+                },
+                cutout: '65%'
+            }
+        });
+
+        const ctxLine = document.getElementById('financeLineChart');
+        if(!ctxLine) return;
+        if(financeLineChartInstance) financeLineChartInstance.destroy();
+
+        const txByMonth = {};
+        DB.transactions.forEach(t => {
+            const d = new Date(t.date);
+            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            if(!txByMonth[key]) txByMonth[key] = { income: 0, expense: 0 };
+            if(t.type === 'INCOME') txByMonth[key].income += t.amount;
+            else txByMonth[key].expense += t.amount;
+        });
+
+        const months = Object.keys(txByMonth).sort().slice(-6);
+        const labels = months.map(m => { const [y, mo] = m.split('-'); return new Date(y, mo-1).toLocaleDateString('pt-BR', { month: 'short' }); });
+        const incomeData = months.map(m => txByMonth[m].income);
+        const expenseData = months.map(m => txByMonth[m].expense);
+
+        if(months.length === 0) {
+            const now = new Date();
+            labels.push(now.toLocaleDateString('pt-BR', { month: 'short' }));
+            incomeData.push(0);
+            expenseData.push(0);
+        }
+
+        financeLineChartInstance = new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Receitas', data: incomeData, borderColor: '#4DBE94', backgroundColor: 'rgba(77,190,148,0.1)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#4DBE94' },
+                    { label: 'Despesas', data: expenseData, borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#EF4444' }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#9CA3AF', font: { size: 11 } } }
+                },
+                scales: {
+                    x: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
     }
 
     function populateDropdowns() {
@@ -1192,54 +1640,23 @@
         document.getElementById('teleActiveBlock').classList.remove('hidden');
         document.getElementById('teleActiveBlock').classList.add('grid');
         document.getElementById('lblTeleNome').innerText = f.patient.name;
+        document.getElementById('teleStatusText').innerText = 'Iniciando WebRTC...';
+        document.getElementById('remoteVideoPlaceholder').classList.remove('hidden');
         
-        // Meet Integration Logic
-        const meetArea = document.querySelector('#teleActiveBlock .bg-black');
-        if(f.meetLink) {
-            meetArea.innerHTML = `
-                <div class="text-center p-10">
-                    <div class="w-24 h-24 bg-mint/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-video text-4xl text-mint animate-pulse"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-white mb-2">Google Meet Pronto</h3>
-                    <p class="text-gray-400 mb-8 max-w-md mx-auto">A sala de telemedicina segura JARVIS-001 foi gerada via Google Sync para estabilidade total.</p>
-                    <a href="${f.meetLink}" target="_blank" class="inline-flex items-center gap-3 bg-mint text-black px-10 py-5 rounded-2xl font-black hover:scale-105 transition-all shadow-[0_0_50px_rgba(77,190,148,0.3)]">
-                        <i class="fas fa-external-link-alt"></i> ENTRAR NA CHAMADA AGORA
-                    </a>
-                    <div class="mt-8 text-[10px] text-gray-500 uppercase font-black tracking-widest">Protocolo Médico Protegido E2E</div>
-                </div>
-            `;
-        } else {
-            meetArea.innerHTML = `
-                <div class="text-center p-10">
-                    <i class="fas fa-video-slash text-4xl text-gray-700 mb-4"></i>
-                    <p class="text-gray-500 font-bold mb-6">Link do Google Meet não encontrado para esta sessão.</p>
-                    <button onclick="gerarMeetAgora(${id})" class="bg-white/10 text-white px-6 py-3 rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10">
-                        <i class="fas fa-sync mr-2"></i> GERAR LINK VIA GOOGLE CALENDAR
-                    </button>
-                </div>
-            `;
+        try {
+          const res = await fetchWithAuth(`${API_URL}/teleconsulta/${id}/start`, { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            DB.teleRoomId = data.roomId;
+            initWebRTC(data.roomId, f.patient.name);
+          }
+        } catch(e) {
+          console.error('[Tele] Erro ao iniciar:', e);
+          document.getElementById('teleStatusText').innerText = 'Erro ao conectar';
         }
         
         switchView('view-teleconsulta');
       }
-    }
-    window.gerarMeetAgora = async function(id) {
-        showToast("JARVIS: Solicitando matriz de conferência ao Google...");
-        try {
-            const res = await fetchWithAuth(`${API_URL}/agenda/${id}`, {
-                method: 'PATCH',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ status: 'EM_ATENDIMENTO' }) // Trigger sync
-            });
-            if(res.ok) {
-                setTimeout(async () => {
-                    await fetchCoreData();
-                    abrirTeleRoom(id);
-                    showToast("Google Meet gerado com sucesso.", "success");
-                }, 2000);
-            }
-        } catch(e) { console.error(e); }
     }
     async function finalizarTeleconsulta() {
         if(!DB.activeTeleId) return;
@@ -1248,6 +1665,19 @@
         const appt = DB.agenda.find(a => a.id === DB.activeTeleId);
         
         showToast("Encerrando sessão P2P...");
+        
+        if(DB.localStream) {
+            DB.localStream.getTracks().forEach(t => t.stop());
+            DB.localStream = null;
+        }
+        if(DB.peerConnection) {
+            DB.peerConnection.close();
+            DB.peerConnection = null;
+        }
+        if(DB.teleRoomId && socket) {
+            socket.emit('webrtc:leave-room', { roomId: DB.teleRoomId });
+            DB.teleRoomId = null;
+        }
         
         if(notas && appt) {
             await fetchWithAuth(`${API_URL}/records`, {
@@ -1268,6 +1698,9 @@
             body: JSON.stringify({ status: 'FINALIZADO' })
         });
 
+        document.getElementById('remoteVideo').srcObject = null;
+        document.getElementById('localVideo').srcObject = null;
+        document.getElementById('remoteVideoPlaceholder').classList.remove('hidden');
         document.getElementById('teleAuthBlock').classList.remove('hidden');
         document.getElementById('teleActiveBlock').classList.add('hidden');
         document.getElementById('teleNotas').value = '';
@@ -1277,6 +1710,87 @@
         switchView('view-dashboard');
         fetchCoreData();
         showToast("Atendimento finalizado com sucesso.", "success");
+    }
+
+    let micEnabled = true;
+    let camEnabled = true;
+    function toggleMic() {
+        if(DB.localStream) {
+            micEnabled = !micEnabled;
+            DB.localStream.getAudioTracks().forEach(t => t.enabled = micEnabled);
+            document.querySelector('#btnMic i').className = micEnabled ? 'fas fa-microphone' : 'fas fa-microphone-slash';
+        }
+    }
+    function toggleCam() {
+        if(DB.localStream) {
+            camEnabled = !camEnabled;
+            DB.localStream.getVideoTracks().forEach(t => t.enabled = camEnabled);
+            document.querySelector('#btnCam i').className = camEnabled ? 'fas fa-video' : 'fas fa-video-slash';
+        }
+    }
+
+    async function initWebRTC(roomId, patientName) {
+        const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] };
+        DB.peerConnection = new RTCPeerConnection(rtcConfig);
+        DB.peerConnection.ontrack = (event) => {
+            document.getElementById('remoteVideo').srcObject = event.streams[0];
+            document.getElementById('remoteVideoPlaceholder').classList.add('hidden');
+            document.getElementById('teleStatusText').innerText = 'Conectado';
+        };
+        DB.peerConnection.onicecandidate = (event) => {
+            if(event.candidate) {
+                socket.emit('webrtc:ice-candidate', { targetSocketId: DB.remoteSocketId, candidate: event.candidate });
+            }
+        };
+        DB.peerConnection.onconnectionstatechange = () => {
+            const state = DB.peerConnection.connectionState;
+            document.getElementById('teleStatusText').innerText = state === 'connected' ? 'Conectado' : state === 'disconnected' ? 'Desconectado' : state;
+        };
+
+        try {
+            DB.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('localVideo').srcObject = DB.localStream;
+            DB.localStream.getTracks().forEach(track => DB.peerConnection.addTrack(track, DB.localStream));
+        } catch(e) {
+            console.error('[WebRTC] Erro ao acessar camera:', e);
+            document.getElementById('teleStatusText').innerText = 'Sem camera/microfone';
+        }
+
+        socket.on('webrtc:room-joined', (data) => {
+            if(data.participants.length > 0) {
+                DB.remoteSocketId = data.participants[0].socketId;
+                createAndSendOffer();
+            }
+        });
+        socket.on('webrtc:participant-joined', (data) => {
+            DB.remoteSocketId = data.socketId;
+            createAndSendOffer();
+        });
+        socket.on('webrtc:offer', async (data) => {
+            if(DB.peerConnection.signalingState === 'stable') {
+                await DB.peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await DB.peerConnection.createAnswer();
+                await DB.peerConnection.setLocalDescription(answer);
+                socket.emit('webrtc:answer', { targetSocketId: data.senderSocketId, answer });
+            }
+        });
+        socket.on('webrtc:answer', async (data) => {
+            await DB.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        });
+        socket.on('webrtc:ice-candidate', async (data) => {
+            if(data.candidate) {
+                await DB.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+        });
+
+        socket.emit('webrtc:join-room', { roomId, userId: 'medico', userName: 'Medico' });
+    }
+
+    async function createAndSendOffer() {
+        if(!DB.peerConnection) return;
+        const offer = await DB.peerConnection.createOffer();
+        await DB.peerConnection.setLocalDescription(offer);
+        socket.emit('webrtc:offer', { targetSocketId: DB.remoteSocketId, offer });
     }
 
     async function finalizarAtendimento(id) {
@@ -1387,7 +1901,7 @@
                     </div>
                 </div>
 
-                <!-- NEW EVOLUTION EDITOR -->
+                <!-- NEW EVOLUTION EDITOR (Rich Text) -->
                 <div class="mt-8 p-6 glass rounded-[32px] border border-mint/10">
                   <div class="flex gap-4 mb-4">
                       <div class="flex-1 relative">
@@ -1400,7 +1914,16 @@
                           <input type="text" id="pepCidValue" readonly class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 mt-1 text-xs text-mint font-bold italic">
                       </div>
                   </div>
-                  <textarea id="novaEvo" class="w-full bg-transparent border-none outline-none text-white resize-none text-sm" rows="2" placeholder="Escrever nova evolução clínica..."></textarea>
+                  <div class="rich-editor-toolbar flex gap-1 mb-2 flex-wrap">
+                    <button onclick="document.execCommand('bold')" class="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white" title="Negrito"><i class="fas fa-bold"></i></button>
+                    <button onclick="document.execCommand('italic')" class="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white" title="Italico"><i class="fas fa-italic"></i></button>
+                    <button onclick="document.execCommand('underline')" class="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white" title="Sublinhado"><i class="fas fa-underline"></i></button>
+                    <button onclick="document.execCommand('insertUnorderedList')" class="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white" title="Lista"><i class="fas fa-list-ul"></i></button>
+                    <button onclick="document.execCommand('insertOrderedList')" class="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white" title="Lista Numerada"><i class="fas fa-list-ol"></i></button>
+                    <button onclick="document.execCommand('formatBlock', false, 'h3')" class="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white" title="Titulo">H</button>
+                    <button onclick="document.execCommand('formatBlock', false, 'blockquote')" class="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-xs text-white" title="Citacao"><i class="fas fa-quote-left"></i></button>
+                  </div>
+                  <div id="novaEvo" contenteditable="true" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-sm min-h-[120px] outline-none focus:border-mint" data-placeholder="Escrever nova evolução clínica..."></div>
                   <div class="mt-4 flex justify-end">
                       <button onclick="salvarEvolucao()" class="bg-mint text-black font-black px-6 py-2 rounded-full hover:scale-105 transition-transform uppercase text-[10px]">Registrar no DNA</button>
                   </div>
@@ -1531,7 +2054,8 @@
     }
 
     async function salvarEvolucao() {
-      const description = document.getElementById('novaEvo').value;
+      const evoEl = document.getElementById('novaEvo');
+      const description = evoEl.tagName === 'TEXTAREA' ? evoEl.value : evoEl.innerHTML;
       const cid10 = document.getElementById('pepCidValue').value;
       const patientId = parseInt(document.getElementById('pepPatientSelect').value);
       if(!description || !patientId) return;
@@ -1542,6 +2066,7 @@
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ patientId, type: 'Evolução Clínica', description, cid10 })
       });
+      evoEl.innerHTML = '';
       carregarPEP();
       showToast("Registro efetuado com sucesso.", "success");
     }
@@ -1720,6 +2245,69 @@
         setTimeout(() => toast.remove(), 500);
       }, 4000);
     }
+
+    // WHATSAPP AUTOMATION
+    async function startWhatsApp() {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/whatsapp/start`, { method: 'POST' });
+            const data = await res.json();
+            showToast(data.success ? 'WhatsApp iniciando...' : 'Erro: ' + data.error, data.success ? 'success' : 'error');
+            setTimeout(getWaStatus, 3000);
+        } catch(e) {
+            showToast('Erro: ' + e.message, 'error');
+        }
+    }
+
+    async function getWaStatus() {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/whatsapp/status`);
+            const data = await res.json();
+            const statusEl = document.getElementById('waStatus');
+            const qrContainer = document.getElementById('waQrContainer');
+            const qrImg = document.getElementById('waQrCode');
+            
+            if (data.status === 'CONNECTED') {
+                statusEl.textContent = 'CONECTADO';
+                statusEl.className = 'text-xs font-black px-3 py-1 rounded-full bg-mint text-black';
+                qrContainer.classList.add('hidden');
+            } else if (data.status === 'QR_READY') {
+                statusEl.textContent = 'AGUARDANDO QR';
+                statusEl.className = 'text-xs font-black px-3 py-1 rounded-full bg-yellow-500 text-black';
+                if (data.qr) {
+                    qrImg.src = data.qr;
+                    qrContainer.classList.remove('hidden');
+                }
+            } else {
+                statusEl.textContent = data.status || 'OFFLINE';
+                statusEl.className = 'text-xs font-black px-3 py-1 rounded-full bg-gray-500 text-white';
+                qrContainer.classList.add('hidden');
+            }
+        } catch(e) {
+            console.log('WhatsApp não disponível');
+        }
+    }
+
+    // REPORTS AUTOMATION
+    async function generateReport(type) {
+        const output = document.getElementById('reportOutput');
+        output.innerHTML = '<div class="text-mint animate-pulse">Gerando relatório...</div>';
+        
+        try {
+            const res = await fetchWithAuth(`${API_URL}/reports/generate?type=${type}`);
+            const data = await res.json();
+            if (data.success) {
+                output.textContent = data.report;
+                showToast('Relatório gerado com sucesso!', 'success');
+            } else {
+                output.textContent = 'Erro: ' + data.error;
+            }
+        } catch(e) {
+            output.textContent = 'Erro: ' + e.message;
+        }
+    }
+
+    // Initialize WhatsApp status check
+    setTimeout(getWaStatus, 2000);
 
     // MÉTODOS FINANCEIROS
     async function lancarTransacao() {
@@ -1996,22 +2584,45 @@
             box.innerHTML = `
                 <div class="space-y-4">
                     <div class="p-4 bg-mint/10 border border-mint/30 rounded-2xl text-mint text-xs font-bold">${data.status}</div>
-                    ${data.vulnerabilities.map(v => `
-                        <div class="p-4 glass border border-red-500/30 rounded-2xl flex justify-between items-center group">
-                            <div>
-                                <div class="text-[10px] font-black text-red-500 uppercase">Vulnerabilidade ${v.level}</div>
-                                <div class="text-white font-medium text-sm">${v.msg}</div>
-                            </div>
-                            <button class="bg-red-500/20 text-red-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">${v.action}</button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="glass p-3 rounded-xl text-center">
+                            <div class="text-[10px] text-gray-500 uppercase">DB Size</div>
+                            <div class="text-xl font-black text-white">${data.database?.size || 'N/A'}</div>
                         </div>
-                    `).join('')}
-                    ${data.optimizations.map(o => `
-                        <div class="p-4 glass border border-mint/30 rounded-2xl flex justify-between items-center group">
+                        <div class="glass p-3 rounded-xl text-center">
+                            <div class="text-[10px] text-gray-500 uppercase">Arquivos</div>
+                            <div class="text-xl font-black text-white">${data.codebase?.files || 0}</div>
+                        </div>
+                        <div class="glass p-3 rounded-xl text-center">
+                            <div class="text-[10px] text-gray-500 uppercase">Pacientes</div>
+                            <div class="text-xl font-black text-white">${data.database?.patients || 0}</div>
+                        </div>
+                        <div class="glass p-3 rounded-xl text-center">
+                            <div class="text-[10px] text-gray-500 uppercase">Linhas Codigo</div>
+                            <div class="text-xl font-black text-white">${data.codebase?.totalLines || 0}</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 text-xs">
+                        <div class="glass p-2 rounded-lg flex-1 text-center">
+                            <div class="text-gray-500">Erros</div>
+                            <div class="text-red-400 font-black">${data.health?.errors || 0}</div>
+                        </div>
+                        <div class="glass p-2 rounded-lg flex-1 text-center">
+                            <div class="text-gray-500">Avisos</div>
+                            <div class="text-yellow-400 font-black">${data.health?.warnings || 0}</div>
+                        </div>
+                        <div class="glass p-2 rounded-lg flex-1 text-center">
+                            <div class="text-gray-500">Uptime</div>
+                            <div class="text-mint font-black">${data.health?.uptime || '--'}</div>
+                        </div>
+                    </div>
+                    ${data.recommendations?.map(r => `
+                        <div class="p-4 glass border rounded-2xl flex justify-between items-center group ${r.level === 'HIGH' ? 'border-red-500/30' : r.level === 'MED' ? 'border-yellow-500/30' : 'border-mint/30'}">
                             <div>
-                                <div class="text-[10px] font-black text-mint uppercase">Otimização ${o.level}</div>
-                                <div class="text-white font-medium text-sm">${o.msg}</div>
+                                <div class="text-[10px] font-black ${r.level === 'HIGH' ? 'text-red-500' : r.level === 'MED' ? 'text-yellow-500' : 'text-mint'} uppercase">${r.level} Priority</div>
+                                <div class="text-white font-medium text-sm">${r.msg}</div>
                             </div>
-                            <button class="bg-mint/20 text-mint px-3 py-1 rounded-lg text-[10px] font-black uppercase hover:bg-mint hover:text-black transition-all">${o.action}</button>
+                            <button class="bg-white/10 text-gray-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase hover:bg-white/20 transition-all">${r.action}</button>
                         </div>
                     `).join('')}
                 </div>
@@ -2068,6 +2679,238 @@
     }
 
     setTimeout(alterarTemplateDoc, 500);
+
+    /*******************************************************
+     * REAGENDAMENTO / CANCELAMENTO / NOTAS
+     *******************************************************/
+    let currentRescheduleId = null;
+    let currentCancelId = null;
+    let currentNotesId = null;
+    let selectedSlotDateTime = null;
+
+    async function openRescheduleModal(id) {
+      const apt = DB.agenda.find(a => a.id === id);
+      if (!apt) return;
+
+      currentRescheduleId = id;
+      selectedSlotDateTime = null;
+
+      document.getElementById('reschedulePatientName').textContent = apt.patient.name;
+      document.getElementById('rescheduleOriginalDate').textContent = apt.dateTime;
+      document.getElementById('rescheduleOriginalType').textContent = `Tipo: ${apt.type} | Status: ${apt.status}`;
+      document.getElementById('confirmRescheduleBtn').disabled = true;
+
+      const warningEl = document.getElementById('rescheduleWarning');
+      if (apt.rescheduleCount >= 3) {
+        document.getElementById('rescheduleWarningText').textContent = `Paciente ja reagendou ${apt.rescheduleCount} vezes - atencao especial`;
+        warningEl.classList.remove('hidden');
+      } else {
+        warningEl.classList.add('hidden');
+      }
+
+      document.getElementById('rescheduleReasonSelect').value = '';
+      document.getElementById('rescheduleCustomReason').value = '';
+      document.getElementById('rescheduleCustomReason').classList.add('hidden');
+
+      const modal = document.getElementById('rescheduleModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      // Buscar sugestoes da IA
+      document.getElementById('rescheduleLoading').classList.remove('hidden');
+      document.getElementById('rescheduleSlotsGrid').innerHTML = '';
+
+      try {
+        const res = await fetchWithAuth(`${API_URL}/ai/suggest-slots`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentId: id, daysAhead: 7 })
+        });
+        const data = await res.json();
+
+        document.getElementById('rescheduleLoading').classList.add('hidden');
+
+        if (data.success && data.slots.length > 0) {
+          document.getElementById('rescheduleSlotsGrid').innerHTML = data.slots.map(slot => `
+            <button onclick="selectSlot('${slot.dateTime}', this)" class="slot-btn bg-white/5 border border-white/10 rounded-xl p-3 text-left hover:bg-mint/10 hover:border-mint/30 transition-all group" data-datetime="${slot.dateTime}">
+              <div class="text-white font-bold text-sm group-hover:text-mint">${slot.time}</div>
+              <div class="text-gray-500 text-xs mt-1">${slot.date}</div>
+              <div class="text-[10px] text-mint mt-1"><i class="fas fa-bolt"></i> ${slot.score}% compativel</div>
+            </button>
+          `).join('');
+        } else {
+          document.getElementById('rescheduleSlotsGrid').innerHTML = '<div class="col-span-2 text-center text-gray-500 py-6">Nenhum horario disponivel encontrado nos proximos 7 dias.</div>';
+        }
+      } catch (e) {
+        document.getElementById('rescheduleLoading').classList.add('hidden');
+        document.getElementById('rescheduleSlotsGrid').innerHTML = '<div class="col-span-2 text-center text-red-400 py-6">Erro ao buscar sugestoes. Tente novamente.</div>';
+      }
+    }
+
+    function selectSlot(dateTime, btn) {
+      selectedSlotDateTime = dateTime;
+      document.querySelectorAll('.slot-btn').forEach(b => {
+        b.classList.remove('bg-mint/20', 'border-mint');
+        b.classList.add('bg-white/5', 'border-white/10');
+      });
+      btn.classList.remove('bg-white/5', 'border-white/10');
+      btn.classList.add('bg-mint/20', 'border-mint');
+      document.getElementById('confirmRescheduleBtn').disabled = false;
+    }
+
+    function closeRescheduleModal() {
+      const modal = document.getElementById('rescheduleModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      currentRescheduleId = null;
+      selectedSlotDateTime = null;
+    }
+
+    async function confirmReschedule() {
+      if (!currentRescheduleId || !selectedSlotDateTime) return;
+
+      const reasonSelect = document.getElementById('rescheduleReasonSelect').value;
+      const customReason = document.getElementById('rescheduleCustomReason').value;
+      const reason = reasonSelect === 'Outro' ? customReason : (reasonSelect || 'Nao informado');
+
+      try {
+        const res = await fetchWithAuth(`${API_URL}/agenda/reschedule`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: currentRescheduleId, newDateTime: selectedSlotDateTime, reason })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert(`Consulta reagendada com sucesso para ${selectedSlotDateTime}`);
+          closeRescheduleModal();
+          await refreshUI();
+        } else {
+          alert('Erro ao reagendar: ' + (data.error || 'Erro desconhecido'));
+        }
+      } catch (e) {
+        alert('Erro de conexao ao reagendar');
+      }
+    }
+
+    function toggleCustomReason() {
+      const select = document.getElementById('rescheduleReasonSelect');
+      const custom = document.getElementById('rescheduleCustomReason');
+      if (select.value === 'Outro') {
+        custom.classList.remove('hidden');
+      } else {
+        custom.classList.add('hidden');
+      }
+    }
+
+    function openCancelModal(id) {
+      const apt = DB.agenda.find(a => a.id === id);
+      if (!apt) return;
+
+      currentCancelId = id;
+      document.getElementById('cancelPatientName').textContent = apt.patient.name;
+      document.getElementById('cancelDate').textContent = apt.dateTime;
+      document.getElementById('cancelReasonSelect').value = '';
+      document.getElementById('cancelCustomReason').value = '';
+      document.getElementById('cancelCustomReason').classList.add('hidden');
+
+      const modal = document.getElementById('cancelModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCancelModal() {
+      const modal = document.getElementById('cancelModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      currentCancelId = null;
+    }
+
+    function toggleCustomCancelReason() {
+      const select = document.getElementById('cancelReasonSelect');
+      const custom = document.getElementById('cancelCustomReason');
+      if (select.value === 'Outro') {
+        custom.classList.remove('hidden');
+      } else {
+        custom.classList.add('hidden');
+      }
+    }
+
+    async function confirmCancel() {
+      if (!currentCancelId) return;
+
+      const reasonSelect = document.getElementById('cancelReasonSelect').value;
+      const customReason = document.getElementById('cancelCustomReason').value;
+      const reason = reasonSelect === 'Outro' ? customReason : (reasonSelect || 'Nao informado');
+
+      if (!reasonSelect && !customReason) {
+        alert('Selecione ou descreva o motivo do cancelamento');
+        return;
+      }
+
+      try {
+        const res = await fetchWithAuth(`${API_URL}/agenda/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: currentCancelId, reason })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert('Consulta cancelada com sucesso');
+          closeCancelModal();
+          await refreshUI();
+        } else {
+          alert('Erro ao cancelar: ' + (data.error || 'Erro desconhecido'));
+        }
+      } catch (e) {
+        alert('Erro de conexao ao cancelar');
+      }
+    }
+
+    function openNotesModal(id) {
+      const apt = DB.agenda.find(a => a.id === id);
+      if (!apt) return;
+
+      currentNotesId = id;
+      document.getElementById('notesTextarea').value = apt.notes || '';
+
+      const modal = document.getElementById('notesModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeNotesModal() {
+      const modal = document.getElementById('notesModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      currentNotesId = null;
+    }
+
+    async function saveNotes() {
+      if (!currentNotesId) return;
+
+      const notes = document.getElementById('notesTextarea').value;
+
+      try {
+        const res = await fetchWithAuth(`${API_URL}/agenda/${currentNotesId}/notes`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert('Notas salvas com sucesso');
+          closeNotesModal();
+          await refreshUI();
+        } else {
+          alert('Erro ao salvar notas');
+        }
+      } catch (e) {
+        alert('Erro de conexao ao salvar notas');
+      }
+    }
   </script>
 </body>
 </html>

@@ -2,24 +2,75 @@ const express = require('express');
 const cors = require('cors');
 const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
+const { askWithContext, generateReport, automateWorkflow, triageLead, getDashboardStats, suggestAvailableSlots } = require('./system/ai-assistant');
 const multer = require('multer');
 const fs = require('fs');
 const os = require('os');
 const PDFDocument = require('pdfkit');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] }
+});
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
+
+// WebSocket: Broadcast para clientes conectados
+function broadcastUpdate(channel, data) {
+  io.emit(channel, data);
+}
+
+// Socket.IO connection handler
+io.on('connection', (socket) => {
+  console.log(`[WS] Cliente conectado: ${socket.id}`);
+  
+  socket.on('join-room', (room) => {
+    socket.join(room);
+    console.log(`[WS] ${socket.id} entrou na sala: ${room}`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log(`[WS] Cliente desconectado: ${socket.id}`);
+  });
+});
 
 const path = require('path');
 const session = require('express-session');
 const setupGoogleAuth = require('./auth_google');
 const { syncAppointmentToGoogle } = require('./google_calendar');
+const { setupWebRTCSignaling } = require('./system/webrtc-signaling');
+setupWebRTCSignaling(io);
+console.log('[WebRTC] Signaling server initialized');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+
+let whatsappInstance = null;
+let waHandler = null;
+
+// Mutex for appointment slot locking (prevents double booking in concurrent requests)
+const slotLocks = new Map();
+function acquireSlotLock(dateTime) {
+  if (slotLocks.has(dateTime)) return false;
+  slotLocks.set(dateTime, true);
+  return true;
+}
+function releaseSlotLock(dateTime) {
+  slotLocks.delete(dateTime);
+}
+
+try {
+    const { HolozonicWhatsApp } = require('./system/whatsapp-integration.js');
+    waHandler = new HolozonicWhatsApp();
+    waHandler.setSocketIO(io);
+} catch(e) {
+    console.log('[WA] WhatsApp não disponível:', e.message);
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'jarvis_dna_secret_key';
 
@@ -100,6 +151,28 @@ app.use('/api/auth/', authLimiter);
 app.use('/api/ai/', aiLimiter);
 app.use('/api/', apiLimiter);
 
+  // Security Headers & CSP
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self' data:",
+      "img-src 'self' data: blob: https://randomuser.me https://ui-avatars.com https://i.imgur.com",
+      "connect-src 'self' http://localhost:11434",
+      "frame-src 'self'",
+      "media-src 'self' blob:"
+    ].join('; ');
+    
+    res.setHeader('Content-Security-Policy', csp);
+    next();
+  });
+
+// Static files AFTER API routes
 app.use(express.static(path.resolve(__dirname)));
 app.use('/uploads', express.static(uploadDir));
 
@@ -107,15 +180,7 @@ app.use('/uploads', express.static(uploadDir));
 setupGoogleAuth(app);
 console.log(`JARVIS: Serving static files from ${path.resolve(__dirname)}`);
 
-// Security Headers & CSP (Loosened for Debug)
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  // Ultra-permissive CSP for fixing the 'none' block
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:11434; frame-src 'self';");
-  next();
-});
+// Standard DNA Security Headers applied consistently
 
 console.log('JARVIS-001: RESTARTING SERVER WITH DNA SECURITY (ARGON2 + JWT)...');
 
@@ -355,11 +420,164 @@ app.post('/api/patients', authenticateToken, checkRole(['ADMIN', 'MEDICO', 'ATEN
           plan: plan || "Particular"
         }
       });
+      broadcastUpdate('patients:updated', patient);
     }
     res.json(patient);
   } catch (e) {
     console.error('JARVIS: Patient Create Error:', e.message);
     res.status(500).json({ error: 'Erro no servidor ao buscar/criar paciente.' });
+  }
+});
+
+// --- AGENDA: CANCELAMENTO COM MOTIVO ---
+app.post('/api/agenda/cancel', authenticateToken, async (req, res) => {
+  const { id, reason } = req.body;
+  if (!id) return res.status(400).json({ error: 'ID do agendamento obrigatorio' });
+
+  try {
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: parseInt(id) },
+      include: { patient: true }
+    });
+
+    if (!appointment) return res.status(404).json({ error: 'Agendamento nao encontrado' });
+    if (appointment.status === 'CANCELADO') return res.status(400).json({ error: 'Agendamento ja cancelado' });
+
+    const updated = await prisma.appointment.update({
+      where: { id: parseInt(id) },
+      data: {
+        status: 'CANCELADO',
+        cancelReason: reason || 'Nao informado'
+      },
+      include: { patient: true }
+    });
+
+    // Enviar WhatsApp de cancelamento
+    if (waHandler && waHandler.status === 'CONNECTED' && updated.patient.phone) {
+      waHandler.sendCancellation(updated.patient, appointment.dateTime, reason).catch(err => {
+        console.error('[WA] Erro ao enviar cancelamento:', err.message);
+      });
+    }
+
+    broadcastUpdate('agenda:updated', updated);
+    console.log(`[AGENDA] Cancelado: ${appointment.patient.name} - ${reason || 'Sem motivo'}`);
+
+    res.json({ success: true, appointment: updated });
+  } catch (error) {
+    console.error('JARVIS: Cancel Error:', error.message);
+    res.status(500).json({ error: 'Erro ao cancelar agendamento' });
+  }
+});
+
+// --- AGENDA: REAGENDAMENTO ---
+app.post('/api/agenda/reschedule', authenticateToken, async (req, res) => {
+  const { id, newDateTime, reason } = req.body;
+  if (!id || !newDateTime) return res.status(400).json({ error: 'ID e novo horario obrigatorios' });
+
+  try {
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: parseInt(id) },
+      include: { patient: true }
+    });
+
+    if (!appointment) return res.status(404).json({ error: 'Agendamento nao encontrado' });
+    if (appointment.status === 'CANCELADO') return res.status(400).json({ error: 'Nao e possivel reagendar um agendamento cancelado' });
+
+    // Mutex lock for concurrent safety
+    if (!acquireSlotLock(newDateTime)) {
+      return res.status(409).json({ error: 'Slot ocupado. Por favor, escolha outro horario.' });
+    }
+
+    try {
+      // Safety Lock: Check if new slot is available
+      const existing = await prisma.appointment.findFirst({
+        where: {
+          dateTime: newDateTime,
+          status: { not: 'CANCELADO' }
+        }
+      });
+
+      if (existing) {
+        return res.status(409).json({ error: 'Slot ocupado. Por favor, escolha outro horario.' });
+      }
+
+      const updated = await prisma.appointment.update({
+        where: { id: parseInt(id) },
+        data: {
+          dateTime: newDateTime,
+          status: 'REAGENDADO',
+          rescheduleReason: reason || appointment.rescheduleReason || 'Nao informado',
+          rescheduleCount: { increment: 1 },
+          originalDateTime: appointment.originalDateTime || appointment.dateTime,
+          reminderSent: false
+        },
+        include: { patient: true }
+      });
+
+      // Sync to Google Calendar
+      syncAppointmentToGoogle(updated.id).catch(err => {
+        console.error('JARVIS: Google Sync on reschedule failed:', err.message);
+      });
+
+      // Enviar WhatsApp de reagendamento
+      if (waHandler && waHandler.status === 'CONNECTED' && updated.patient.phone) {
+        const oldDate = appointment.originalDateTime || appointment.dateTime;
+        waHandler.sendReschedule(updated.patient, oldDate, newDateTime, reason).catch(err => {
+          console.error('[WA] Erro ao enviar reagendamento:', err.message);
+        });
+      }
+
+      broadcastUpdate('agenda:updated', updated);
+      console.log(`[AGENDA] Reagendado: ${appointment.patient.name} -> ${newDateTime}`);
+
+      res.json({ success: true, appointment: updated });
+    } finally {
+      releaseSlotLock(newDateTime);
+    }
+  } catch (error) {
+    console.error('JARVIS: Reschedule Error:', error.message);
+    res.status(500).json({ error: 'Erro ao reagendar agendamento' });
+  }
+});
+
+// --- AGENDA: MARCAR NO-SHOW ---
+app.post('/api/agenda/no-show', authenticateToken, async (req, res) => {
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ error: 'ID do agendamento obrigatorio' });
+
+  try {
+    const updated = await prisma.appointment.update({
+      where: { id: parseInt(id) },
+      data: {
+        status: 'NO_SHOW',
+        noShow: true
+      },
+      include: { patient: true }
+    });
+
+    broadcastUpdate('agenda:updated', updated);
+    res.json({ success: true, appointment: updated });
+  } catch (error) {
+    console.error('JARVIS: No-show Error:', error.message);
+    res.status(500).json({ error: 'Erro ao marcar no-show' });
+  }
+});
+
+// --- AGENDA: ADD NOTAS ---
+app.patch('/api/agenda/:id/notes', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { notes } = req.body;
+
+  try {
+    const updated = await prisma.appointment.update({
+      where: { id: parseInt(id) },
+      data: { notes }
+    });
+
+    res.json({ success: true, appointment: updated });
+  } catch (error) {
+    console.error('JARVIS: Notes Error:', error.message);
+    res.status(500).json({ error: 'Erro ao adicionar notas' });
   }
 });
 
@@ -385,6 +603,7 @@ app.patch('/api/agenda/:id', authenticateToken, async (req, res) => {
       console.error('JARVIS: Google Sync Update failed:', err.message);
     });
 
+    broadcastUpdate('agenda:updated', appointment);
     res.json(appointment);
   } catch (error) {
     console.error('JARVIS: Agenda Update Error:', error.message);
@@ -448,39 +667,85 @@ app.post('/api/agenda', authenticateToken, async (req, res) => {
   const { patientId, dateTime, type, status } = req.body;
   
   try {
-    // Safety Lock: Check if already booked
-    const existing = await prisma.appointment.findFirst({
-      where: { dateTime }
-    });
-
-    if (existing) {
-      return res.status(409).json({ error: 'Slot ocupado. Por favor, escolha outro horário.' });
+    // Mutex lock for concurrent safety
+    if (!acquireSlotLock(dateTime)) {
+      return res.status(409).json({ error: 'Slot ocupado. Por favor, escolha outro horario.' });
     }
 
-    const pId = parseInt(patientId);
-    if (isNaN(pId)) {
-       return res.status(400).json({ error: 'ID de paciente inválido.' });
+    try {
+      // Safety Lock: Check if already booked
+      const existing = await prisma.appointment.findFirst({
+        where: { dateTime }
+      });
+
+      if (existing) {
+        return res.status(409).json({ error: 'Slot ocupado. Por favor, escolha outro horário.' });
+      }
+
+      const pId = parseInt(patientId);
+      if (isNaN(pId)) {
+         return res.status(400).json({ error: 'ID de paciente inválido.' });
+      }
+
+      const appointment = await prisma.appointment.create({
+        data: {
+          patientId: pId,
+          dateTime,
+          type: type || 'PRESENCIAL',
+          status: status || 'AGENDADO'
+        },
+        include: { patient: true }
+      });
+
+      syncAppointmentToGoogle(appointment.id).catch(console.error);
+
+      broadcastUpdate('agenda:created', appointment);
+      releaseSlotLock(dateTime);
+      res.status(201).json(appointment);
+    } catch (e) {
+      releaseSlotLock(dateTime);
+      throw e;
     }
-
-    const appointment = await prisma.appointment.create({
-      data: {
-        patientId: pId,
-        dateTime,
-        type: type || 'CONSULTA',
-        status: status || 'AGUARDANDO'
-      },
-      include: { patient: true }
-    });
-
-    // Sincronismo Automático Google Calendar
-    syncAppointmentToGoogle(appointment.id).catch(err => {
-      console.error('JARVIS: Google Initial Sync failed:', err.message);
-    });
-
-    res.json(appointment);
   } catch (error) {
     console.error('JARVIS: Agenda Create Error:', error.message);
-    res.status(500).json({ error: 'Failed' });
+    res.status(500).json({ error: 'Failed to create appointment' });
+  }
+});
+
+// WebRTC: Create teleconsulta session
+app.post('/api/teleconsulta/:id/start', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: parseInt(id) },
+      include: { patient: true }
+    });
+    if (!appointment) return res.status(404).json({ error: 'Agendamento nao encontrado' });
+
+    const roomId = `tele-${appointment.id}-${Date.now()}`;
+    await prisma.appointment.update({
+      where: { id: appointment.id },
+      data: { status: 'EM_ATENDIMENTO' }
+    });
+
+    broadcastUpdate('teleconsulta:started', { roomId, appointmentId: appointment.id, patientName: appointment.patient.name });
+    res.json({ success: true, roomId, appointmentId: appointment.id, patientName: appointment.patient.name });
+  } catch (error) {
+    console.error('[Teleconsulta] Erro:', error.message);
+    res.status(500).json({ error: 'Erro ao iniciar teleconsulta' });
+  }
+});
+
+// --- IA: SUGESTAO INTELIGENTE DE HORARIOS ---
+app.post('/api/ai/suggest-slots', authenticateToken, async (req, res) => {
+  const { appointmentId, daysAhead, preferredPeriod, patientId } = req.body;
+
+  try {
+    const result = await suggestAvailableSlots({ appointmentId, daysAhead: daysAhead || 7, preferredPeriod, patientId });
+    res.json({ success: true, slots: result.slots, total: result.total, context: result.context });
+  } catch (error) {
+    console.error('JARVIS: Suggest Slots Error:', error.message);
+    res.status(500).json({ error: 'Erro ao sugerir horarios' });
   }
 });
 
@@ -498,31 +763,35 @@ app.post('/api/records', authenticateToken, checkRole(['ADMIN', 'MEDICO']), asyn
   });
   res.json(record);
 });
-// --- AI SWARM (OLLAMA INTEGRATION) ---
+// --- AI SWARM WITH CONTEXT (OLLAMA + RAG) ---
 app.post('/api/ai/ask', async (req, res) => {
   const { prompt, context } = req.body;
   
+  const { context: aiContext, action } = await askWithContext(prompt);
+  
   const systemPrompt = `Você é a Cecília, o núcleo de Inteligência Clínica (DNA JARVIS 4.1) da Holozonic.
-  Seu objetivo: Suporte técnico de alta precisão para a equipe médica e acolhimento estratégico para pacientes.
-  
-  Pilares Holozonic:
-  1. Longevidade Bioenergética: Protocolos avançados de detox e regeneração.
-  2. Medicina do Sono: Especialistas em distúrbios do sono e ritos de descanso.
-  3. Hospedagem Integrativa (Lages/SC): Nossa unidade física premium.
-  
-  Instruções de Resposta:
-  - Tom: Profissional, futurista (JARVIS style), mas empático.
-  - Se perguntada sobre dados de pacientes, informe que o Dr. Jarvis (você) processa os dados de forma segura via RAG local.
-  - Use termos como 'Matriz de Dados', 'Protocolo' e 'Otimização' de forma sutil.
-  - Prioridade: Agendamentos orientar para Inêz. Casos clínicos sugerir consulta.
-  - Língua: Português do Brasil. Seja densa e técnica.`;
+Seu objetivo: Suporte técnico de alta precisão para a equipe médica e acolhimento estratégico para pacientes.
+
+Pilares Holozonic:
+1. Longevidade Bioenergética: Protocolos avançados de detox e regeneração.
+2. Medicina do Sono: Especialistas em distúrbios do sono e ritos de descanso.
+3. Hospedagem Integrativa (Lages/SC): Nossa unidade física premium.
+
+Instruções de Resposta:
+- Tom: Profissional, futurista (JARVIS style), mas empático.
+- Se perguntada sobre dados de pacientes, informe que processa os dados de forma segura via RAG local.
+- Use termos como 'Matriz de Dados', 'Protocolo' e 'Otimização' de forma sutil.
+- Quando solicitar agendamento, redirecione para Inêz ou registre diretamente se tiver dados.
+- Língua: Português do Brasil. Seja densa e técnica.
+
+${aiContext}`;
 
   try {
     const fetch = (await import('node-fetch')).default;
     const response = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',
       body: JSON.stringify({
-        model: 'llama3:8b', // JARVIS 4.1.4: Usando versão de 8b confirmada no ambiente
+        model: 'llama3:8b',
         prompt: `${systemPrompt}\n\nUsuário: ${prompt}\nCecília:`,
         stream: false
       })
@@ -537,20 +806,22 @@ app.post('/api/ai/ask', async (req, res) => {
       throw new Error(data.error);
     }
 
-    const result = data.response || "Desculpe, meu motor de inteligência está processando algo pesado. Pode repetir?";
+    let result = data.response || "Desculpe, meu motor de inteligência está processando algo pesado. Pode repetir?";
     
-    console.log('JARVIS: Cecília respondeu via Ollama (llama3:8b).');
+    if (action && action.type === 'report') {
+      result = action.content + '\n\n--- ANÁLISE IA ---\n' + result;
+    }
 
-    // Auto-log the interaction
+    console.log('JARVIS: Cecília respondeu com contexto RAG.');
+
     await prisma.aILog.create({
-      data: { input: prompt, distilledPattern: `CECILIA_REPLY: ${result}`, confidence: 0.98 }
+      data: { input: prompt, distilledPattern: `CECILIA_CONTEXTUAL: ${result.slice(0, 200)}`, confidence: 0.98 }
     });
     
-    res.json({ response: result });
+    res.json({ response: result, context: aiContext ? 'loaded' : 'none', action: action ? action.type : null });
   } catch (error) {
     console.warn('JARVIS: Ollama Offline. Tentando Fallback Gemini...', error.message);
     
-    // JARVIS 4.1 - Gemini Fallback Strategy
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey) {
       try {
@@ -565,7 +836,7 @@ app.post('/api/ai/ask', async (req, res) => {
         const geminiData = await geminiRes.json();
         const geminiResult = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "Estou em manutenção profunda.";
         
-        return res.json({ response: geminiResult + " (Modo Fallback Gemini)" });
+        return res.json({ response: geminiResult + " (Modo Fallback Gemini)", context: 'fallback' });
       } catch (geminiErr) {
         console.error('JARVIS: Gemini Fallback Error:', geminiErr.message);
       }
@@ -619,6 +890,7 @@ app.post('/api/leads/sync', async (req, res) => {
       });
     }
 
+    broadcastUpdate('leads:updated', lead);
     res.json({ success: true, leadId: lead.id });
   } catch (error) {
     console.error('JARVIS: Lead Sync Error:', error.message);
@@ -908,6 +1180,7 @@ app.post('/api/leads/convert', authenticateToken, async (req, res) => {
     // Deletar Lead após conversão
     await prisma.potentialLead.delete({ where: { id: leadId } });
 
+    broadcastUpdate('leads:converted', newPatient);
     res.json({ success: true, newPatient });
   } catch (error) {
     console.error('JARVIS: Lead Convert Error:', error.message);
@@ -1076,6 +1349,41 @@ app.get('/api/ai/logs', authenticateToken, async (req, res) => {
 });
 
 // --- SYSTEM CORE (S5) ---
+const logBuffer = [];
+const MAX_LOG_BUFFER = 200;
+const origConsoleLog = console.log;
+const origConsoleError = console.error;
+const origConsoleWarn = console.warn;
+
+function interceptLogs() {
+  console.log = (...args) => {
+    const msg = `[LOG] ${new Date().toISOString().slice(11,23)} ${args.join(' ')}`;
+    logBuffer.push(msg);
+    if(logBuffer.length > MAX_LOG_BUFFER) logBuffer.shift();
+    io.emit('system:log', { level: 'info', message: msg });
+    origConsoleLog.apply(console, args);
+  };
+  console.error = (...args) => {
+    const msg = `[ERR] ${new Date().toISOString().slice(11,23)} ${args.join(' ')}`;
+    logBuffer.push(msg);
+    if(logBuffer.length > MAX_LOG_BUFFER) logBuffer.shift();
+    io.emit('system:log', { level: 'error', message: msg });
+    origConsoleError.apply(console, args);
+  };
+  console.warn = (...args) => {
+    const msg = `[WRN] ${new Date().toISOString().slice(11,23)} ${args.join(' ')}`;
+    logBuffer.push(msg);
+    if(logBuffer.length > MAX_LOG_BUFFER) logBuffer.shift();
+    io.emit('system:log', { level: 'warn', message: msg });
+    origConsoleWarn.apply(console, args);
+  };
+}
+interceptLogs();
+
+app.get('/api/system/logs', authenticateToken, (req, res) => {
+  res.json({ logs: [...logBuffer] });
+});
+
 app.get('/api/system/health', authenticateToken, async (req, res) => {
   const cpus = os.cpus();
   const cpuModel = cpus[0]?.model || 'Unknown';
@@ -1111,29 +1419,62 @@ app.get('/api/system/health', authenticateToken, async (req, res) => {
 app.post('/api/system/audit', authenticateToken, async (req, res) => {
   try {
     const lastLogs = await prisma.aILog.findMany({ 
-      take: 20, 
+      take: 50, 
       orderBy: { timestamp: 'desc' } 
     });
-    
-    // AI Analysis Simulation
+
+    const patientCount = await prisma.patient.count();
+    const appointmentCount = await prisma.appointment.count();
+    const recordCount = await prisma.clinicalRecord.count();
+    const leadCount = await prisma.potentialLead.count();
+
+    const errorLogs = lastLogs.filter(l => l.level === 'ERROR');
+    const warnLogs = lastLogs.filter(l => l.level === 'WARN');
+
+    const dbSize = fs.existsSync('./prisma/dev.db') ? (fs.statSync('./prisma/dev.db').size / 1024 / 1024).toFixed(2) : 'N/A';
+
+    const files = fs.readdirSync(__dirname).filter(f => f.endsWith('.js') || f.endsWith('.html'));
+    const totalLines = files.reduce((sum, f) => {
+      try { return sum + fs.readFileSync(path.join(__dirname, f), 'utf8').split('\n').length; } catch { return sum; }
+    }, 0);
+
     const auditReport = {
       timestamp: new Date().toISOString(),
-      vulnerabilities: [
-        { level: 'LOW', msg: 'Session TTL slightly long', action: 'Reduzir JWT_EXP' }
-      ],
-      optimizations: [
-        { level: 'MED', msg: 'Patient search latency high', action: 'Criar INDEX em Patient(name)' },
-        { level: 'LOW', msg: 'Asset cache miss', action: 'Implementar ETag' }
-      ],
-      status: "JARVIS analysis complete: System is 92% optimized."
+      database: {
+        size: `${dbSize} MB`,
+        patients: patientCount,
+        appointments: appointmentCount,
+        records: recordCount,
+        leads: leadCount
+      },
+      codebase: {
+        files: files.length,
+        totalLines,
+        largestFile: files.sort((a, b) => {
+          try { return fs.statSync(path.join(__dirname, b)).size - fs.statSync(path.join(__dirname, a)).size; } catch { return 0; }
+        })[0]
+      },
+      health: {
+        errors: errorLogs.length,
+        warnings: warnLogs.length,
+        uptime: `${Math.floor(process.uptime())}s`,
+        memoryRSS: `${(process.memoryUsage().rss / 1024 / 1024).toFixed(1)} MB`,
+        memoryHeap: `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)} MB`
+      },
+      recommendations: [],
+      status: "AUDIT_COMPLETE"
     };
+
+    if(errorLogs.length > 5) auditReport.recommendations.push({ level: 'HIGH', msg: `${errorLogs.length} erros recentes detectados`, action: 'Verificar logs para padroes recorrentes' });
+    if(parseFloat(dbSize) > 100) auditReport.recommendations.push({ level: 'MED', msg: 'DB acima de 100MB', action: 'Considerar VACUUM ou migrar para PostgreSQL' });
+    if(auditReport.health.memoryRSS > 500) auditReport.recommendations.push({ level: 'MED', msg: 'Memory usage alto (>500MB)', action: 'Verificar memory leaks ou reiniciar' });
+    if(auditReport.recommendations.length === 0) auditReport.recommendations.push({ level: 'OK', msg: 'Sistema saudavel', action: 'Nenhuma acao necessaria' });
     
-    // Log audit action
     await prisma.aILog.create({
       data: {
         timestamp: new Date(),
         level: 'INFO',
-        message: 'Auto-Audit JARVIS performed.',
+        message: `Auto-Audit: ${files.length} files, ${totalLines} lines, ${patientCount} patients, ${errorLogs.length} errors`,
         context: 'System Evolution'
       }
     });
@@ -1144,6 +1485,231 @@ app.post('/api/system/audit', authenticateToken, async (req, res) => {
   }
 });
 
+// --- AUTOMATION WORKFLOWS (FASE 2) ---
+app.post('/api/automation/workflow', authenticateToken, async (req, res) => {
+  const { workflowType, data } = req.body;
+  try {
+    const results = await automateWorkflow(workflowType, data);
+    res.json({ success: true, workflow: workflowType, results });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro no workflow de automação' });
+  }
+});
+
+app.post('/api/automation/triage', authenticateToken, async (req, res) => {
+  const { leadId } = req.body;
+  try {
+    const result = await triageLead(leadId);
+    if (result) {
+      await prisma.potentialLead.update({
+        where: { id: leadId },
+        data: { step: 1 }
+      });
+    }
+    res.json({ success: true, triage: result });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro na triagem' });
+  }
+});
+
+app.get('/api/reports/generate', authenticateToken, async (req, res) => {
+  const { type } = req.query;
+  try {
+    const report = await generateReport(type || 'daily');
+    res.json({ success: true, report, type: type || 'daily', date: new Date().toISOString() });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao gerar relatório' });
+  }
+});
+
+app.get('/api/dashboard/stats', authenticateToken, async (req, res) => {
+  try {
+    const stats = await getDashboardStats();
+    res.json({ success: true, stats });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+  }
+});
+
+// --- AI ASSISTANT DIRECT (For Chat Interface) ---
+app.post('/api/ai/assistant', async (req, res) => {
+  const { message, patientId, userId } = req.body;
+  
+  if (!message) return res.status(400).json({ error: 'Message required' });
+  
+  try {
+    const { context, action } = await askWithContext(message, userId);
+    
+    const systemPrompt = `Você é a Cecília, assistente clínica da Holozonic.
+Sempre seja útil, direta e empática.
+Quando pedir dados de pacientes, use o contexto fornecido.
+Para agendamentos, tente registrar diretamente se tiver informações completas.
+${context}`;
+    
+    const fetch = (await import('node-fetch')).default;
+    let result = "Desculpe, estou processando...";
+    let usedFallback = false;
+    
+    try {
+      const response = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          model: 'llama3:8b',
+          prompt: `${systemPrompt}\n\nPaciente pergunta: ${message}\nCecília:`,
+          stream: false
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        result = data.response || result;
+      }
+    } catch (ollamaErr) {
+      usedFallback = true;
+    }
+    
+    if (usedFallback) {
+      const geminiKey = process.env.GEMINI_API_KEY;
+      if (geminiKey) {
+        try {
+          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: `${systemPrompt}\n\nPaciente pergunta: ${message}\nCecília:` }] }]
+            })
+          });
+          const geminiData = await geminiRes.json();
+          result = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || result;
+        } catch (e) {}
+      }
+    }
+    
+    await prisma.aILog.create({
+      data: { input: message, distilledPattern: result.slice(0, 200), confidence: 0.95 }
+    });
+    
+    res.json({ 
+      success: true, 
+      response: result, 
+      context: context ? true : false,
+      action: action ? action.type : null
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro no assistant', details: err.message });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`JARVIS-001: Holozonic Backend running on http://127.0.0.1:${PORT}`);
+  console.log(`[WS] Socket.IO enabled — Real-time active`);
+  
+  if (waHandler) {
+    waHandler.start().catch(err => {
+      console.log('[WA] WhatsApp auto-start failed:', err.message);
+    });
+  }
 });
+
+// --- WHATSAPP API ENDPOINTS ---
+app.get('/api/whatsapp/status', authenticateToken, async (req, res) => {
+  if (!waHandler) {
+    return res.status(503).json({ error: 'WhatsApp não disponível' });
+  }
+  const status = waHandler.getStatus();
+  res.json({ success: true, ...status });
+});
+
+app.post('/api/whatsapp/start', authenticateToken, async (req, res) => {
+  if (!waHandler) {
+    return res.status(503).json({ error: 'WhatsApp não disponível' });
+  }
+  try {
+    await waHandler.start();
+    res.json({ success: true, message: 'WhatsApp iniciado' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/whatsapp/send', authenticateToken, async (req, res) => {
+  if (!waHandler) {
+    return res.status(503).json({ error: 'WhatsApp não disponível' });
+  }
+  const { phone, message } = req.body;
+  if (!phone || !message) {
+    return res.status(400).json({ error: 'Phone e message são obrigatórios' });
+  }
+  try {
+    const result = await waHandler.sendMessage(phone, message);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/whatsapp/reminder', authenticateToken, async (req, res) => {
+  if (!waHandler) {
+    return res.status(503).json({ error: 'WhatsApp não disponível' });
+  }
+  const { appointmentId } = req.body;
+  try {
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: parseInt(appointmentId) },
+      include: { patient: true }
+    });
+    if (!appointment) {
+      return res.status(404).json({ error: 'Agendamento não encontrado' });
+    }
+    const result = await waHandler.sendReminder(appointment.patient, appointment);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/whatsapp/lead/welcome', authenticateToken, async (req, res) => {
+  if (!waHandler) {
+    return res.status(503).json({ error: 'WhatsApp não disponível' });
+  }
+  const { leadId } = req.body;
+  try {
+    const lead = await prisma.potentialLead.findUnique({ where: { id: parseInt(leadId) } });
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead não encontrado' });
+    }
+    const result = await waHandler.sendLeadWelcome(lead);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- AUTOMATED REMINDERS SCHEDULER ---
+setInterval(async () => {
+  if (!waHandler || waHandler.status !== 'CONNECTED') return;
+  
+  try {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        dateTime: { contains: tomorrowStr },
+        status: { not: 'CANCELADO' }
+      },
+      include: { patient: true }
+    });
+    
+    for (const apt of appointments) {
+      if (apt.patient.phone) {
+        await waHandler.sendReminder(apt.patient, apt);
+        console.log(`[WA] Lembrete enviado para ${apt.patient.name}`);
+      }
+    }
+  } catch (err) {
+    console.error('[WA] Erro no scheduler:', err.message);
+  }
+}, 60 * 60 * 1000); // Check every hour
