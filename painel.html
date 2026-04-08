@@ -8,6 +8,8 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="auth.js"></script>
+    <script>window.needsAuth = true;</script>
 
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1198,9 +1200,8 @@
         // ====== LEADS API ======
         async function loadLeads() {
             try {
-                const res = await fetch('/api/leads/');
-                const leads = await res.json();
-                renderLeadsTable(leads);
+                const data = await authFetch('/api/leads/');
+                renderLeadsTable(data);
             } catch (e) {
                 console.error('Erro ao carregar leads:', e);
             }
@@ -1262,7 +1263,7 @@
             if (!confirm('Converter este lead em paciente?')) return;
             
             try {
-                const res = await fetch('/api/leads/convert', {
+                const data = await authFetch('/api/leads/convert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ leadId })
@@ -1305,12 +1306,10 @@
         // ====== TELECONSULTA ======
         async function startTeleconsulta(appointmentId) {
             try {
-                const res = await fetch('/api/teleconsulta/' + appointmentId + '/start', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                const data = await authFetch('/api/teleconsulta/' + appointmentId + '/start', {
+                    method: 'POST'
                 });
-                const data = await res.json();
-                if (res.ok) {
+                if (data.success) {
                     currentTeleconsultaId = appointmentId;
                     document.querySelector('#modal-telemedicina h2').textContent = 'Sessão P2P Ativa: ' + data.patientName;
                     document.querySelector('#modal-telemedicina .bg-rose-500').textContent = 'Sair da Sala';
@@ -1333,9 +1332,8 @@
 
             try {
                 // Salvar como registro clínico
-                const res = await fetch('/api/records/', {
+                const data = await authFetch('/api/records/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         patientId: currentTeleconsultaId,
                         type: 'TELECONSULTA',
@@ -1345,13 +1343,12 @@
                 });
 
                 // Atualizar status do appointment para FINALIZADO
-                await fetch('/api/agenda/' + currentTeleconsultaId, {
+                await authFetch('/api/agenda/' + currentTeleconsultaId, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: 'FINALIZADO' })
                 });
 
-                if (res.ok) {
+                if (data.success) {
                     alert('Consulta finalizada e salva no prontuário!');
                     document.getElementById('teleNotes').value = '';
                     document.getElementById('teleCid').value = '';
@@ -1378,10 +1375,9 @@
         
         async function loadPatients() {
             try {
-                const res = await fetch('/api/patients/');
-                const patients = await res.json();
-                patientsData = patients;
-                renderPatientsTable(patients);
+                const data = await authFetch('/api/patients/');
+                patientsData = data;
+                renderPatientsTable(data);
             } catch (e) {
                 console.error('Erro ao carregar pacientes:', e);
             }
@@ -1416,130 +1412,17 @@
         // ====== AGENDA API ======
         async function loadAgenda() {
             try {
-                const res = await fetch('/api/agenda/');
-                const appointments = await res.json();
-                renderAgendaList(appointments);
+                const data = await authFetch('/api/agenda/');
+                renderAgenda(data);
             } catch (e) {
                 console.error('Erro ao carregar agenda:', e);
-            }
-        }
-
-        function renderAgendaList(appointments) {
-            const container = document.getElementById('agendaList');
-            if (!container) return;
-
-            const today = new Date().toISOString().split('T')[0];
-            const todayAppts = appointments.filter(a => a.dateTime && a.dateTime.startsWith(today));
-
-            if (todayAppts.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-slate-400">Nenhum agendamento para hoje</div>';
-                return;
-            }
-
-            container.innerHTML = todayAppts.map(a => {
-                const time = a.dateTime.split('T')[1]?.substring(0, 5) || a.dateTime;
-                const statusColors = {
-                    'AGENDADO': 'bg-slate-100 text-slate-600 border-slate-200',
-                    'AGUARDANDO': 'bg-amber-100 text-amber-700 border-amber-200',
-                    'EM_ATENDIMENTO': 'bg-ocean-100 text-ocean-700 border-ocean-200',
-                    'CANCELADO': 'bg-rose-100 text-rose-700 border-rose-200',
-                    'FINALIZADO': 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                };
-                const color = statusColors[a.status] || statusColors['AGENDADO'];
-                const isWaiting = a.status === 'AGUARDANDO';
-                const isInProgress = a.status === 'EM_ATENDIMENTO';
-                const isScheduled = a.status === 'AGENDADO';
-                const isTele = a.type === 'TELE' || a.type === 'Telemedicina';
-
-                return `
-                    <div class="bg-white p-4 rounded-xl border ${isWaiting ? 'border-amber-200 bg-amber-50/30' : isInProgress ? 'border-ocean-200 bg-ocean-50/30' : 'border-slate-200 shadow-sm'} flex items-center justify-between hover:border-slate-300 transition-colors">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-lg ${isWaiting ? 'bg-white border-2 border-amber-200 text-amber-700' : isInProgress ? 'bg-white border-2 border-ocean-200 text-ocean-700' : 'bg-slate-100 border border-slate-200'} flex flex-col items-center justify-center">
-                                <span class="text-[10px] ${isWaiting ? 'text-amber-600' : isInProgress ? 'text-ocean-600' : 'text-slate-500'} font-medium uppercase">Hoje</span>
-                                <span class="${isWaiting ? 'text-amber-700' : isInProgress ? 'text-ocean-700' : 'text-slate-800'} font-bold font-mono text-lg">${time}</span>
-                            </div>
-                            <div>
-                                <h4 class="text-slate-800 font-semibold text-base">${a.patient?.name || 'Paciente #' + a.patientId}</h4>
-                                <p class="text-sm text-slate-500">${a.type || 'Consulta'} - ${a.status}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded border border-slate-200 font-medium ${color}">${a.status}</span>
-                            ${isWaiting ? `<button onclick="checkinPatient(${a.id})" class="bg-ocean-600 hover:bg-ocean-700 text-white text-xs px-3 py-2 rounded-md font-medium transition-colors shadow-sm">Atender</button>` : ''}
-                            ${isScheduled ? `
-                                ${isTele ? `<button onclick="openTeleconsulta(${a.id}, '${a.patient?.name || 'Paciente'}')" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3 py-2 rounded-md font-medium transition-colors shadow-sm"><i class="fa-solid fa-video mr-1"></i> Iniciar</button>` : `<button onclick="checkinPatient(${a.id})" class="bg-white hover:bg-slate-50 text-slate-700 text-xs px-2 py-1.5 rounded-md border border-slate-300 font-medium transition-colors shadow-sm">Check-in</button>`}
-                                <button onclick="rescheduleAppointment(${a.id})" class="bg-amber-100 hover:bg-amber-200 text-amber-700 text-xs px-2 py-1.5 rounded-md border border-amber-300 font-medium transition-colors"><i class="fa-solid fa-calendar"></i></button>
-                                <button onclick="cancelAppointment(${a.id})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs px-2 py-1.5 rounded-md border border-rose-300 font-medium transition-colors"><i class="fa-solid fa-times"></i></button>
-                            ` : ''}
-                            ${isInProgress && isTele ? `<button onclick="openTeleconsulta(${a.id}, '${a.patient?.name || 'Paciente'}')" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3 py-2 rounded-md font-medium transition-colors shadow-sm"><i class="fa-solid fa-video mr-1"></i> Sala</button>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function checkinPatient(id) {
-            if (!confirm('Confirmar check-in deste paciente?')) return;
-            try {
-                const res = await fetch('/api/agenda/' + id, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'EM_ATENDIMENTO' })
-                });
-                if (res.ok) {
-                    loadAgenda();
-                } else {
-                    alert('Erro ao fazer check-in');
-                }
-            } catch (e) {
-                console.error('Erro ao fazer check-in:', e);
-            }
-        }
-
-        async function cancelAppointment(id) {
-            const reason = prompt('Motivo do cancelamento:');
-            if (!reason) return;
-            try {
-                const res = await fetch('/api/agenda/cancel', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, reason })
-                });
-                if (res.ok) {
-                    loadAgenda();
-                } else {
-                    alert('Erro ao cancelar');
-                }
-            } catch (e) {
-                console.error('Erro ao cancelar:', e);
-            }
-        }
-
-        async function rescheduleAppointment(id) {
-            const newDateTime = prompt('Novo horário (YYYY-MM-DD HH:MM):');
-            if (!newDateTime) return;
-            try {
-                const res = await fetch('/api/agenda/reschedule', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, newDateTime, reason: 'Reagendamento pelo painel' })
-                });
-                if (res.ok) {
-                    loadAgenda();
-                } else {
-                    const err = await res.json();
-                    alert(err.error || 'Erro ao reagendar');
-                }
-            } catch (e) {
-                console.error('Erro ao reagendar:', e);
             }
         }
 
         // ====== FINANCE API ======
         async function loadFinance() {
             try {
-                const res = await fetch('/api/finance/dashboard');
-                const data = await res.json();
+                const data = await authFetch('/api/finance/dashboard');
                 renderFinanceDashboard(data);
             } catch (e) {
                 console.error('Erro ao carregar finance:', e);
@@ -1585,19 +1468,17 @@
             };
 
             try {
-                const res = await fetch('/api/patients/', {
+                const result = await authFetch('/api/patients/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 
-                if (res.ok) {
+                if (result.id) {
                     alert('Paciente salvo com sucesso!');
                     this.reset();
                     loadPatients();
-                } else {
-                    const err = await res.json();
-                    alert('Erro ao salvar paciente: ' + (err.error || 'Erro desconhecido'));
+                } else if (result.error) {
+                    alert('Erro ao salvar paciente: ' + result.error);
                 }
             } catch (e) {
                 alert('Erro: ' + e.message);
@@ -1618,13 +1499,12 @@
             };
 
             try {
-                const res = await fetch('/api/finance/transactions', {
+                const result = await authFetch('/api/finance/transactions', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 
-                if (res.ok) {
+                if (result.success) {
                     alert('Lançamento salvo com sucesso!');
                     this.reset();
                     loadFinance();

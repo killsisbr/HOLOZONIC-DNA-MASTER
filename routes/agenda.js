@@ -245,6 +245,8 @@ router.post('/', authenticateToken, async (req, res) => {
         include: { patient: true }
       });
 
+      const display = neverReject.formatDisplayDateTime(finalStart);
+
       syncAppointmentToGoogle(appointment.id).catch(console.error);
 
       broadcastUpdate('agenda:created', appointment);
@@ -256,7 +258,6 @@ router.post('/', authenticateToken, async (req, res) => {
         '/app'
       ).catch(err => console.error('[PUSH] Erro ao enviar notificação:', err.message));
       
-      const display = neverReject.formatDisplayDateTime(finalStart);
       res.status(201).json({ 
         ...appointment, 
         isAdjusted,

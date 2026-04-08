@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pré-Atendimento — Holozonic</title>
+  <script src="assets/js/tailwind.js"></script>
+  <script src="auth.js"></script>
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mint: { 1: '#7DE6BE', 2: '#4DBE94', 3: '#31A77F' },
+            dark: '#000000', ink: '#0f172a'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root { --mint2: #4DBE94; }
+    body { background: #f8fafc; color: #0f172a; }
+    .section-title { 
+      background: linear-gradient(135deg, var(--mint2), #31A77F); 
+      color: white; 
+      padding: 8px 16px; 
+      border-radius: 8px; 
+      font-weight: 700;
+      margin: 24px 0 16px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; color: #334155; }
+    .form-input, .form-select {
+      width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+      font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: var(--mint2); box-shadow: 0 0 0 3px rgba(77, 190, 148, 0.15);
+    }
+    .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      background: white; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: 0.2s;
+    }
+    .checkbox-item:hover { border-color: var(--mint2); }
+    .checkbox-item.checked { background: rgba(77, 190, 148, 0.1); border-color: var(--mint2); }
+    .checkbox-item input { display: none; }
+    .checkbox-item::before {
+      content: ''; width: 18px; height: 18px; border: 2px solid #cbd5e1; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .checkbox-item.checked::before {
+      background: var(--mint2); border-color: var(--mint2); content: '✓'; color: white; font-size: 12px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--mint2), #31A77F); color: white;
+      font-weight: 700; padding: 14px 28px; border-radius: 12px; border: none;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(77, 190, 148, 0.3); }
+    .btn-secondary {
+      background: #f1f5f9; color: #475569; font-weight: 600; padding: 12px 20px;
+      border-radius: 10px; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.2s;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 16px 24px; border-radius: 12px; font-weight: 600; transform: translateY(100px); opacity: 0; transition: 0.3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #10b981; color: white; }
+    .toast.error { background: #ef4444; color: white; }
+    .loading { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
+    .loading.active { display: flex; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ai-float-btn {
+      position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 50%;
+      box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 50; transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .ai-float-btn:hover { transform: scale(1.1); box-shadow: 0 12px 40px rgba(139, 92, 246, 0.5); }
+    .ai-float-btn i { color: white; font-size: 24px; }
+    .ai-badge {
+      position: absolute; top: -4px; right: -4px; background: #ef4444;
+      color: white; font-size: 10px; font-weight: 700; padding: 4px 8px;
+      border-radius: 12px; animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+    .ai-chat-modal {
+      position: fixed; bottom: 100px; right: 24px; width: 380px; height: 520px;
+      background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      z-index: 51; display: none; flex-direction: column; overflow: hidden;
+    }
+    .ai-chat-modal.open { display: flex; }
+    .chat-header {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white;
+      padding: 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .chat-header h3 { font-weight: 700; font-size: 16px; }
+    .chat-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+    .chat-messages { flex: 1; padding: 16px; overflow-y: auto; background: #f8fafc; }
+    .chat-msg { margin-bottom: 12px; max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+    .chat-msg.ai { background: #8b5cf6; color: white; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .chat-msg.user { background: #e2e8f0; color: #0f172a; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .chat-msg.system { background: #fef3c7; color: #92400e; font-size: 13px; text-align: center; max-width: 100%; }
+    .chat-input-area { padding: 12px; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; background: white; }
+    .chat-input { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px; }
+    .chat-input:focus { outline: none; border-color: #8b5cf6; }
+    .chat-send { background: #8b5cf6; color: white; border: none; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; }
+    .chat-send:hover { background: #7c3aed; }
+    .chat-quick-actions { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 16px 12px; }
+    .quick-btn { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.2s; }
+    .quick-btn:hover { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+    .progress-bar { height: 4px; background: #e2e8f0; border-radius: 2px; margin: 8px 16px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #4DBE94); border-radius: 2px; transition: width 0.5s; }
+    .extracted-data { background: #ecfdf5; border: 1px solid #4DBE94; border-radius: 8px; padding: 10px; margin-top: 8px; font-size: 12px; }
+    .extracted-data h4 { color: #4DBE94; font-weight: 700; margin-bottom: 6px; font-size: 12px; }
+    .extracted-data ul { margin: 0; padding-left: 16px; }
+  </style>
+</head>
+
+<body class="min-h-screen pb-20">
+  <header class="bg-dark text-white py-4 px-6 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-mint-1 font-bold text-xl">← Voltar</a>
+      <h1 class="text-lg font-bold">Pré-Atendimento</h1>
+    </div>
+    <button onclick="saveDraft()" class="btn-secondary text-sm">Salvar Rascunho</button>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-6">
+    <form id="preAtendimentoForm">
+      <input type="hidden" name="origin" value="MANUAL" />
+      
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-ink mb-4">1. Identificação</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Nome Completo *</label>
+            <input type="text" name="nome" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefone/WhatsApp *</label>
+            <input type="tel" name="telefone" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sexo Biológico</label>
+            <select name="sexo" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="MASCULINO">Masculino</option>
+              <option value="FEMININO">Feminino</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Idade</label>
+            <input type="number" name="idade" class="form-input" min="0" max="150" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Raça / Etnia</label>
+            <input type="text" name="raca" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Profissão</label>
+            <input type="text" name="profissao" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado Civil</label>
+            <select name="estadoCivil" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="SOLTEIRO">Solteiro(a)</option>
+              <option value="CASADO">Casado(a)</option>
+              <option value="UNIÃO">União Estável</option>
+              <option value="DIVORCIADO">Divorciado(a)</option>
+              <option value="VIÚVO">Viúvo(a)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Carteira de Vacinas em dia?</label>
+            <select name="carteiraVacinacao" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="SIM">Sim</option>
+              <option value="NAO">Não</option>
+              <option value="PARCIAL">Parcial</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Vacou contra Covid?</label>
+            <select name="covidVacina" class="form-select" onchange="toggleField(this, 'covidDoses')">
+              <option value="">Selecione...</option>
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          <div class="form-group" id="covidDoses" style="display:none;">
+            <label class="form-label">Quantas doses?</label>
+            <input type="number" name="covidDoses" class="form-input" min="0" max="10" />
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div class="form-group">
+            <label class="form-label">Fumante?</label>
+            <select name="fumante" class="form-select" onchange="toggleField(this, 'cigarrosDia')">
+              <option value="">Selecione...</option>
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          <div class="form-group" id="cigarrosDia" style="display:none;">
+            <label class="form-label">Cigarros por dia?</label>
+            <input type="number" name="cigarrosDia" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bebidas Alcoólicas?</label>
+            <select name="bebeAlcool" class="form-select" onchange="toggleField(this, 'bebeAlcoolDetails')">
+              <option value="">Selecione...</option>
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          <div class="form-group" id="bebeAlcoolDetails" style="display:none;">
+            <label class="form-label">Quais e com que frequência?</label>
+            <input type="text" name="bebeAlcoolDetails" class="form-input" />
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-ink mb-4">2. Queixa Principal</h2>
+        <div class="form-group">
+          <label class="form-label">Qual o principal motivo que te trouxe até aqui?</label>
+          <textarea name="queixaPrincipal" class="form-input" rows="3"></textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Há quanto tempo começou?</label>
+            <select name="tempoSintoma" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="dias">Dias</option>
+              <option value="semanas">Semanas</option>
+              <option value="meses">Meses</option>
+              <option value="anos">Anos</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Esses sintomas são:</label>
+            <select name="tipoSintoma" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="constante">Constantes</option>
+              <option value="crise">Aparecem em crises</option>
+              <option value="especifico">Em situações específicas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">O que costuma piorar?</label>
+            <input type="text" name="piora" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">O que costuma melhorar?</label>
+            <input type="text" name="melhoras" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Já tentou algum tratamento?</label>
+            <select name="tratamentoAnterior" class="form-select" onchange="toggleField(this, 'tratamentoDetails')">
+              <option value="">Selecione...</option>
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          <div class="form-group" id="tratamentoDetails" style="display:none;">
+            <label class="form-label">Qual? Teve resultado?</label>
+            <input type="text" name="tratamentoQual" class="form-input" placeholder="Qual tratamento?" />
+            <select name="tratamentoResultado" class="form-select mt-2">
+              <option value="">Resultado...</option>
+              <option value="sim">Sim</option>
+              <option value="parcial">Parcial</option>
+              <option value="nao">Não</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-ink mb-4">3. Mapa Energético Rápido</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Como você percebe sua energia no dia a dia?</label>
+            <select name="energiaDia" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="boa">Disposição boa</option>
+              <option value="cansaco">Cansaço frequente</option>
+              <option value="oscila">Oscila ao longo do dia</option>
+              <option value="profundo">Cansaço profundo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Seu estado emocional recente tem sido mais:</label>
+            <select name="emocional" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="equilibrado">Equilibrado</option>
+              <option value="ansioso">Ansioso</option>
+              <option value="irritado">Irritado</option>
+              <option value="preocupado">Preocupado</option>
+              <option value="desanimado">Desanimado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Como está seu sono?</label>
+            <select name="sono" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="bem">Durmo bem</option>
+              <option value="dificuldade">Dificuldade para dormir</option>
+              <option value="acordarNoite">Acordo à noite</option>
+              <option value="cansado">Acordo cansado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Se acorda, em qual horário?</label>
+            <select name="acordarHorario" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="23h-1h">23h–1h</option>
+              <option value="1h-3h">1h–3h</option>
+              <option value="3h-5h">3h–5h</option>
+              <option value="variavel">Variável</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Após comer você sente:</label>
+            <select name="posComida" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="leveza">Leveza</option>
+              <option value="peso">Peso</option>
+              <option value="inchaço">Inchaço</option>
+              <option value="sono">Sono</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Intestino:</label>
+            <select name="intestino" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="regular">Regular</option>
+              <option value="constipacao">Constipação</option>
+              <option value="diarreia">Diarreia</option>
+              <option value="alternancia">Alternância</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Seu corpo tende mais a:</label>
+            <select name="temperaturaCorpo" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="calor">Calor</option>
+              <option value="frio">Frio</option>
+              <option value="alternar">Alternar</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mãos e pés:</label>
+            <select name="maosPes" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="normais">Normais</option>
+              <option value="frios">Frios</option>
+              <option value="quentes">Quentes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sensação de peso ou inchaço:</label>
+            <select name="pesoInchaço" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="nao">Não</option>
+              <option value="asVezes">Às vezes</option>
+              <option value="frequente">Frequente</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Clareza mental e foco:</label>
+            <select name="clarezaMental" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="boa">Boa</option>
+              <option value="moderada">Moderada</option>
+              <option value="dificuldade">Dificuldade</option>
+            </select>
+          </div>
+          <div class="form-group md:col-span-2">
+            <label class="form-label">Seu principal objetivo hoje é:</label>
+            <div class="checkbox-grid">
+              <label class="checkbox-item" data-value="aliviar"><input type="checkbox" name="objetivoPrincipal" value="aliviar" /> Aliviar sintomas</label>
+              <label class="checkbox-item" data-value="tratar"><input type="checkbox" name="objetivoPrincipal" value="tratar" /> Tratar problema</label>
+              <label class="checkbox-item" data-value="energia"><input type="checkbox" name="objetivoPrincipal" value="energia" /> Ter mais energia</label>
+              <label class="checkbox-item" data-value="emocional"><input type="checkbox" name="objetivoPrincipal" value="emocional" /> Equilíbrio emocional</label>
+              <label class="checkbox-item" data-value="qualidade"><input type="checkbox" name="objetivoPrincipal" value="qualidade" /> Qualidade de vida</label>
+              <label class="checkbox-item" data-value="longevidade"><input type="checkbox" name="objetivoPrincipal" value="longevidade" /> Longevidade</label>
+              <label class="checkbox-item" data-value="estilo"><input type="checkbox" name="objetivoPrincipal" value="estilo" /> Mudança de estilo</label>
+              <label class="checkbox-item" data-value="prevencao"><input type="checkbox" name="objetivoPrincipal" value="prevencao" /> Prevenção</label>
+              <label class="checkbox-item" data-value="recuperacao"><input type="checkbox" name="objetivoPrincipal" value="recuperacao" /> Recuperação/Cura</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-ink mb-4">4. Sistemas do Corpo</h2>
+        
+        <h3 class="font-semibold text-lg mt-4 mb-2">Sistema Neurológico</h3>
+        <div class="checkbox-grid">
+          <label class="checkbox-item" data-value="dorCabeca"><input type="checkbox" name="neurologicSymptoms" value="dorCabeca" /> Dor de cabeça</label>
+          <label class="checkbox-item" data-value="enxaqueca"><input type="checkbox" name="neurologicSymptoms" value="enxaqueca" /> Enxaqueca</label>
+          <label class="checkbox-item" data-value="tontura"><input type="checkbox" name="neurologicSymptoms" value="tontura" /> Tontura</label>
+          <label class="checkbox-item" data-value="memoria"><input type="checkbox" name="neurologicSymptoms" value="memoria" /> Perda de memória</label>
+          <label class="checkbox-item" data-value="concentracao"><input type="checkbox" name="neurologicSymptoms" value="concentracao" /> Dificuldade de concentração</label>
+          <label class="checkbox-item" data-value="ansiedade"><input type="checkbox" name="neurologicSymptoms" value="ansiedade" /> Ansiedade</label>
+          <label class="checkbox-item" data-value="depressao"><input type="checkbox" name="neurologicSymptoms" value="depressao" /> Depressão</label>
+          <label class="checkbox-item" data-value="humor"><input type="checkbox" name="neurologicSymptoms" value="humor" /> Alterações de humor</label>
+        </div>
+
+        <h3 class="font-semibold text-lg mt-6 mb-2">Sistema Respiratório / Cardiovascular</h3>
+        <div class="checkbox-grid">
+          <label class="checkbox-item" data-value="faltaAr"><input type="checkbox" name="respCardioSymptoms" value="faltaAr" /> Falta de ar</label>
+          <label class="checkbox-item" data-value="tosse"><input type="checkbox" name="respCardioSymptoms" value="tosse" /> Tosse</label>
+          <label class="checkbox-item" data-value="catarro"><input type="checkbox" name="respCardioSymptoms" value="catarro" /> Catarro</label>
+          <label class="checkbox-item" data-value="palpitacao"><input type="checkbox" name="respCardioSymptoms" value="palpitacao" /> Palpitação</label>
+          <label class="checkbox-item" data-value="pressaoAlta"><input type="checkbox" name="respCardioSymptoms" value="pressaoAlta" /> Pressão alta</label>
+          <label class="checkbox-item" data-value="pressaoBaixa"><input type="checkbox" name="respCardioSymptoms" value="pressaoBaixa" /> Pressão baixa</label>
+          <label class="checkbox-item" data-value="maosPesFrios"><input type="checkbox" name="respCardioSymptoms" value="maosPesFrios" /> Mãos/pés frios</label>
+          <label class="checkbox-item" data-value="inchaço"><input type="checkbox" name="respCardioSymptoms" value="inchaço" /> Inchaço</label>
+        </div>
+
+        <h3 class="font-semibold text-lg mt-6 mb-2">Sistema Digestivo</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Apetite:</label>
+            <select name="apetite" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="baixo">Baixo</option>
+              <option value="normal">Normal</option>
+              <option value="alto">Alto</option>
+            </select>
+          </div>
+        </div>
+        <div class="checkbox-grid mt-2">
+          <label class="checkbox-item" data-value="azia"><input type="checkbox" name="sintomasDigestivos" value="azia" /> Azia</label>
+          <label class="checkbox-item" data-value="refluxo"><input type="checkbox" name="sintomasDigestivos" value="refluxo" /> Refluxo</label>
+          <label class="checkbox-item" data-value="estufamento"><input type="checkbox" name="sintomasDigestivos" value="estufamento" /> Estufamento</label>
+          <label class="checkbox-item" data-value="digestaoLenta"><input type="checkbox" name="sintomasDigestivos" value="digestaoLenta" /> Digestão lenta</label>
+        </div>
+
+        <h3 class="font-semibold text-lg mt-6 mb-2">Sistema Urinário</h3>
+        <div class="checkbox-grid">
+          <label class="checkbox-item" data-value="normal"><input type="checkbox" name="urinarySymptoms" value="normal" /> Normal</label>
+          <label class="checkbox-item" data-value="urinaEscura"><input type="checkbox" name="urinarySymptoms" value="urinaEscura" /> Urina escura</label>
+          <label class="checkbox-item" data-value="acordaNoite"><input type="checkbox" name="urinarySymptoms" value="acordaNoite" /> Acorda à noite</label>
+          <label class="checkbox-item" data-value="arder"><input type="checkbox" name="urinarySymptoms" value="arder" /> Ardor</label>
+        </div>
+
+        <h3 class="font-semibold text-lg mt-6 mb-2">Sistema Hormonal / Metabólico</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label">Peso:</label>
+            <select name="pesoStatus" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="ganho">Ganho de peso</option>
+              <option value="perda">Perda de peso</option>
+              <option value="estavel">Estável</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Temperatura:</label>
+            <select name="temperaturaExtrema" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="calor">Calor excessivo</option>
+              <option value="frio">Frio excessivo</option>
+              <option value="normal">Normal</option>
+            </select>
+          </div>
+        </div>
+        <div class="checkbox-grid mt-2">
+          <label class="checkbox-item" data-value="diabetes"><input type="checkbox" name="diagnosticos" value="diabetes" /> Diabetes</label>
+          <label class="checkbox-item" data-value="tireoide"><input type="checkbox" name="diagnosticos" value="tireoide" /> Tireoide</label>
+          <label class="checkbox-item" data-value="sindromeMetabolica"><input type="checkbox" name="diagnosticos" value="sindromeMetabolica" /> Síndrome metabólica</label>
+        </div>
+
+        <h3 class="font-semibold text-lg mt-6 mb-2">Estrutura Física</h3>
+        <div class="checkbox-grid">
+          <label class="checkbox-item" data-value="doresMusculares"><input type="checkbox" name="estruturaSymptoms" value="doresMusculares" /> Dores musculares</label>
+          <label class="checkbox-item" data-value="doresArticulares"><input type="checkbox" name="estruturaSymptoms" value="doresArticulares" /> Dores articulares</label>
+          <label class="checkbox-item" data-value="dorLombar"><input type="checkbox" name="estruturaSymptoms" value="dorLombar" /> Dor lombar</label>
+          <label class="checkbox-item" data-value="fraqueza"><input type="checkbox" name="estruturaSymptoms" value="fraqueza" /> Fraqueza</label>
+        </div>
+        <div class="form-group mt-2">
+          <label class="form-label">Membros inferiores (pernas):</label>
+          <select name="pernas" class="form-select">
+            <option value="">Selecione...</option>
+            <option value="normais">Normais</option>
+            <option value="inchadas">Inchadas</option>
+          </select>
+        </div>
+
+        <h3 class="font-semibold text-lg mt-6 mb-2">Pele / Imunidade</h3>
+        <div class="checkbox-grid">
+          <label class="checkbox-item" data-value="alergias"><input type="checkbox" name="peleSymptoms" value="alergias" /> Alergias</label>
+          <label class="checkbox-item" data-value="peleSeca"><input type="checkbox" name="peleSymptoms" value="peleSeca" /> Pele seca</label>
+          <label class="checkbox-item" data-value="quedaCabelo"><input type="checkbox" name="peleSymptoms" value="quedaCabelo" /> Queda de cabelo</label>
+          <label class="checkbox-item" data-value="infeccoes"><input type="checkbox" name="peleSymptoms" value="infeccoes" /> Infecções frequentes</label>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-ink mb-4">5. Estilo de Vida</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="form-group">
+            <label class="form-label">Alimentação:</label>
+            <select name="alimentacaoEstilo" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="equilibrada">Equilibrada</option>
+              <option value="irregular">Irregular</option>
+              <option value="industrializada">Industrializada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Atividade Física:</label>
+            <select name="atividadeFisica" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estresse:</label>
+            <select name="estresse" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="baixo">Baixo</option>
+              <option value="medio">Médio</option>
+              <option value="alto">Alto</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div class="form-group">
+            <label class="form-label">Medicamentos em uso:</label>
+            <textarea name="medicamentos" class="form-input" rows="2" placeholder="Liste medicamentos..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Suplementos:</label>
+            <textarea name="suplementos" class="form-input" rows="2" placeholder="Liste suplementos..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-ink mb-4">6. Objetivo do Tratamento</h2>
+        <div class="form-group">
+          <label class="form-label">O que você realmente busca com esse processo?</label>
+          <textarea name="objetivoTratamento" class="form-input" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Para você, o que seria um resultado ideal?</label>
+          <textarea name="resultadoIdeal" class="form-input" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-4 justify-end pb-20">
+        <button type="button" onclick="resetForm()" class="btn-secondary">Limpar</button>
+        <button type="submit" class="btn-primary">Salvar Pré-Atendimento</button>
+      </div>
+    </form>
+  </main>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <button class="ai-float-btn" onclick="toggleAIChat()" title="IA Assistente de Triagem">
+    <i class="fas fa-robot"></i>
+    <span class="ai-badge" id="aiBadge" style="display:none;">AI</span>
+  </button>
+
+  <div class="ai-chat-modal" id="aiChatModal">
+    <div class="chat-header">
+      <div>
+        <h3>🤖 IA Holozonic</h3>
+        <small style="opacity: 0.8">Assistente de Triagem</small>
+      </div>
+      <button class="chat-close" onclick="toggleAIChat()">×</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg ai">Olá! Sou a IA Holozonic. Posso te ajudar a preencher o formulário de pré-atendimento. Vamos conversar?</div>
+      <div class="chat-msg ai">Pode me dizer seu nome, ou responder às perguntas que vou fazendo. Qualquer dúvida, é só perguntar!</div>
+    </div>
+    <div class="chat-quick-actions">
+      <button class="quick-btn" onclick="quickAction('start')">▶️ Iniciar Triagem</button>
+      <button class="quick-btn" onclick="quickAction('energia')">⚡ Energia</button>
+      <button class="quick-btn" onclick="quickAction('sono')">🌙 Sono</button>
+      <button class="quick-btn" onclick="quickAction('sintomas')">🩺 Sintomas</button>
+      <button class="quick-btn" onclick="quickAction('finish')">✅ Finalizar</button>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua resposta..." onkeypress="chatKeyPress(event)" />
+      <button class="chat-send" onclick="sendChatMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleField(selectEl, fieldId) {
+      const field = document.getElementById(fieldId);
+      if (!field) return;
+      field.style.display = (selectEl.value === 'true') ? 'block' : 'none';
+    }
+
+    document.querySelectorAll('.checkbox-item').forEach(item => {
+      item.addEventListener('click', function() {
+        this.classList.toggle('checked');
+        const cb = this.querySelector('input');
+        cb.checked = this.classList.contains('checked');
+      });
+    });
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function showLoading() { document.getElementById('loading').classList.add('active'); }
+    function hideLoading() { document.getElementById('loading').classList.remove('active'); }
+
+    function getFormData() {
+      const form = document.getElementById('preAtendimentoForm');
+      const formData = new FormData(form);
+      const data = {};
+      
+      for (let [key, value] of formData.entries()) {
+        if (value) data[key] = value;
+      }
+
+      document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+        if (!data[cb.name]) data[cb.name] = [];
+        data[cb.name].push(cb.value);
+      });
+
+      Object.keys(data).forEach(key => {
+        if (Array.isArray(data[key]) && data[key].length === 0) delete data[key];
+      });
+
+      return data;
+    }
+
+    async function saveDraft() {
+      const data = getFormData();
+      data.status = 'PENDENTE';
+      
+      showLoading();
+      try {
+        const res = await fetch('/api/pre-atendimento', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (res.ok) {
+          showToast('Rascunho salvo com sucesso!');
+        } else {
+          showToast(result.error || 'Erro ao salvar', 'error');
+        }
+      } catch(e) {
+        showToast('Erro ao salvar rascunho', 'error');
+      }
+      hideLoading();
+    }
+
+    document.getElementById('preAtendimentoForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const data = getFormData();
+      data.status = 'PENDENTE';
+      
+      showLoading();
+      try {
+        const res = await fetch('/api/pre-atendimento', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (res.ok) {
+          showToast('Pré-atendimento salvo com sucesso!');
+          setTimeout(() => window.location.href = 'index.html', 1500);
+        } else {
+          showToast(result.error || 'Erro ao salvar', 'error');
+        }
+      } catch(e) {
+        showToast('Erro ao salvar', 'error');
+      }
+      hideLoading();
+    });
+
+    function resetForm() {
+      if (confirm('Tem certeza que deseja limpar o formulário?')) {
+        document.getElementById('preAtendimentoForm').reset();
+        document.querySelectorAll('.checkbox-item').forEach(item => item.classList.remove('checked'));
+      }
+    }
+
+    // ========== IA CHAT FUNCTIONS ==========
+    let chatHistory = [];
+    let extractedData = {};
+    let triageState = 'start';
+
+    function toggleAIChat() {
+      const modal = document.getElementById('aiChatModal');
+      modal.classList.toggle('open');
+      document.getElementById('aiBadge').style.display = 'none';
+    }
+
+    function addChatMessage(text, type = 'ai') {
+      const container = document.getElementById('chatMessages');
+      const msg = document.createElement('div');
+      msg.className = `chat-msg ${type}`;
+      msg.textContent = text;
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function chatKeyPress(e) {
+      if (e.key === 'Enter') sendChatMessage();
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      
+      addChatMessage(text, 'user');
+      input.value = '';
+      chatHistory.push({ role: 'user', content: text });
+      
+      showLoading();
+      try {
+        const res = await fetch('/api/ai/pre-atendimento/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, existingData: extractedData })
+        });
+        const result = await res.json();
+        
+        if (result.extracted) {
+          extractedData = { ...extractedData, ...result.extracted };
+          updateExtractedDisplay();
+          updateProgress();
+        }
+        
+        const response = generateAIResponse(text, result.extracted);
+        addChatMessage(response, 'ai');
+        chatHistory.push({ role: 'assistant', content: response });
+        
+      } catch(e) {
+        addChatMessage('Desculpe, ocorreu um erro. Tente novamente.', 'ai');
+      }
+      hideLoading();
+    }
+
+    function generateAIResponse(userText, extracted) {
+      const lower = userText.toLowerCase();
+      
+      if (triageState === 'start') {
+        triageState = 'nome';
+        return 'Perfeito! Para começar, qual é o seu nome completo?';
+      }
+      
+      if (triageState === 'nome' && extracted && extracted.nome) {
+        triageState = 'telefone';
+        return `Prazer, ${extracted.nome}! Agora preciso do seu WhatsApp para contato. Qual é?`;
+      }
+      
+      if (triageState === 'telefone' && extracted && extracted.telefone) {
+        triageState = 'idade';
+        return 'Ótimo! Qual sua idade?';
+      }
+      
+      if (triageState === 'idade' && extracted && extracted.idade) {
+        triageState = 'energia';
+        return `Entendi, você tem ${extracted.idade} anos. Agora me conta: como você avalia sua energia no dia a dia? (boa, cansaço frequente, oscila ou cansaço profundo)`;
+      }
+      
+      if (triageState === 'energia' && extracted && extracted.energiaDia) {
+        triageState = 'sono';
+        return 'E como está seu sono? (durmindo bem, dificuldade para dormir, acorda à noite, ou acorda cansado)';
+      }
+      
+      if (triageState === 'sono' && extracted && extracted.sono) {
+        triageState = 'emocional';
+        return 'E seu estado emocional? Como tem se sentido? (equilibrado, ansioso, irritado, preocupado ou desanimado)';
+      }
+      
+      if (triageState === 'emocional' && extracted && extracted.emocional) {
+        triageState = 'queixa';
+        return 'E qual é o principal motivo que te trouxe até aqui hoje? Pode descrever os sintomas ou problemas.';
+      }
+      
+      if (triageState === 'queixa' && extracted && extracted.queixaPrincipal) {
+        triageState = 'complete';
+        return `Perfeito! Anotei tudo. Vamos verificar o que já preenchemos:\n\n📋 ${Object.keys(extracted).filter(k => extracted[k]).length} campos preenchidos\n\nPosso salvar o pré-atendimento agora?`;
+      }
+      
+      if (lower.includes('sim') || lower.includes('salvar') || lower.includes('finalizar')) {
+        if (Object.keys(extracted).filter(k => extracted[k]).length > 0) {
+          saveExtractedData();
+          return 'Pré-atendimento salvo com sucesso! 🎉';
+        }
+      }
+      
+      if (lower.includes('obrigado') || lower.includes('valeu') || lower.includes('tchau')) {
+        return 'Por nada! Boa sorte com seu tratamento. Até a próxima!';
+      }
+      
+      const responses = [
+        'Entendi! Continue me contando mais sobre como você se sente.',
+        'Hmm, pode me dar mais detalhes?',
+        'Ok! E mais alguma coisa que eu deva saber?',
+        'Perfeito! Vamos continuar. O que mais você gostaria de compartilhar?',
+        'Entendido! Pode me dizer mais sobre seus sintomas?'
+      ];
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+
+    function quickAction(action) {
+      const actions = {
+        start: 'Vamos começar! Qual é o seu nome?',
+        energia: 'Como você avalia sua energia no dia a dia?',
+        sono: 'Como está seu sono atualmente?',
+        sintomas: 'Qual é o principal sintoma ou problema que você está sentindo?',
+        finish: 'Vamos salvar o pré-atendimento agora?'
+      };
+      document.getElementById('chatInput').value = actions[action] || '';
+      sendChatMessage();
+    }
+
+    async function updateProgress() {
+      showLoading();
+      try {
+        const res = await fetch('/api/ai/pre-atendimento/questions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: extractedData })
+        });
+        const result = await res.json();
+        document.getElementById('progressFill').style.width = `${result.progress || 0}%`;
+        
+        if (result.progress >= 80) {
+          document.getElementById('aiBadge').style.display = 'block';
+        }
+      } catch(e) {}
+      hideLoading();
+    }
+
+    function updateExtractedDisplay() {
+      const container = document.getElementById('chatMessages');
+      const existing = container.querySelector('.extracted-data');
+      if (existing) existing.remove();
+      
+      const div = document.createElement('div');
+      div.className = 'extracted-data';
+      const fields = Object.keys(extractedData).filter(k => extractedData[k]);
+      div.innerHTML = `<h4>📋 Dados Extraídos (${fields.length}):</h4><ul>${fields.map(f => `<li>${f}: ${extractedData[f]}</li>`).join('')}</ul>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function saveExtractedData() {
+      extractedData.status = 'PENDENTE';
+      extractedData.origin = 'IA_CHAT';
+      
+      showLoading();
+      try {
+        const res = await fetch('/api/pre-atendimento', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(extractedData)
+        });
+        const result = await res.json();
+        if (res.ok) {
+          showToast('Pré-atendimento salvo pela IA!');
+        }
+      } catch(e) {
+        showToast('Erro ao salvar', 'error');
+      }
+      hideLoading();
+    }
+  </script>
+</body>
+</html>

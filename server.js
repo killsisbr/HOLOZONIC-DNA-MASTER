@@ -170,7 +170,7 @@ app.post('/api/push/send', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/push/vapid-public-key', (req, res) => {
-  res.json({ publicKey: pushHandler.getVapidPublicKey() });
+  res.json({ publicKey: pushHandler.getVapidPublicKey()?.replace(/=/g, '') || '' });
 });
 
 // Basic health check and system info for routes not in modules
