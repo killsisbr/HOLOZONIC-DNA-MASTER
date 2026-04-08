@@ -5,6 +5,8 @@ const { authenticateToken } = require('../middleware/auth');
 const { broadcastUpdate } = require('../lib/socket');
 const { getWhatsAppHandler } = require('../lib/whatsapp');
 const { syncAppointmentToGoogle } = require('../google_calendar');
+const neverReject = require('../system/never-reject-engine');
+const pushHandler = require('../lib/push');
 
 // Mutex for appointment slot locking (moved logic to a local helper or import if possible, but keep here for now if simple)
 const slotLocks = new Map();
@@ -214,30 +216,31 @@ router.post('/', authenticateToken, async (req, res) => {
   const { patientId, dateTime, type, status } = req.body;
   
   try {
-    if (!acquireSlotLock(dateTime)) {
+    if (!dateTime) {
+      return res.status(400).json({ error: 'Data/hora obrigatoria' });
+    }
+
+    const pId = parseInt(patientId);
+    if (isNaN(pId)) {
+       return res.status(400).json({ error: 'ID de paciente invalido.' });
+    }
+
+    const requestedDate = new Date(dateTime);
+    const { finalStart, isAdjusted } = await neverReject.findAvailableSlot(prisma, requestedDate, 60);
+    const finalDateTime = finalStart.toISOString();
+
+    if (!acquireSlotLock(finalDateTime)) {
       return res.status(409).json({ error: 'Slot ocupado. Por favor, escolha outro horario.' });
     }
 
     try {
-      const existing = await prisma.appointment.findFirst({
-        where: { dateTime }
-      });
-
-      if (existing) {
-        return res.status(409).json({ error: 'Slot ocupado. Por favor, escolha outro horário.' });
-      }
-
-      const pId = parseInt(patientId);
-      if (isNaN(pId)) {
-         return res.status(400).json({ error: 'ID de paciente inválido.' });
-      }
-
       const appointment = await prisma.appointment.create({
         data: {
           patientId: pId,
-          dateTime,
+          dateTime: finalDateTime,
           type: type || 'PRESENCIAL',
-          status: status || 'AGENDADO'
+          status: isAdjusted ? 'AGENDADO' : (status || 'AGENDADO'),
+          notes: isAdjusted ? `Horario original ajustado automaticamente pelo sistema Never-Reject` : null
         },
         include: { patient: true }
       });
@@ -245,9 +248,24 @@ router.post('/', authenticateToken, async (req, res) => {
       syncAppointmentToGoogle(appointment.id).catch(console.error);
 
       broadcastUpdate('agenda:created', appointment);
-      res.status(201).json(appointment);
+      
+      pushHandler.sendPushNotification(
+        appointment.patientId.toString(),
+        'Agendamento Confirmado',
+        `Sua consulta foi agendada para ${display.date} às ${display.time}`,
+        '/app'
+      ).catch(err => console.error('[PUSH] Erro ao enviar notificação:', err.message));
+      
+      const display = neverReject.formatDisplayDateTime(finalStart);
+      res.status(201).json({ 
+        ...appointment, 
+        isAdjusted,
+        adjustedFrom: isAdjusted ? dateTime : null,
+        displayDate: display.date,
+        displayTime: display.time
+      });
     } finally {
-      releaseSlotLock(dateTime);
+      releaseSlotLock(finalDateTime);
     }
   } catch (error) {
     console.error('JARVIS: Agenda Create Error:', error.message);
