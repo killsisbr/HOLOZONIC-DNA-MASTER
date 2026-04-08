@@ -1,0 +1,26 @@
+{
+  "name": "Holozonic",
+  "short_name": "Holozonic",
+  "description": "Clínica de Longevidade e Medicina Chinesa",
+  "start_url": "/index-mobile.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#4DBE94",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["medical", "health", "lifestyle"],
+  "lang": "pt-BR",
+  "scope": "/",
+  "prefer_related_applications": false
+}

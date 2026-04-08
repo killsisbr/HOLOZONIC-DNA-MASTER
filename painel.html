@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOLOZONIC DNA v4.1.8 | Admin</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Configuração do Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        ocean: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9', // Cor primária (Azul Clínico)
+                            600: '#0284c7',
+                        },
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #1e293b;
+            overflow: hidden;
+        }
+
+        /* Efeitos Clean/Clinical */
+        .clinical-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        .clinical-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .clinical-card:hover {
+            border-color: #7dd3fc;
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Scrollbar customizada (Light) */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Animações dos Modais */
+        .modal-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            transform: scale(0.95) translateY(20px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* Efeito de digitação Jarvis */
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .cursor-blink::after {
+            content: '█';
+            animation: blink 1s step-start infinite;
+            color: #0ea5e9;
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen flex flex-col items-center justify-center relative font-sans text-sm">
+
+    <!-- Topbar (OmniSearch & Header) -->
+    <header class="fixed top-0 left-0 w-full clinical-panel z-10 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-ocean-100 flex items-center justify-center border border-ocean-200">
+                <i class="fa-solid fa-dna text-ocean-600"></i>
+            </div>
+            <div>
+                <h1 class="font-heading font-bold tracking-wider text-slate-800 text-lg leading-none">HOLOZONIC</h1>
+                <p class="text-[10px] text-ocean-500 font-mono tracking-widest uppercase">DNA v4.1.8</p>
+            </div>
+        </div>
+
+        <!-- OmniSearch -->
+        <div
+            class="hidden md:flex items-center bg-slate-100 border border-slate-200 rounded-full px-4 py-2 w-[400px] focus-within:border-ocean-400 focus-within:bg-white focus-within:shadow-sm transition-all">
+            <i class="fa-solid fa-search text-slate-400 mr-3"></i>
+            <input type="text" placeholder="OmniSearch (Ctrl+K)... Busca pacientes, CID, leads"
+                class="bg-transparent border-none outline-none text-slate-700 text-sm w-full placeholder-slate-400">
+            <div
+                class="bg-white border border-slate-200 px-2 py-0.5 rounded text-[10px] text-slate-400 font-mono shadow-sm">
+                ⌘K</div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="text-right hidden sm:block">
+                <p class="text-slate-800 font-medium text-sm">Dr. Admin</p>
+                <p class="text-xs text-ocean-600 font-medium">Master Access</p>
+            </div>
+            <img src="https://ui-avatars.com/api/?name=Admin+User&background=0ea5e9&color=fff"
+                class="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="User">
+        </div>
+    </header>
+
+    <!-- Main Launchpad (Grid de Módulos) -->
+    <main class="w-full max-w-6xl px-6 mt-16 z-0">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-heading font-light text-slate-800 mb-2">Painel de <span
+                    class="text-ocean-600 font-bold">Controle</span></h2>
+            <p class="text-slate-500">Selecione um módulo para iniciar as operações diárias.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Botões que abrem os modais -->
+            <button onclick="openModal('modal-monitoramento')"
+                class="clinical-card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 aspect-square group">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-ocean-50 flex items-center justify-center transition-colors border border-slate-100 group-hover:border-ocean-200">
+                    <i
+                        class="fa-solid fa-chart-line text-2xl text-slate-400 group-hover:text-ocean-500 transition-colors"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-slate-800 font-semibold">Monitoramento</h3>
+                    <p class="text-xs text-slate-500 mt-1">KPIs & Fila Real-time</p>
+                </div>
+            </button>
+
+            <button onclick="openModal('modal-cadastro')"
+                class="clinical-card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 aspect-square group">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-blue-50 flex items-center justify-center transition-colors border border-slate-100 group-hover:border-blue-200">
+                    <i
+                        class="fa-solid fa-id-card text-2xl text-slate-400 group-hover:text-blue-500 transition-colors"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-slate-800 font-semibold">Cadastro de Pacientes</h3>
+                    <p class="text-xs text-slate-500 mt-1">Gestão de DNA Base</p>
+                </div>
+            </button>
+
+            <button onclick="openModal('modal-agenda')"
+                class="clinical-card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 aspect-square group">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-purple-50 flex items-center justify-center transition-colors border border-slate-100 group-hover:border-purple-200">
+                    <i
+                        class="fa-solid fa-calendar-alt text-2xl text-slate-400 group-hover:text-purple-500 transition-colors"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-slate-800 font-semibold">Agenda Operacional</h3>
+                    <p class="text-xs text-slate-500 mt-1">Controle de Consultas</p>
+                </div>
+            </button>
+
+            <button onclick="openModal('modal-telemedicina')"
+                class="clinical-card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 aspect-square group relative overflow-hidden">
+                <div class="absolute top-4 right-4 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-rose-50 flex items-center justify-center transition-colors border border-slate-100 group-hover:border-rose-200">
+                    <i
+                        class="fa-solid fa-video text-2xl text-slate-400 group-hover:text-rose-500 transition-colors"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-slate-800 font-semibold">Telemedicina P2P</h3>
+                    <p class="text-xs text-slate-500 mt-1">Sessões Meet Integradas</p>
+                </div>
+            </button>
+
+            <button onclick="openModal('modal-pep')"
+                class="clinical-card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 aspect-square group">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-teal-50 flex items-center justify-center transition-colors border border-slate-100 group-hover:border-teal-200">
+                    <i
+                        class="fa-solid fa-notes-medical text-2xl text-slate-400 group-hover:text-teal-500 transition-colors"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-slate-800 font-semibold">Prontuários (PEP)</h3>
+                    <p class="text-xs text-slate-500 mt-1">Histórico Clínico</p>
+                </div>
+            </button>
+
+            <button onclick="openModal('modal-leads')"
+                class="clinical-card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 aspect-square group">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-orange-50 flex items-center justify-center transition-colors border border-slate-100 group-hover:border-orange-200">
+                    <i
+                        class="fa-solid fa-filter text-2xl text-slate-400 group-hover:text-orange-500 transition-colors"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-slate-800 font-semibold">Funil de Leads</h3>
+                    <p class="text-xs text-slate-500 mt-1">Motor Inêz (Marketing)</p>
+                </div>
+            </button>
+
+            <button onclick="openModal('modal-emissor')"
+                class="clinical-card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 aspect-square group">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-indigo-50 flex items-center justify-center transition-colors border border-slate-100 group-hover:border-indigo-200">
+                    <i
+                        class="fa-solid fa-file-medical text-2xl text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-slate-800 font-semibold">Emissor Oficial</h3>
+                    <p class="text-xs text-slate-500 mt-1">Receitas e Atestados</p>
+                </div>
+            </button>
+
+            <button onclick="openModal('modal-financeiro')"
+                class="clinical-card rounded-2xl p-6 flex flex-col items-center justify-center gap-4 aspect-square group">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-50 group-hover:bg-emerald-50 flex items-center justify-center transition-colors border border-slate-100 group-hover:border-emerald-200">
+                    <i
+                        class="fa-solid fa-wallet text-2xl text-slate-400 group-hover:text-emerald-500 transition-colors"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-slate-800 font-semibold">Gestão Financeira</h3>
+                    <p class="text-xs text-slate-500 mt-1">Fluxo de Caixa</p>
+                </div>
+            </button>
+
+            <!-- Motor JARVIS (Mantém-se Dark como um terminal técnico mesmo no tema claro) -->
+            <button onclick="openModal('modal-jarvis')"
+                class="clinical-card md:col-span-3 lg:col-span-4 rounded-2xl p-4 flex items-center gap-6 group">
+                <div
+                    class="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 group-hover:border-ocean-500 flex items-center justify-center transition-all flex-shrink-0 shadow-inner">
+                    <i
+                        class="fa-solid fa-microchip text-2xl text-ocean-400 group-hover:text-white transition-colors"></i>
+                </div>
+                <div class="text-left flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <h3 class="text-slate-800 font-semibold font-heading">Motor JARVIS</h3>
+                        <span
+                            class="bg-ocean-100 text-ocean-600 text-[10px] px-2 py-0.5 rounded font-mono border border-ocean-200">ONLINE</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Sistema central de auto-evolução e auditoria de logs. CPU: 12% |
+                        RAM: 4.2GB</p>
+                </div>
+                <div
+                    class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mr-2 group-hover:bg-ocean-50 group-hover:text-ocean-600 transition-colors">
+                    <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                </div>
+            </button>
+        </div>
+    </main>
+
+    <!-- Cecília AI Float Button -->
+    <button onclick="openModal('modal-cecilia')"
+        class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-ocean-500 text-white shadow-lg shadow-ocean-500/30 flex items-center justify-center text-xl hover:bg-ocean-600 hover:scale-110 transition-all z-20">
+        <i class="fa-solid fa-robot"></i>
+    </button>
+
+
+    <!-- ========================================== -->
+    <!-- ÁREA DE MODAIS (POPUPS)                    -->
+    <!-- ========================================== -->
+
+    <!-- 1. Modal: Monitoramento -->
+    <div id="modal-monitoramento"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div
+            class="modal-content bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h2 class="text-xl font-heading text-slate-800 font-semibold flex items-center gap-3"><i
+                        class="fa-solid fa-chart-line text-ocean-500"></i> Monitoramento em Tempo Real</h2>
+                <button onclick="closeModal('modal-monitoramento')"
+                    class="text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors w-8 h-8 flex items-center justify-center rounded-full"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+                <!-- KPIs -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+                        <p class="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">Pacientes Ativos</p>
+                        <h3 class="text-2xl font-bold text-slate-800">1,284</h3>
+                    </div>
+                    <div
+                        class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-ocean-500">
+                        <p class="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">Consultas (Hoje)</p>
+                        <h3 class="text-2xl font-bold text-slate-800">24</h3>
+                    </div>
+                    <div
+                        class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-purple-500">
+                        <p class="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">Teleconsultas</p>
+                        <h3 class="text-2xl font-bold text-slate-800">8</h3>
+                    </div>
+                    <div
+                        class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500 relative overflow-hidden">
+                        <div class="absolute top-4 right-4"><span class="flex h-3 w-3"><span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span
+                                    class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span></span></div>
+                        <p class="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">Alertas Críticos</p>
+                        <h3 class="text-2xl font-bold text-rose-600">2</h3>
+                    </div>
+                </div>
+                <!-- Fila Table -->
+                <h3 class="text-slate-800 font-semibold mb-4 flex items-center gap-2"><i
+                        class="fa-solid fa-users text-slate-400"></i> Fila de Atendimento</h3>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                                <th class="p-4 font-semibold">Paciente</th>
+                                <th class="p-4 font-semibold">Modalidade</th>
+                                <th class="p-4 font-semibold">Status</th>
+                                <th class="p-4 font-semibold">Tempo de Espera</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4 font-medium text-slate-800">Carlos Silva Ribeiro</td>
+                                <td class="p-4 text-slate-600">Presencial</td>
+                                <td class="p-4"><span
+                                        class="bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded border border-amber-200 font-medium">AGUARDANDO</span>
+                                </td>
+                                <td class="p-4 text-rose-600 font-mono font-medium">14m 20s</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-4 font-medium text-slate-800">Ana Beatriz Costa</td>
+                                <td class="p-4 text-slate-600">Telemedicina</td>
+                                <td class="p-4"><span
+                                        class="bg-ocean-100 text-ocean-700 text-xs px-2.5 py-1 rounded border border-ocean-200 font-medium">EM_ATENDIMENTO</span>
+                                </td>
+                                <td class="p-4 text-slate-500 font-mono">00m 00s</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal: Cadastro de Pacientes -->
+    <div id="modal-cadastro"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div
+            class="modal-content bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h2 class="text-xl font-heading text-slate-800 font-semibold flex items-center gap-3"><i
+                        class="fa-solid fa-id-card text-blue-500"></i> Cadastro de Pacientes (DNA)</h2>
+                <button onclick="closeModal('modal-cadastro')"
+                    class="text-slate-400 hover:text-rose-500 transition-colors w-8 h-8"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Form -->
+                <div class="md:col-span-1 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="text-slate-800 font-semibold mb-4">Novo Registro</h3>
+                    <form id="newPatientForm" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Nome Completo</label>
+                            <input type="text" id="patientName" required
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">CPF</label>
+                            <input type="text" id="patientCpf" placeholder="000.000.000-00"
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Data Nascimento</label>
+                            <input type="date" id="patientBirthDate"
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Plano de Saúde</label>
+                            <select id="patientPlan"
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+                                <option value="Particular">Particular</option>
+                                <option value="Unimed">Unimed</option>
+                                <option value="Bradesco Saúde">Bradesco Saúde</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Telefone</label>
+                            <input type="text" id="patientPhone" placeholder="(00) 00000-0000"
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Medicamentos (separados por ;)</label>
+                            <input type="text" id="patientMedications" placeholder="Ex: Dipirona; Ibuprofeno"
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors mt-2 shadow-sm">Salvar
+                            Paciente</button>
+                    </form>
+                </div>
+                <!-- Lista -->
+                <div class="md:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-slate-800 font-semibold">Pacientes Recentes</h3>
+                        <div class="relative">
+                            <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" id="patientSearch" onkeyup="filterPatients()" placeholder="Buscar pacientes..."
+                                class="bg-white border border-slate-300 rounded-full pl-8 pr-3 py-1.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none shadow-sm">
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                                    <th class="p-4 font-semibold">ID</th>
+                                    <th class="p-4 font-semibold">Nome</th>
+                                    <th class="p-4 font-semibold">CPF</th>
+                                    <th class="p-4 font-semibold text-right">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm divide-y divide-slate-100">
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="p-4 text-slate-400 font-mono">#1024</td>
+                                    <td class="p-4 font-medium text-slate-800">Roberto Almeida</td>
+                                    <td class="p-4 text-slate-500">123.***.***-89</td>
+                                    <td class="p-4 text-right"><button
+                                            onclick="switchModal('modal-cadastro', 'modal-pep')"
+                                            class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-medium text-xs border border-blue-200 px-3 py-1.5 rounded-md transition-colors">Ver
+                                            PEP</button></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="p-4 text-slate-400 font-mono">#1025</td>
+                                    <td class="p-4 font-medium text-slate-800">Juliana Martins</td>
+                                    <td class="p-4 text-slate-500">987.***.***-21</td>
+                                    <td class="p-4 text-right"><button
+                                            class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-medium text-xs border border-blue-200 px-3 py-1.5 rounded-md transition-colors">Ver
+                                            PEP</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Modal: Agenda Operacional -->
+    <div id="modal-agenda"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div
+            class="modal-content bg-white w-full max-w-3xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h2 class="text-xl font-heading text-slate-800 font-semibold flex items-center gap-3"><i
+                        class="fa-solid fa-calendar-alt text-purple-500"></i> Agenda Operacional do Dia</h2>
+                <button onclick="closeModal('modal-agenda')"
+                    class="text-slate-400 hover:text-rose-500 transition-colors w-8 h-8"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+                <div id="agendaList" class="space-y-3">
+                    <!-- Conteúdo carregado via API -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Modal: Telemedicina -->
+    <div id="modal-telemedicina"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
+        <div
+            class="modal-content bg-white w-full max-w-6xl h-[85vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+            <!-- Header escuro para a área de vídeo dar contraste -->
+            <div class="px-4 py-3 flex justify-between items-center bg-slate-900 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></div>
+                    <h2 class="text-sm font-medium text-white">Sessão P2P Ativa: Ana Beatriz Costa</h2>
+                </div>
+                <button onclick="closeModal('modal-telemedicina')"
+                    class="text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded text-xs font-medium transition-colors"><i
+                        class="fa-solid fa-expand mr-1"></i> Sair da Sala</button>
+            </div>
+
+            <div class="flex-1 flex flex-col md:flex-row overflow-hidden bg-slate-50">
+                <!-- Área de Vídeo (Sempre escura para contraste de câmera) -->
+                <div class="flex-1 bg-slate-900 relative flex items-center justify-center">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
+                        <i class="fa-solid fa-video-slash text-5xl mb-4 text-slate-600"></i>
+                        <p class="text-sm font-medium">Aguardando conexão P2P (Google Meet via API)...</p>
+                    </div>
+                    <!-- Mini camera preview -->
+                    <div
+                        class="absolute bottom-6 right-6 w-56 aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center border-2 border-slate-700 shadow-2xl">
+                        <i class="fa-solid fa-user text-slate-700 text-3xl"></i>
+                    </div>
+
+                    <!-- Controles -->
+                    <div
+                        class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-800/80 backdrop-blur-md rounded-full px-8 py-4 flex gap-6 shadow-2xl border border-slate-700">
+                        <button
+                            class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center transition-colors shadow-sm"><i
+                                class="fa-solid fa-microphone text-lg"></i></button>
+                        <button
+                            class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center transition-colors shadow-sm"><i
+                                class="fa-solid fa-video text-lg"></i></button>
+                        <button onclick="closeModal('modal-telemedicina')"
+                            class="w-12 h-12 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-colors shadow-lg"><i
+                                class="fa-solid fa-phone-slash text-lg"></i></button>
+                    </div>
+                </div>
+
+                <!-- Painel Lateral (Prontuário Rápido) - Tema Claro -->
+                <div
+                    class="w-full md:w-[400px] bg-white border-l border-slate-200 flex flex-col z-10 shadow-[-10px_0_20px_-10px_rgba(0,0,0,0.05)]">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50">
+                        <h3 class="text-slate-800 font-semibold text-sm flex items-center"><i
+                                class="fa-solid fa-bolt text-amber-500 mr-2"></i> Prontuário Rápido</h3>
+                    </div>
+                    <div class="flex-1 p-5 overflow-y-auto">
+                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Anotações Clínicas</label>
+                        <textarea id="teleNotes"
+                            class="w-full h-56 bg-white border border-slate-300 rounded-xl p-3 text-sm text-slate-700 focus:border-ocean-500 focus:ring-1 focus:ring-ocean-500 outline-none resize-none mb-5 shadow-sm"
+                            placeholder="Digite as notas durante a consulta..."></textarea>
+
+                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Diagnóstico (CID-10)</label>
+                        <input type="text" id="teleCid" placeholder="Buscar CID (Ex: J01.9)"
+                            class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-ocean-500 focus:ring-1 focus:ring-ocean-500 outline-none transition-all shadow-sm mb-6">
+                    </div>
+                    <div class="p-4 border-t border-slate-100 bg-slate-50">
+                        <button onclick="finishTeleconsult()"
+                            class="w-full bg-ocean-600 hover:bg-ocean-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm shadow-sm">Finalizar
+                            e Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Modal: Prontuários (PEP) -->
+    <div id="modal-pep"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div
+            class="modal-content bg-white w-full max-w-5xl h-[85vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 border border-teal-200 shadow-sm">
+                        <i class="fa-solid fa-user-injured text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-heading font-semibold text-slate-800">Carlos Silva Ribeiro</h2>
+                        <p class="text-xs text-slate-500 font-medium">ID: <span class="font-mono">#1023</span> &bull; 45
+                            anos &bull; Convênio: Unimed</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-pep')"
+                    class="text-slate-400 hover:text-rose-500 transition-colors w-8 h-8"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Abas Sidebar -->
+                <div class="w-56 bg-slate-50 border-r border-slate-200 flex flex-col p-3 gap-1.5">
+                    <button onclick="openPepTab('tab-dados')" id="btn-tab-dados"
+                        class="pep-tab-btn active text-left px-4 py-2.5 rounded-lg text-sm font-medium text-ocean-700 bg-ocean-50 border border-ocean-200 shadow-sm transition-all"><i
+                            class="fa-solid fa-info-circle w-6 text-center text-ocean-500"></i> Dados Básicos</button>
+                    <button onclick="openPepTab('tab-timeline')" id="btn-tab-timeline"
+                        class="pep-tab-btn text-left px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-transparent transition-all"><i
+                            class="fa-solid fa-stream w-6 text-center text-slate-400"></i> Linha do Tempo</button>
+                    <button onclick="openPepTab('tab-exames')" id="btn-tab-exames"
+                        class="pep-tab-btn text-left px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-transparent transition-all"><i
+                            class="fa-solid fa-vial w-6 text-center text-slate-400"></i> Exames</button>
+                    <button onclick="openPepTab('tab-receitas')" id="btn-tab-receitas"
+                        class="pep-tab-btn text-left px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-transparent transition-all"><i
+                            class="fa-solid fa-prescription w-6 text-center text-slate-400"></i> Receitas</button>
+                    <button onclick="openPepTab('tab-meds')" id="btn-tab-meds"
+                        class="pep-tab-btn text-left px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 border border-transparent transition-all"><i
+                            class="fa-solid fa-pills w-6 text-center text-slate-400"></i> Medicamentos</button>
+                </div>
+
+                <!-- Conteúdo das Abas -->
+                <div class="flex-1 bg-white p-8 overflow-y-auto relative">
+
+                    <!-- Aba: Dados (Default) -->
+                    <div id="tab-dados" class="pep-tab-content block">
+                        <h3 class="text-xl text-slate-800 font-semibold mb-6 border-b border-slate-100 pb-3">Dados
+                            Pessoais e Contato</h3>
+                        <div class="grid grid-cols-2 gap-5 text-sm">
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl"><span
+                                    class="text-slate-500 font-medium block text-xs mb-1 uppercase">CPF</span><span
+                                    class="text-slate-800 font-semibold text-base">123.456.789-00</span></div>
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl"><span
+                                    class="text-slate-500 font-medium block text-xs mb-1 uppercase">Nascimento</span><span
+                                    class="text-slate-800 font-semibold text-base">15/04/1978</span></div>
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl"><span
+                                    class="text-slate-500 font-medium block text-xs mb-1 uppercase">Email</span><span
+                                    class="text-slate-800 font-semibold text-base">carlos.ribeiro@email.com</span></div>
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl"><span
+                                    class="text-slate-500 font-medium block text-xs mb-1 uppercase">Telefone</span><span
+                                    class="text-slate-800 font-semibold text-base">(11) 98765-4321</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Aba: Timeline -->
+                    <div id="tab-timeline" class="pep-tab-content hidden">
+                        <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-3">
+                            <h3 class="text-xl text-slate-800 font-semibold">Evolução Clínica</h3>
+                            <button
+                                class="bg-ocean-600 hover:bg-ocean-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition-colors shadow-sm"><i
+                                    class="fa-solid fa-plus mr-1.5"></i> Nova Evolução</button>
+                        </div>
+
+                        <!-- Box Nova Evolução -->
+                        <div class="mb-8 bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-sm">
+                            <input type="text" placeholder="Buscar CID-10 (Ex: I10 - Hipertensão)"
+                                class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 text-sm mb-4 focus:border-ocean-500 focus:ring-1 focus:ring-ocean-500 outline-none shadow-sm">
+                            <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm">
+                                <div class="bg-slate-50 border-b border-slate-200 p-2 flex gap-1">
+                                    <button
+                                        class="w-8 h-8 rounded hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"><i
+                                            class="fa-solid fa-bold"></i></button>
+                                    <button
+                                        class="w-8 h-8 rounded hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"><i
+                                            class="fa-solid fa-italic"></i></button>
+                                    <button
+                                        class="w-8 h-8 rounded hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors"><i
+                                            class="fa-solid fa-list-ul"></i></button>
+                                </div>
+                                <textarea
+                                    class="w-full h-32 bg-transparent p-4 text-sm text-slate-800 outline-none resize-none placeholder-slate-400"
+                                    placeholder="Relato clínico detalhado da consulta de hoje..."></textarea>
+                            </div>
+                            <div class="mt-4 text-right">
+                                <button
+                                    class="bg-slate-800 hover:bg-slate-900 text-white font-medium text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm">Salvar
+                                    Registro</button>
+                            </div>
+                        </div>
+
+                        <!-- Histórico -->
+                        <div class="space-y-6 pl-4 border-l-2 border-slate-200 relative">
+                            <div class="relative">
+                                <div
+                                    class="absolute -left-[23px] top-1 w-4 h-4 rounded-full bg-ocean-500 border-4 border-white shadow-sm">
+                                </div>
+                                <div class="bg-white border border-slate-200 shadow-sm p-5 rounded-xl ml-6">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <h4 class="text-slate-800 text-base font-bold">Consulta Presencial</h4>
+                                        <span
+                                            class="text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">10/10/2023
+                                            - 14:30</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 leading-relaxed">Paciente relata melhora nas dores
+                                        lombares após início do tratamento contínuo. Pressão arterial estável em 12/8.
+                                        Manteremos a medicação e solicitei exames de rotina para acompanhamento.</p>
+                                    <div
+                                        class="mt-4 text-xs font-semibold text-ocean-700 bg-ocean-50 inline-block px-3 py-1.5 rounded-md border border-ocean-200">
+                                        CID: M54.5 - Dor lombar baixa</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aba: Exames -->
+                    <div id="tab-exames" class="pep-tab-content hidden">
+                        <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-3">
+                            <h3 class="text-xl text-slate-800 font-semibold">Exames Anexados</h3>
+                            <button
+                                class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-sm px-4 py-2 rounded-lg transition-colors shadow-sm"><i
+                                    class="fa-solid fa-upload mr-1.5 text-slate-400"></i> Upload PDF</button>
+                        </div>
+                        <div
+                            class="bg-white border border-slate-200 shadow-sm p-4 rounded-xl flex justify-between items-center hover:border-blue-300 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="w-10 h-10 rounded bg-rose-50 flex items-center justify-center text-rose-500">
+                                    <i class="fa-solid fa-file-pdf text-xl"></i></div>
+                                <div>
+                                    <p class="font-semibold text-slate-800">Hemograma Completo</p>
+                                    <p class="text-xs text-slate-500 font-medium">Anexado em 15/09/2023 &bull; 1.2MB</p>
+                                </div>
+                            </div>
+                            <button
+                                class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-ocean-600 transition-colors flex items-center justify-center"><i
+                                    class="fa-solid fa-download"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Aba: Receitas -->
+                    <div id="tab-receitas" class="pep-tab-content hidden">
+                        <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-3">
+                            <h3 class="text-xl text-slate-800 font-semibold">Histórico de Receitas</h3>
+                            <button onclick="switchModal('modal-pep', 'modal-emissor')"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition-colors shadow-sm"><i
+                                    class="fa-solid fa-file-medical mr-1.5"></i> Emitir Nova</button>
+                        </div>
+                        <div
+                            class="bg-white border border-slate-200 shadow-sm p-4 rounded-xl flex justify-between items-center mb-3 hover:border-indigo-200 transition-colors">
+                            <div>
+                                <p class="font-semibold text-slate-800">Receituário Simples</p>
+                                <p class="text-xs text-slate-500 font-medium">Emitido em 10/10/2023</p>
+                            </div>
+                            <button
+                                class="text-indigo-600 font-medium bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-md text-xs hover:bg-indigo-100 transition-colors">Ver
+                                PDF</button>
+                        </div>
+                    </div>
+
+                    <!-- Aba: Medicamentos -->
+                    <div id="tab-meds" class="pep-tab-content hidden">
+                        <h3 class="text-xl text-slate-800 font-semibold mb-6 border-b border-slate-100 pb-3">
+                            Medicamentos em Uso</h3>
+                        <div
+                            class="bg-teal-50 border border-teal-200 shadow-sm p-4 rounded-xl flex justify-between items-center">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-teal-600">
+                                    <i class="fa-solid fa-capsules"></i></div>
+                                <div>
+                                    <p class="font-bold text-slate-800">Losartana 50mg</p>
+                                    <p class="text-xs text-slate-600 font-medium">1 comp. de 12/12h - Uso contínuo</p>
+                                </div>
+                            </div>
+                            <button
+                                class="w-8 h-8 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors flex items-center justify-center"><i
+                                    class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Modal: Funil de Leads (Inêz) -->
+    <div id="modal-leads"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div
+            class="modal-content bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-orange-50">
+                <h2 class="text-xl font-heading text-orange-800 font-bold flex items-center gap-3"><i
+                        class="fa-solid fa-filter text-orange-500"></i> Funil de Leads (Motor Inêz)</h2>
+                <button onclick="closeModal('modal-leads')"
+                    class="text-orange-400 hover:text-rose-500 transition-colors w-8 h-8"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                                <th class="p-4 font-semibold">Nome / Contato</th>
+                                <th class="p-4 font-semibold">Origem</th>
+                                <th class="p-4 font-semibold">Interesse</th>
+                                <th class="p-4 font-semibold text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leadsTableBody" class="text-sm divide-y divide-slate-100">
+                            <!-- Leads serão carregados via API -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Modal: Emissor Oficial -->
+    <div id="modal-emissor"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div
+            class="modal-content bg-white w-full max-w-5xl h-[85vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+                <h2 class="text-xl font-heading text-indigo-900 font-bold flex items-center gap-3"><i
+                        class="fa-solid fa-file-medical text-indigo-600"></i> Emissor Oficial de Documentos</h2>
+                <button onclick="closeModal('modal-emissor')"
+                    class="text-indigo-400 hover:text-rose-500 transition-colors w-8 h-8"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="flex-1 flex overflow-hidden bg-white">
+                <!-- Form Lateral -->
+                <div class="w-[350px] border-r border-slate-200 p-6 overflow-y-auto bg-slate-50">
+                    <form class="space-y-5">
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo
+                                de Documento</label>
+                            <select
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none shadow-sm font-medium">
+                                <option>Receituário Simples</option>
+                                <option>Atestado Médico</option>
+                                <option>Declaração de Comparecimento</option>
+                                <option>Solicitação de Exames</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Paciente</label>
+                            <select
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none shadow-sm font-medium">
+                                <option>Carlos Silva Ribeiro</option>
+                                <option>Ana Beatriz Costa</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Conteúdo
+                                (Prescrição)</label>
+                            <textarea
+                                class="w-full h-40 bg-white border border-slate-300 rounded-lg p-3 text-slate-800 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none shadow-sm font-medium"></textarea>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Data
+                                de Emissão</label>
+                            <input type="date"
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-slate-800 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none shadow-sm font-medium">
+                        </div>
+                        <button type="button"
+                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-colors text-sm shadow-md mt-2"><i
+                                class="fa-solid fa-sync mr-2"></i>Atualizar Preview</button>
+                    </form>
+                </div>
+                <!-- Preview A4 -->
+                <div class="flex-1 p-8 flex flex-col items-center overflow-y-auto relative bg-slate-200/50">
+                    <div class="absolute top-6 right-6 z-10 flex gap-3">
+                        <button
+                            class="bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs px-4 py-2 rounded-lg transition-colors border border-slate-300 shadow-sm">Salvar
+                            Registro no PEP</button>
+                        <button
+                            class="bg-ocean-600 hover:bg-ocean-700 text-white font-medium text-xs px-4 py-2 rounded-lg transition-colors shadow-md"><i
+                                class="fa-solid fa-print mr-1.5"></i> Imprimir PDF</button>
+                    </div>
+
+                    <!-- Folha A4 Simulada Branca e Limpa -->
+                    <div
+                        class="w-full max-w-[21cm] aspect-[1/1.414] bg-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] p-14 relative scale-[0.85] origin-top text-black font-serif border border-slate-100">
+                        <!-- Cabeçalho Receita -->
+                        <div class="text-center border-b-2 border-slate-800 pb-6 mb-10">
+                            <h1 class="text-3xl font-bold tracking-tight text-slate-900">CLÍNICA HOLOZONIC</h1>
+                            <p class="text-sm font-medium text-slate-600 mt-1">Dr. Admin - CRM 123456</p>
+                        </div>
+                        <!-- Corpo -->
+                        <div class="mb-8">
+                            <p class="text-lg"><strong>Para:</strong> <span class="font-medium">Carlos Silva
+                                    Ribeiro</span></p>
+                        </div>
+                        <div class="min-h-[300px]">
+                            <p class="text-slate-400 italic text-sm">(O preview gerado preencherá este espaço de forma
+                                padronizada...)</p>
+                        </div>
+                        <!-- Assinatura -->
+                        <div class="absolute bottom-16 w-full left-0 text-center">
+                            <div class="w-72 border-t border-slate-800 mx-auto pt-3">
+                                <p class="text-sm font-bold text-slate-900">Assinatura e Carimbo Médico</p>
+                                <p class="text-xs text-slate-600 mt-1">Imbituva - PR, 10 de Outubro de 2023</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Modal: Gestão Financeira -->
+    <div id="modal-financeiro"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div
+            class="modal-content bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-emerald-50">
+                <h2 class="text-xl font-heading text-emerald-900 font-bold flex items-center gap-3"><i
+                        class="fa-solid fa-wallet text-emerald-600"></i> Gestão Financeira (Caixa)</h2>
+                <button onclick="closeModal('modal-financeiro')"
+                    class="text-emerald-400 hover:text-rose-500 transition-colors w-8 h-8"><i
+                        class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+                <!-- KPIs Financeiros -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+                    <div
+                        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-emerald-500">
+                        <p class="text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest">Receita Bruta (Mês)
+                        </p>
+                        <h3 class="text-3xl font-black text-slate-800 font-mono tracking-tight">R$ 45.280<span
+                                class="text-lg text-slate-400">,00</span></h3>
+                    </div>
+                    <div
+                        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-rose-500">
+                        <p class="text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest">Despesas Operacionais
+                        </p>
+                        <h3 class="text-3xl font-black text-slate-800 font-mono tracking-tight">R$ 12.450<span
+                                class="text-lg text-slate-400">,00</span></h3>
+                    </div>
+                    <div
+                        class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-blue-500 relative">
+                        <p class="text-xs text-slate-500 font-bold mb-2 uppercase tracking-widest">Saldo Projetado</p>
+                        <h3 class="text-3xl font-black text-blue-600 font-mono tracking-tight">R$ 32.830<span
+                                class="text-lg text-blue-400">,00</span></h3>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-6">
+                    <!-- Lancamento -->
+                    <div class="w-full md:w-1/3 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-fit">
+                        <h3 class="text-slate-800 font-bold mb-5 text-base">Novo Lançamento</h3>
+                        <form id="newTransactionForm" class="space-y-4">
+                            <input type="text" id="txDescription" placeholder="Descrição (Ex: Conta Luz)"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-medium transition-all shadow-inner">
+                            <select id="txType"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-medium transition-all shadow-inner">
+                                <option value="EXPENSE">Despesa (Saída)</option>
+                                <option value="INCOME">Receita (Entrada)</option>
+                            </select>
+                            <select id="txMethod"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-medium transition-all shadow-inner">
+                                <option value="PIX">PIX</option>
+                                <option value="CREDIT">Cartão de Crédito</option>
+                                <option value="DEBIT">Cartão de Débito</option>
+                                <option value="CASH">Dinheiro</option>
+                                <option value="TRANSFER">Transferência</option>
+                            </select>
+                            <input type="number" id="txAmount" placeholder="Valor R$" step="0.01"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-medium transition-all shadow-inner">
+                            <button type="submit"
+                                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-colors text-sm shadow-md mt-2">Gravar
+                                no Caixa</button>
+                        </form>
+                    </div>
+
+                    <!-- Tabela Transações -->
+                    <div class="w-full md:w-2/3 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 bg-white">
+                            <h3 class="text-slate-800 font-bold text-base">Extrato Recente</h3>
+                        </div>
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                                    <th class="p-4 font-bold tracking-wide">Data / Descrição</th>
+                                    <th class="p-4 font-bold tracking-wide">Tipo</th>
+                                    <th class="p-4 font-bold tracking-wide text-right">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm divide-y divide-slate-100">
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="p-4">
+                                        <p class="font-bold text-slate-800">Consulta Particular - Roberto</p>
+                                        <p class="text-xs text-slate-500 font-medium">10/10/2023</p>
+                                    </td>
+                                    <td class="p-4"><span
+                                            class="text-emerald-700 font-bold text-xs bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200">Receita</span>
+                                    </td>
+                                    <td class="p-4 text-right font-mono font-bold text-emerald-600">+ R$ 450,00</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="p-4">
+                                        <p class="font-bold text-slate-800">Manutenção Ar Condicionado</p>
+                                        <p class="text-xs text-slate-500 font-medium">09/10/2023</p>
+                                    </td>
+                                    <td class="p-4"><span
+                                            class="text-rose-700 font-bold text-xs bg-rose-100 px-2.5 py-1 rounded-md border border-rose-200">Despesa</span>
+                                    </td>
+                                    <td class="p-4 text-right font-mono font-bold text-rose-600">- R$ 350,00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Modal: Motor JARVIS (Mantido Dark para aspecto técnico, emoldurado com design light fora) -->
+    <div id="modal-jarvis"
+        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <!-- Borda exterior light, miolo hacker -->
+        <div
+            class="modal-content bg-white w-full max-w-4xl h-[70vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+            <!-- Header Light System -->
+            <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center"><i
+                            class="fa-solid fa-microchip text-ocean-400"></i></div>
+                    <span class="text-slate-800 font-bold font-heading text-sm">JARVIS System Terminal</span>
+                </div>
+                <button onclick="closeModal('modal-jarvis')"
+                    class="text-slate-400 hover:text-rose-500 transition-colors w-8 h-8 flex items-center justify-center"><i
+                        class="fa-solid fa-power-off"></i></button>
+            </div>
+
+            <!-- Miolo Dark Terminal -->
+            <div
+                class="flex-1 p-5 overflow-y-auto text-sm leading-relaxed text-ocean-400 bg-slate-900 font-mono shadow-inner">
+                <div class="mb-6 text-white opacity-80 text-xs">
+                    <pre>
+   ██╗ █████╗ ██████╗ ██╗   ██╗██╗███████╗
+   ██║██╔══██╗██╔══██╗██║   ██║██║██╔════╝
+   ██║███████║██████╔╝██║   ██║██║███████╗
+   ██║██╔══██║██╔══██╗╚██╗ ██╔╝██║╚════██║
+   ██║██║  ██║██║  ██║ ╚████╔╝ ██║███████║
+   ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝</pre>
+                </div>
+                <p class="mb-1">> System boot initiated...</p>
+                <p class="mb-1">> Loading kernel modules: <span class="text-emerald-400">OK</span></p>
+                <p class="mb-1">> Connecting to Prisma DB (SQLite): <span class="text-emerald-400">OK</span></p>
+                <p class="mb-1">> Starting background services...</p>
+                <p class="text-amber-400 mb-1">> [WARN] High memory usage detected in Node.js process (PID: 4821)</p>
+                <p class="mb-1">> CPU Load: 12% | RAM: 4.2GB/8.0GB</p>
+                <p class="mb-1">> Polling active for Dashboard_v2.html...</p>
+                <p class="mt-4">> Awaiting system command... <span class="cursor-blink"></span></p>
+            </div>
+
+            <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+                <span class="text-slate-500 text-xs font-mono font-medium">Uptime: 14d 02h 45m</span>
+                <button
+                    class="bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-semibold text-sm px-5 py-2 rounded-lg transition-colors font-sans shadow-sm">Executar
+                    Diagnóstico</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. Modal/Widget: Cecília AI (Chat flutuante) -->
+    <div id="modal-cecilia" class="modal-overlay fixed inset-0 z-50 flex items-end justify-end pointer-events-none p-6">
+        <div
+            class="modal-content w-full max-w-sm h-[500px] bg-white rounded-2xl flex flex-col overflow-hidden border border-slate-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] pointer-events-auto transform translate-y-full mb-16 right-0">
+            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-ocean-50">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-9 h-9 rounded-full bg-ocean-600 flex items-center justify-center text-white shadow-sm">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-800">Cecília AI</h2>
+                        <span class="text-[10px] text-ocean-600 font-semibold flex items-center gap-1.5">
+                            <div class="w-2 h-2 rounded-full bg-ocean-500 animate-pulse"></div> Assistente Inteligente
+                        </span>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-cecilia')"
+                    class="text-slate-400 hover:text-slate-700 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><i
+                        class="fa-solid fa-chevron-down"></i></button>
+            </div>
+
+            <div class="flex-1 p-5 overflow-y-auto bg-slate-50 flex flex-col gap-4">
+                <div class="text-xs font-medium text-center text-slate-400 my-1">Contexto atual: <span
+                        class="text-slate-600 font-bold">Menu Principal</span></div>
+
+                <!-- Msg IA -->
+                <div class="flex gap-3 items-start">
+                    <div
+                        class="w-8 h-8 rounded-full bg-ocean-100 flex-shrink-0 flex items-center justify-center text-ocean-600 text-sm border border-ocean-200">
+                        <i class="fa-solid fa-robot"></i></div>
+                    <div
+                        class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm p-3.5 text-sm text-slate-700 shadow-sm leading-relaxed">
+                        Olá, Dr. Admin. Sou a Cecília. Analisei os KPIs de hoje e notei que a fila presencial tem
+                        <strong class="text-rose-600">2 atrasos críticos</strong>. Quer que eu reorganize a agenda da
+                        tarde?
+                    </div>
+                </div>
+
+                <!-- Msg User (Exemplo) -->
+                <div class="flex gap-3 items-start flex-row-reverse mt-2">
+                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=0ea5e9&color=fff"
+                        class="w-8 h-8 rounded-full shadow-sm" alt="User">
+                    <div
+                        class="bg-ocean-600 rounded-2xl rounded-tr-sm p-3.5 text-sm text-white shadow-sm leading-relaxed">
+                        Não precisa. Apenas gere o relatório financeiro consolidado do dia.
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-white">
+                <div class="relative">
+                    <input type="text" placeholder="Escreva sua instrução..."
+                        class="w-full bg-slate-50 border border-slate-300 rounded-full pl-5 pr-12 py-3 text-sm text-slate-800 focus:border-ocean-500 focus:ring-1 focus:ring-ocean-500 outline-none transition-all font-medium shadow-inner">
+                    <button
+                        class="absolute right-2 top-1.5 w-9 h-9 rounded-full bg-ocean-600 text-white flex items-center justify-center hover:bg-ocean-700 transition-colors shadow-sm"><i
+                            class="fa-solid fa-paper-plane text-xs"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JavaScript -->
+    <script>
+        function openModal(modalId) {
+            if (modalId !== 'modal-cecilia') {
+                const modals = document.querySelectorAll('.modal-overlay:not(#modal-cecilia)');
+                modals.forEach(m => m.classList.remove('active'));
+            }
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        function switchModal(fromId, toId) {
+            closeModal(fromId);
+            setTimeout(() => {
+                openModal(toId);
+            }, 300);
+        }
+
+        function openPepTab(tabId) {
+            const contents = document.querySelectorAll('.pep-tab-content');
+            contents.forEach(c => {
+                c.classList.remove('block');
+                c.classList.add('hidden');
+            });
+
+            const buttons = document.querySelectorAll('.pep-tab-btn');
+            buttons.forEach(b => {
+                b.classList.remove('bg-ocean-50', 'border-ocean-200', 'text-ocean-700', 'shadow-sm');
+                b.classList.add('text-slate-600', 'border-transparent');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('block');
+
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('text-slate-600', 'border-transparent');
+            activeBtn.classList.add('bg-ocean-50', 'border-ocean-200', 'text-ocean-700', 'shadow-sm');
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function (e) {
+                if (e.target === this) {
+                    closeModal(this.id);
+                }
+            });
+        });
+
+        // ====== LEADS API ======
+        async function loadLeads() {
+            try {
+                const res = await fetch('/api/leads/');
+                const leads = await res.json();
+                renderLeadsTable(leads);
+            } catch (e) {
+                console.error('Erro ao carregar leads:', e);
+            }
+        }
+
+        function renderLeadsTable(leads) {
+            const tbody = document.getElementById('leadsTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = leads.map(lead => {
+                let parsedData = {};
+                try {
+                    parsedData = JSON.parse(lead.data || '{}');
+                } catch (e) {}
+
+                const procedimento = parsedData.selectedProcedure?.name || parsedData.procedimento || 'Não especificado';
+                const origemBadge = getOrigemBadge(lead.source);
+                const dataFormatada = parsedData.data ? formatDate(parsedData.data) : '-';
+                const hora = parsedData.hora || '-';
+
+                return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4">
+                            <p class="font-semibold text-slate-800">${lead.name || 'Sem nome'}</p>
+                            <p class="text-xs text-slate-500 font-medium">${lead.phone || 'Sem telefone'}</p>
+                        </td>
+                        <td class="p-4">${origemBadge}</td>
+                        <td class="p-4">
+                            <p class="text-slate-600 font-medium">${procedimento}</p>
+                            <p class="text-xs text-slate-400 mt-1">${dataFormatada} às ${hora}</p>
+                        </td>
+                        <td class="p-4 text-right">
+                            <button onclick="convertLead('${lead.id}')" class="bg-orange-500 hover:bg-orange-600 text-white font-medium text-xs px-4 py-2 rounded-lg transition-colors shadow-sm">Converter</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getOrigemBadge(source) {
+            const badges = {
+                'MOBILE_APP': '<span class="bg-blue-100 text-blue-700 text-[10px] px-2.5 py-1 rounded-md border border-blue-200 font-bold uppercase tracking-wide">📱 Mobile App</span>',
+                'INEZ': '<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2.5 py-1 rounded-md border border-emerald-200 font-bold uppercase tracking-wide">🤖 Inêz Bot</span>',
+                'SONO': '<span class="bg-indigo-100 text-indigo-700 text-[10px] px-2.5 py-1 rounded-md border border-indigo-200 font-bold uppercase tracking-wide">🌙 Sono</span>',
+                'HOSPEDAGEM': '<span class="bg-green-100 text-green-700 text-[10px] px-2.5 py-1 rounded-md border border-green-200 font-bold uppercase tracking-wide">🌿 Hospedagem</span>',
+                'INSTAGRAM': '<span class="bg-pink-100 text-pink-700 text-[10px] px-2.5 py-1 rounded-md border border-pink-200 font-bold uppercase tracking-wide">📸 Instagram</span>',
+                'WHATSAPP': '<span class="bg-green-100 text-green-700 text-[10px] px-2.5 py-1 rounded-md border border-green-200 font-bold uppercase tracking-wide">💬 WhatsApp</span>',
+            };
+            return badges[source] || `<span class="bg-purple-100 text-purple-700 text-[10px] px-2.5 py-1 rounded-md border border-purple-200 font-bold uppercase tracking-wide">${source || 'Orgânico'}</span>`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('pt-BR');
+        }
+
+        async function convertLead(leadId) {
+            if (!confirm('Converter este lead em paciente?')) return;
+            
+            try {
+                const res = await fetch('/api/leads/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ leadId })
+                });
+                
+                if (res.ok) {
+                    alert('Lead convertido em paciente com sucesso!');
+                    loadLeads(); // Recarregar a lista
+                } else {
+                    alert('Erro ao converter lead');
+                }
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        // Carregar leads ao abrir o modal
+        let currentTeleconsultaId = null;
+        
+        const originalOpenModal = openModal;
+        window.openModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+            }
+            if (modalId === 'modal-leads') {
+                loadLeads();
+            }
+            if (modalId === 'modal-cadastro') {
+                loadPatients();
+            }
+            if (modalId === 'modal-agenda') {
+                loadAgenda();
+            }
+            if (modalId === 'modal-financeiro') {
+                loadFinance();
+            }
+        };
+
+        // ====== TELECONSULTA ======
+        async function startTeleconsulta(appointmentId) {
+            try {
+                const res = await fetch('/api/teleconsulta/' + appointmentId + '/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    currentTeleconsultaId = appointmentId;
+                    document.querySelector('#modal-telemedicina h2').textContent = 'Sessão P2P Ativa: ' + data.patientName;
+                    document.querySelector('#modal-telemedicina .bg-rose-500').textContent = 'Sair da Sala';
+                } else {
+                    alert('Erro ao iniciar teleconsulta: ' + data.error);
+                }
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        async function finishTeleconsult() {
+            if (!currentTeleconsultaId) {
+                alert('Nenhuma teleconsulta ativa');
+                return;
+            }
+
+            const notes = document.getElementById('teleNotes').value;
+            const cid = document.getElementById('teleCid').value;
+
+            try {
+                // Salvar como registro clínico
+                const res = await fetch('/api/records/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        patientId: currentTeleconsultaId,
+                        type: 'TELECONSULTA',
+                        description: notes || 'Consulta por vídeo finalizada',
+                        cid10: cid || null
+                    })
+                });
+
+                // Atualizar status do appointment para FINALIZADO
+                await fetch('/api/agenda/' + currentTeleconsultaId, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'FINALIZADO' })
+                });
+
+                if (res.ok) {
+                    alert('Consulta finalizada e salva no prontuário!');
+                    document.getElementById('teleNotes').value = '';
+                    document.getElementById('teleCid').value = '';
+                    currentTeleconsultaId = null;
+                    closeModal('modal-telemedicina');
+                    loadAgenda();
+                } else {
+                    alert('Erro ao salvar registro');
+                }
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        }
+
+        // Atualizar botão da agenda para abrir telemedicina com id correto
+        function openTeleconsulta(appointmentId, patientName) {
+            currentTeleconsultaId = appointmentId;
+            document.querySelector('#modal-telemedicina h2').textContent = 'Sessão P2P Ativa: ' + patientName;
+            openModal('modal-telemedicina');
+        }
+
+        // ====== PATIENTS API ======
+        let patientsData = [];
+        
+        async function loadPatients() {
+            try {
+                const res = await fetch('/api/patients/');
+                const patients = await res.json();
+                patientsData = patients;
+                renderPatientsTable(patients);
+            } catch (e) {
+                console.error('Erro ao carregar pacientes:', e);
+            }
+        }
+
+        function filterPatients() {
+            const search = document.getElementById('patientSearch').value.toLowerCase();
+            const filtered = patientsData.filter(p => 
+                (p.name && p.name.toLowerCase().includes(search)) ||
+                (p.cpf && p.cpf.includes(search)) ||
+                (p.phone && p.phone.includes(search))
+            );
+            renderPatientsTable(filtered);
+        }
+
+        function renderPatientsTable(patients) {
+            const tbody = document.querySelector('#modal-cadastro table tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = patients.slice(0, 10).map(p => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4 text-slate-400 font-mono">#${p.id}</td>
+                    <td class="p-4 font-medium text-slate-800">${p.name || 'Sem nome'}</td>
+                    <td class="p-4 text-slate-500">${p.cpf ? p.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4') : 'N/D'}</td>
+                    <td class="p-4 text-right">
+                        <button class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-medium text-xs border border-blue-200 px-3 py-1.5 rounded-md transition-colors">Ver PEP</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ====== AGENDA API ======
+        async function loadAgenda() {
+            try {
+                const res = await fetch('/api/agenda/');
+                const appointments = await res.json();
+                renderAgendaList(appointments);
+            } catch (e) {
+                console.error('Erro ao carregar agenda:', e);
+            }
+        }
+
+        function renderAgendaList(appointments) {
+            const container = document.getElementById('agendaList');
+            if (!container) return;
+
+            const today = new Date().toISOString().split('T')[0];
+            const todayAppts = appointments.filter(a => a.dateTime && a.dateTime.startsWith(today));
+
+            if (todayAppts.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-slate-400">Nenhum agendamento para hoje</div>';
+                return;
+            }
+
+            container.innerHTML = todayAppts.map(a => {
+                const time = a.dateTime.split('T')[1]?.substring(0, 5) || a.dateTime;
+                const statusColors = {
+                    'AGENDADO': 'bg-slate-100 text-slate-600 border-slate-200',
+                    'AGUARDANDO': 'bg-amber-100 text-amber-700 border-amber-200',
+                    'EM_ATENDIMENTO': 'bg-ocean-100 text-ocean-700 border-ocean-200',
+                    'CANCELADO': 'bg-rose-100 text-rose-700 border-rose-200',
+                    'FINALIZADO': 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                };
+                const color = statusColors[a.status] || statusColors['AGENDADO'];
+                const isWaiting = a.status === 'AGUARDANDO';
+                const isInProgress = a.status === 'EM_ATENDIMENTO';
+                const isScheduled = a.status === 'AGENDADO';
+                const isTele = a.type === 'TELE' || a.type === 'Telemedicina';
+
+                return `
+                    <div class="bg-white p-4 rounded-xl border ${isWaiting ? 'border-amber-200 bg-amber-50/30' : isInProgress ? 'border-ocean-200 bg-ocean-50/30' : 'border-slate-200 shadow-sm'} flex items-center justify-between hover:border-slate-300 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-lg ${isWaiting ? 'bg-white border-2 border-amber-200 text-amber-700' : isInProgress ? 'bg-white border-2 border-ocean-200 text-ocean-700' : 'bg-slate-100 border border-slate-200'} flex flex-col items-center justify-center">
+                                <span class="text-[10px] ${isWaiting ? 'text-amber-600' : isInProgress ? 'text-ocean-600' : 'text-slate-500'} font-medium uppercase">Hoje</span>
+                                <span class="${isWaiting ? 'text-amber-700' : isInProgress ? 'text-ocean-700' : 'text-slate-800'} font-bold font-mono text-lg">${time}</span>
+                            </div>
+                            <div>
+                                <h4 class="text-slate-800 font-semibold text-base">${a.patient?.name || 'Paciente #' + a.patientId}</h4>
+                                <p class="text-sm text-slate-500">${a.type || 'Consulta'} - ${a.status}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded border border-slate-200 font-medium ${color}">${a.status}</span>
+                            ${isWaiting ? `<button onclick="checkinPatient(${a.id})" class="bg-ocean-600 hover:bg-ocean-700 text-white text-xs px-3 py-2 rounded-md font-medium transition-colors shadow-sm">Atender</button>` : ''}
+                            ${isScheduled ? `
+                                ${isTele ? `<button onclick="openTeleconsulta(${a.id}, '${a.patient?.name || 'Paciente'}')" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3 py-2 rounded-md font-medium transition-colors shadow-sm"><i class="fa-solid fa-video mr-1"></i> Iniciar</button>` : `<button onclick="checkinPatient(${a.id})" class="bg-white hover:bg-slate-50 text-slate-700 text-xs px-2 py-1.5 rounded-md border border-slate-300 font-medium transition-colors shadow-sm">Check-in</button>`}
+                                <button onclick="rescheduleAppointment(${a.id})" class="bg-amber-100 hover:bg-amber-200 text-amber-700 text-xs px-2 py-1.5 rounded-md border border-amber-300 font-medium transition-colors"><i class="fa-solid fa-calendar"></i></button>
+                                <button onclick="cancelAppointment(${a.id})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs px-2 py-1.5 rounded-md border border-rose-300 font-medium transition-colors"><i class="fa-solid fa-times"></i></button>
+                            ` : ''}
+                            ${isInProgress && isTele ? `<button onclick="openTeleconsulta(${a.id}, '${a.patient?.name || 'Paciente'}')" class="bg-rose-500 hover:bg-rose-600 text-white text-xs px-3 py-2 rounded-md font-medium transition-colors shadow-sm"><i class="fa-solid fa-video mr-1"></i> Sala</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function checkinPatient(id) {
+            if (!confirm('Confirmar check-in deste paciente?')) return;
+            try {
+                const res = await fetch('/api/agenda/' + id, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'EM_ATENDIMENTO' })
+                });
+                if (res.ok) {
+                    loadAgenda();
+                } else {
+                    alert('Erro ao fazer check-in');
+                }
+            } catch (e) {
+                console.error('Erro ao fazer check-in:', e);
+            }
+        }
+
+        async function cancelAppointment(id) {
+            const reason = prompt('Motivo do cancelamento:');
+            if (!reason) return;
+            try {
+                const res = await fetch('/api/agenda/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, reason })
+                });
+                if (res.ok) {
+                    loadAgenda();
+                } else {
+                    alert('Erro ao cancelar');
+                }
+            } catch (e) {
+                console.error('Erro ao cancelar:', e);
+            }
+        }
+
+        async function rescheduleAppointment(id) {
+            const newDateTime = prompt('Novo horário (YYYY-MM-DD HH:MM):');
+            if (!newDateTime) return;
+            try {
+                const res = await fetch('/api/agenda/reschedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, newDateTime, reason: 'Reagendamento pelo painel' })
+                });
+                if (res.ok) {
+                    loadAgenda();
+                } else {
+                    const err = await res.json();
+                    alert(err.error || 'Erro ao reagendar');
+                }
+            } catch (e) {
+                console.error('Erro ao reagendar:', e);
+            }
+        }
+
+        // ====== FINANCE API ======
+        async function loadFinance() {
+            try {
+                const res = await fetch('/api/finance/dashboard');
+                const data = await res.json();
+                renderFinanceDashboard(data);
+            } catch (e) {
+                console.error('Erro ao carregar finance:', e);
+            }
+        }
+
+        function renderFinanceDashboard(data) {
+            // Atualizar KPIs
+            const kpis = document.querySelectorAll('#modal-financeiro .font-black');
+            if (kpis.length >= 3) {
+                kpis[0].textContent = 'R$ ' + (data.finances?.revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                kpis[1].textContent = 'R$ ' + (data.finances?.expenses || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                kpis[2].textContent = 'R$ ' + ((data.finances?.revenue || 0) - (data.finances?.expenses || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            }
+
+            // Atualizar tabela
+            const tbody = document.querySelector('#modal-financeiro table tbody');
+            if (!tbody || !data.transactions) return;
+
+            tbody.innerHTML = data.transactions.slice(0, 10).map(t => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4">
+                        <p class="font-bold text-slate-800">${t.description || 'Transação'}</p>
+                        <p class="text-xs text-slate-500 font-medium">${new Date(t.date).toLocaleDateString('pt-BR')}</p>
+                    </td>
+                    <td class="p-4"><span class="${t.type === 'INCOME' ? 'text-emerald-700 bg-emerald-100' : 'text-rose-700 bg-rose-100'} font-bold text-xs px-2.5 py-1 rounded-md border ${t.type === 'INCOME' ? 'border-emerald-200' : 'border-rose-200'}">${t.type === 'INCOME' ? 'Receita' : 'Despesa'}</span></td>
+                    <td class="p-4 text-right font-mono font-bold ${t.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600'}">${t.type === 'INCOME' ? '+' : '-'} R$ ${t.amount.toFixed(2).replace('.', ',')}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ====== NEW PATIENT FORM ======
+        document.getElementById('newPatientForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('patientName').value,
+                cpf: document.getElementById('patientCpf').value,
+                birthDate: document.getElementById('patientBirthDate').value,
+                plan: document.getElementById('patientPlan').value,
+                phone: document.getElementById('patientPhone').value,
+                medications: document.getElementById('patientMedications').value
+            };
+
+            try {
+                const res = await fetch('/api/patients/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    alert('Paciente salvo com sucesso!');
+                    this.reset();
+                    loadPatients();
+                } else {
+                    const err = await res.json();
+                    alert('Erro ao salvar paciente: ' + (err.error || 'Erro desconhecido'));
+                }
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        });
+
+        // ====== NEW TRANSACTION FORM ======
+        document.getElementById('newTransactionForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                description: document.getElementById('txDescription').value,
+                type: document.getElementById('txType').value,
+                method: document.getElementById('txMethod').value,
+                amount: parseFloat(document.getElementById('txAmount').value),
+                status: 'PAID',
+                date: new Date().toISOString()
+            };
+
+            try {
+                const res = await fetch('/api/finance/transactions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    alert('Lançamento salvo com sucesso!');
+                    this.reset();
+                    loadFinance();
+                } else {
+                    alert('Erro ao salvar lançamento');
+                }
+            } catch (e) {
+                alert('Erro: ' + e.message);
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -31,14 +31,23 @@ model Patient {
 }
 
 model Appointment {
-  id            Int      @id @default(autoincrement())
-  patientId     Int
-  patient       Patient  @relation(fields: [patientId], references: [id])
-  dateTime      String
-  type          String   // PRESENCIAL, TELE
-  status        String   // AGUARDANDO, EM_ATENDIMENTO, FINALIZADO, CANCELADO
-  googleEventId String?
-  meetLink      String?
+  id               Int      @id @default(autoincrement())
+  patientId        Int
+  patient          Patient  @relation(fields: [patientId], references: [id])
+  dateTime         String
+  type             String   // PRESENCIAL, TELE
+  status           String   // AGUARDANDO, EM_ATENDIMENTO, FINALIZADO, CANCELADO, REAGENDADO, NO_SHOW
+  googleEventId    String?
+  meetLink         String?
+  notes            String?  // Notas internas do atendente/IA
+  cancelReason     String?  // Motivo do cancelamento
+  rescheduleReason String?  // Motivo do reagendamento
+  rescheduleCount  Int      @default(0)  // Quantas vezes reagendou
+  reminderSent     Boolean  @default(false)  // Lembrete enviado
+  noShow           Boolean  @default(false)  // Paciente faltou
+  originalDateTime String?  // Horario original (para tracking)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model ClinicalRecord {
@@ -91,4 +100,108 @@ model Transaction {
   description String
   date        String
   createdAt   DateTime @default(now())
+}
+
+model PreAtendimento {
+  id                    Int      @id @default(autoincrement())
+  // 1. Identificacao
+  nome                  String
+  sexo                  String?  // MASCULINO, FEMININO
+  idade                 Int?
+  raca                  String?
+  profissao             String?
+  estadoCivil           String?
+  telefone              String?
+  carteiraVacinacao     String?  // SIM, NAO, PARCIAL
+  covidVacina           Boolean?
+  covidDoses            Int?
+  fumante               Boolean?
+  cigarrosDia           Int?
+  bebeAlcool            Boolean?
+  bebeAlcoolDetails     String?
+  
+  // 2. Queixa Principal
+  queixaPrincipal       String?
+  tempoSintoma          String?  // dias, semanas, meses, anos
+  tipoSintoma           String?  // constante, crise, especifico
+  piora                 String?
+  melhoras              String?
+  tratamentoAnterior    Boolean?
+  tratamentoQual        String?
+  tratamentoResultado   String?  // sim, parcial, nao
+  
+  // 3. Mapa Energetico
+  energiaDia            String?  // boa, cansaco, oscila, profundo
+  emocional             String?  // equilibrado, ansioso, irritado, preocupado, desanimado
+  sono                  String?  // bem, dificuldade, acordarNoite, cansado
+  acordarHorario        String?  // 23h-1h, 1h-3h, 3h-5h, variavel
+  posComida             String?  // leveza, peso, inchaço, sono
+  intestino             String?  // regular, constipacao, diarreia, alternancia
+  temperaturaCorpo      String?  // calor, frio, alternar
+  maosPes               String?  // normais, frios, quentes
+  pesoInchaço           String?  // nao, asVezes, frequente
+  sintomasFrequentes    String?  // dorCabeca, tensaoMuscular, dorLombar, tontura, nenhum
+  clarezaMental         String?  // boa, moderada, dificuldade
+  objetivoPrincipal    String?  // aliviar, tratar, energia, emocional, qualidade, longevidade, estilo, prevencao, recuperacao
+  
+  // 4. Sistema Neurológico
+  neurologicSymptoms   String?  // JSON array de sintomas
+  
+  // 5. Sentidos
+  visao                 String?  // normal, borrada, luz, seca
+  audio                 String?  // normal, zumbido, reducao
+  olfacto               String?  // normal, alterado
+  paladar               String?  // normal, alterado
+  
+  // 6. Respiratorio/Cardiovascular
+  respCardioSymptoms   String?  // JSON array
+  
+  // 7. Digestivo
+  apetite              String?  // baixo, normal, alto
+  alimentacaoManha    String?
+  aguaAoAcordar       Boolean?
+  almoco              String?
+  janta                String?
+  outrosAlimentos     String?
+  sintomasDigestivos  String?  // JSON array
+  
+  // 8. Intestinal
+  intestinal           String?  // regular, preso, solto, alterna
+  intestinalSymptoms  String?  // JSON array
+  
+  // 9. Urinario
+  urinarySymptoms     String?  // JSON array
+  
+  // 10. Hormonal/Metabolico
+  pesoStatus           String?  // ganancia, perda, normal
+  temperaturaExtrema   String?  // calor, frio
+  diagnosticos         String?  // JSON array
+  
+  // 11. Estrutura Fisica
+  estruturaSymptoms    String?  // JSON array
+  pernas               String?  // normais, inchadas
+  
+  // 12. Pele/Imunidade
+  peleSymptoms         String?  // JSON array
+  
+  // 13. Estilo de Vida
+  alimentacaoEstilo   String?  // equilibrada, irregular, industrializada
+  atividadeFisica      Boolean?
+  estresse            String?  // baixo, medio, alto
+  
+  // 14. Medicamentos
+  medicamentos        String?
+  suplementos         String?
+  
+  // 15. Objetivo Tratamento
+  objetivoTratamento  String?
+  resultadoIdeal      String?
+  
+  // Metadados
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  origin               String?  // MANUAL, WHATSAPP, TRIAGEM
+  status               String   @default("PENDENTE") // PENDENTE, ANALISADO, CONVERTIDO, ARQUIVADO
+  aiConfidence        Float?
+  convertedToPatient  Int?     // FK para Patient se convertido
 }

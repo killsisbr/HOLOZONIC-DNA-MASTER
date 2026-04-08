@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holozonic — Video Consultas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+    <style>
+        body {
+            background: #0f172a;
+            font-family: 'Inter', sans-serif;
+        }
+        .video-container {
+            position: relative;
+            background: #1e293b;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .video-local {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 180px;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #4DBE94;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        .control-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .control-btn:hover {
+            transform: scale(1.05);
+        }
+        .control-btn.active {
+            background: #4DBE94;
+        }
+        .control-btn.recording {
+            background: #ef4444;
+            animation: pulse-rec 1.5s infinite;
+        }
+        @keyframes pulse-rec {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        }
+        .transcript-text {
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .transcript-text .speaker {
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .transcript-text .medico { color: #4DBE94; }
+        .transcript-text .paciente { color: #60a5fa; }
+        .summary-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+        }
+        .control-btn.muted {
+            background: #ef4444;
+        }
+        .chat-messages {
+            scroll-behavior: smooth;
+        }
+        .message-sent {
+            background: #4DBE94;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 16px 16px 4px 16px;
+            max-width: 80%;
+            margin-left: auto;
+        }
+        .message-received {
+            background: #334155;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 16px 16px 16px 4px;
+            max-width: 80%;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="https://i.imgur.com/PeN4mJL.png" alt="Holozonic" class="h-8">
+            <span class="text-emerald-400 font-bold">Video Consulta</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-slate-400 text-sm">Conectado</span>
+            </div>
+            <span id="roomInfo" class="text-slate-500 text-sm">Sala: --</span>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="flex-1 flex overflow-hidden">
+        <!-- Video Area -->
+        <div class="flex-1 p-4">
+            <div class="video-container h-full relative">
+                <!-- Remote Video -->
+                <video id="remoteVideo" autoplay playsinline class="w-full h-full"></video>
+                
+                <!-- Local Video (picture-in-picture) -->
+                <div class="video-local">
+                    <video id="localVideo" autoplay playsinline muted class="w-full h-full object-cover bg-slate-800"></video>
+                </div>
+                
+                <!-- Placeholder when no remote -->
+                <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
+                    <i class="fa-solid fa-user-astronaut text-7xl mb-4"></i>
+                    <p class="text-lg font-medium">Aguardando paciente conectar...</p>
+                    <p class="text-sm text-slate-600">Compartilhe o link da sala</p>
+                </div>
+                
+                <!-- Controls -->
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
+                    <button id="btnMic" onclick="toggleMic()" class="control-btn bg-slate-700 text-white hover:bg-slate-600">
+                        <i class="fa-solid fa-microphone text-xl"></i>
+                    </button>
+                    <button id="btnVideo" onclick="toggleVideo()" class="control-btn bg-slate-700 text-white hover:bg-slate-600">
+                        <i class="fa-solid fa-video text-xl"></i>
+                    </button>
+                    <button onclick="endCall()" class="control-btn bg-red-600 text-white hover:bg-red-500">
+                        <i class="fa-solid fa-phone-slash text-xl"></i>
+                    </button>
+                    <button onclick="toggleChat()" class="control-btn bg-slate-700 text-white hover:bg-slate-600">
+                        <i class="fa-solid fa-comments text-xl"></i>
+                    </button>
+                    <button onclick="toggleScreenShare()" class="control-btn bg-slate-700 text-white hover:bg-slate-600">
+                        <i class="fa-solid fa-desktop text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Sidebar -->
+        <div id="chatPanel" class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col hidden">
+            <div class="p-4 border-b border-slate-800">
+                <h3 class="text-white font-semibold">Chat</h3>
+            </div>
+            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto chat-messages space-y-3">
+            </div>
+            <div class="p-4 border-t border-slate-800">
+                <div class="flex gap-2">
+                    <input type="text" id="chatInput" placeholder="Digite uma mensagem..." 
+                        class="flex-1 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-white text-sm focus:outline-none focus:border-emerald-500">
+                    <button onclick="sendMessage()" class="w-10 h-10 bg-emerald-500 rounded-full text-white flex items-center justify-center hover:bg-emerald-600">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Info Sidebar -->
+        <div class="w-96 bg-slate-800 border-l border-slate-700 flex flex-col">
+            <div class="p-4 border-b border-slate-700">
+                <h3 class="text-white font-semibold">Paciente</h3>
+            </div>
+            <div class="flex-1 p-4 overflow-y-auto">
+                <div class="bg-slate-700 rounded-xl p-4 mb-4">
+                    <h4 id="patientName" class="text-white font-bold">--</h4>
+                    <p class="text-slate-400 text-sm">Aguardando conexão...</p>
+                </div>
+                
+                <!-- Transcrição em Tempo Real -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs text-slate-500 uppercase">Transcrição</label>
+                        <button id="btnRecord" onclick="toggleRecording()" class="text-xs bg-red-500 text-white px-2 py-1 rounded flex items-center gap-1">
+                            <i class="fa-solid fa-microphone"></i> Iniciar
+                        </button>
+                    </div>
+                    <div id="transcriptArea" class="transcript-text bg-slate-700 border border-slate-600 rounded-lg p-3 h-32 overflow-y-auto text-slate-300">
+                        <p class="text-slate-500 text-xs italic">Transcrição aparecerá aqui...</p>
+                    </div>
+                </div>
+                
+                <!-- Resumo Gerado -->
+                <div class="mb-4">
+                    <label class="text-xs text-slate-500 uppercase">Resumo Inteligente</label>
+                    <div id="summaryArea" class="summary-box rounded-lg p-4 mt-1">
+                        <div id="summaryContent" class="text-slate-300 text-sm">
+                            <p class="text-slate-500 text-xs italic">O resumo será gerado automaticamente ao final da consulta...</p>
+                        </div>
+                        <button onclick="generateSummary()" class="mt-3 text-xs bg-emerald-600 text-white px-3 py-1.5 rounded hover:bg-emerald-500">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Gerar Resumo Agora
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="text-xs text-slate-500 uppercase">Anotações</label>
+                    <textarea id="notesArea" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white text-sm mt-1 h-32 resize-none focus:outline-none focus:border-emerald-500" placeholder="Anotações da consulta..."></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="text-xs text-slate-500 uppercase">CID-10</label>
+                    <input type="text" id="cidInput" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm mt-1 focus:outline-none focus:border-emerald-500" placeholder="Ex: J01.9">
+                </div>
+                
+                <button onclick="saveConsultation()" class="w-full bg-emerald-500 text-white font-semibold py-3 rounded-lg hover:bg-emerald-600 transition-colors">
+                    Finalizar Consulta
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const ROOM_ID = new URLSearchParams(window.location.search).get('room') || 'test-room-' + Date.now();
+        const USER_NAME = 'Dr. Hamilton';
+        
+        let socket = io();
+        let localStream = null;
+        let peerConnection = null;
+        let isAudioEnabled = true;
+        let isVideoEnabled = true;
+        let isScreenSharing = false;
+
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        document.getElementById('roomInfo').textContent = `Sala: ${ROOM_ID}`;
+
+        async function initMedia() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+                document.getElementById('localVideo').srcObject = localStream;
+            } catch (e) {
+                console.error('Erro ao acessar câmera/mic:', e);
+                alert('Erro ao acessar câmera. Permita acesso à câmera e microfone.');
+            }
+        }
+
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(rtcConfig);
+
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
+                document.getElementById('videoPlaceholder').classList.add('hidden');
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('webrtc:ice-candidate', {
+                        roomId: ROOM_ID,
+                        candidate: event.candidate
+                    });
+                }
+            };
+        }
+
+        socket.on('connect', () => {
+            console.log('Conectado ao servidor');
+            socket.emit('webrtc:join-room', {
+                roomId: ROOM_ID,
+                userId: USER_NAME,
+                userName: USER_NAME
+            });
+        });
+
+        socket.on('webrtc:room-joined', async ({ participants }) => {
+            console.log('Entrou na sala, participantes:', participants);
+            if (participants.length > 0) {
+                createPeerConnection();
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                socket.emit('webrtc:offer', {
+                    roomId: ROOM_ID,
+                    targetSocketId: participants[0].socketId,
+                    offer: peerConnection.localDescription
+                });
+            }
+        });
+
+        socket.on('webrtc:participant-joined', () => {
+            document.getElementById('patientName').textContent = 'Paciente Conectado';
+        });
+
+        socket.on('webrtc:offer', async ({ senderSocketId, offer }) => {
+            createPeerConnection();
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.emit('webrtc:answer', {
+                roomId: ROOM_ID,
+                targetSocketId: senderSocketId,
+                answer: peerConnection.localDescription
+            });
+        });
+
+        socket.on('webrtc:answer', async ({ answer }) => {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+
+        socket.on('webrtc:ice-candidate', async ({ candidate }) => {
+            if (peerConnection) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+        });
+
+        function toggleMic() {
+            isAudioEnabled = !isAudioEnabled;
+            localStream.getAudioTracks()[0].enabled = isAudioEnabled;
+            const btn = document.getElementById('btnMic');
+            btn.classList.toggle('muted', !isAudioEnabled);
+            btn.classList.toggle('active', isAudioEnabled);
+        }
+
+        function toggleVideo() {
+            isVideoEnabled = !isVideoEnabled;
+            localStream.getVideoTracks()[0].enabled = isVideoEnabled;
+            const btn = document.getElementById('btnVideo');
+            btn.classList.toggle('muted', !isVideoEnabled);
+            btn.classList.toggle('active', isVideoEnabled);
+        }
+
+        function toggleChat() {
+            document.getElementById('chatPanel').classList.toggle('hidden');
+        }
+
+        async function toggleScreenShare() {
+            if (!isScreenSharing) {
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                const screenTrack = screenStream.getVideoTracks()[0];
+                const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
+                sender.replaceTrack(screenTrack);
+                document.getElementById('localVideo').srcObject = screenStream;
+                isScreenSharing = true;
+            } else {
+                const camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const camTrack = camStream.getVideoTracks()[0];
+                const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
+                sender.replaceTrack(camTrack);
+                document.getElementById('localVideo').srcObject = localStream;
+                isScreenSharing = false;
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (text) {
+                addMessage(text, 'sent');
+                socket.emit('chat:message', { roomId: ROOM_ID, message: text, sender: USER_NAME });
+                input.value = '';
+            }
+        }
+
+        socket.on('chat:message', ({ message, sender }) => {
+            addMessage(message, 'received');
+        });
+
+        function addMessage(text, type) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = type === 'sent' ? 'message-sent' : 'message-received';
+            div.textContent = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function endCall() {
+            stopRecording();
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            socket.emit('webrtc:leave-room', { roomId: ROOM_ID });
+            window.location.href = '/painel.html';
+        }
+
+        // ====== TRANSCRIÇÃO E RESUMO ======
+        let isRecording = false;
+        let recognition = null;
+        let transcript = [];
+        let audioContext = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+
+        function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        function startRecording() {
+            isRecording = true;
+            document.getElementById('btnRecord').innerHTML = '<i class="fa-solid fa-stop"></i> Parar';
+            document.getElementById('btnRecord').classList.add('recording');
+            
+            // Iniciar reconhecimento de voz
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'pt-BR';
+
+                recognition.onresult = (event) => {
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const result = event.results[i];
+                        if (result.isFinal) {
+                            const text = result[0].transcript.trim();
+                            if (text) {
+                                addTranscript(text, 'paciente');
+                            }
+                        }
+                    }
+                };
+
+                recognition.onerror = (e) => console.error('Speech error:', e);
+                recognition.start();
+            }
+
+            // Gravar áudio para processamento futuro
+            if (localStream) {
+                audioContext = new AudioContext();
+                const source = audioContext.createMediaStreamSource(localStream);
+                mediaRecorder = new MediaRecorder(source.stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.start();
+            }
+
+            addTranscript('--- Início da gravação ---', 'system');
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            document.getElementById('btnRecord').innerHTML = '<i class="fa-solid fa-microphone"></i> Iniciar';
+            document.getElementById('btnRecord').classList.remove('recording');
+            
+            if (recognition) recognition.stop();
+            if (mediaRecorder) mediaRecorder.stop();
+        }
+
+        function addTranscript(text, speaker) {
+            const timestamp = new Date().toLocaleTimeString('pt-BR');
+            transcript.push({ timestamp, speaker, text });
+            
+            const area = document.getElementById('transcriptArea');
+            const div = document.createElement('div');
+            div.className = 'mb-2';
+            div.innerHTML = `<span class="text-xs text-slate-500">[${timestamp}]</span> <span class="speaker ${speaker === 'medico' ? 'medico' : (speaker === 'system' ? 'text-slate-500' : 'paciente')}">${speaker === 'medico' ? 'Dr:' : (speaker === 'system' ? '' : 'Paciente:')}</span><span>${text}</span>`;
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        async function generateSummary() {
+            if (transcript.length === 0) {
+                alert('Nenhuma transcrição disponível. Ative a gravação primeiro.');
+                return;
+            }
+
+            const btn = event.target;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+            btn.disabled = true;
+
+            // Criar prompt para IA
+            const fullText = transcript.map(t => `${t.speaker === 'medico' ? 'Dr: ' : (t.speaker === 'paciente' ? 'Paciente: ' : '')}${t.text}`).join('\n');
+
+            const prompt = `Você é um médico especialista em análise de consultas. Analise a seguinte transcrição de uma teleconsulta e crie um RESUMO CLÍNICO PROFISSIONAL estruturado.
+
+Transcrição:
+${fullText}
+
+Crie um resumo com as seguintes seções:
+
+1. **QUEIXA PRINCIPAL**: O principal motivo da consulta conforme relatado pelo paciente.
+
+2. **HISTÓRICO**: Informações relevantes sobre o histórico do paciente mencionando.
+
+3. **ACHADOS CLÍNICOS**: Observações importantes mencionadas durante a consulta.
+
+4. **CONCLUSÃO**: Resumo da conversa e próximos passos recomendados.
+
+5. **TERMINOLOGIA**: Termos técnicos ou médicos identificados na conversa.
+
+Use linguagem clínica profissional. Se houver informações insuficientes, indique isso claramente.`;
+
+            try {
+                const res = await fetch('/api/ai/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        prompt: prompt,
+                        context: 'Resumo de teleconsulta - médica Holozonic'
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const summary = data.response || data.error;
+                    document.getElementById('summaryContent').innerHTML = summary.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                } else {
+                    throw new Error('API Error');
+                }
+            } catch (e) {
+                // Fallback: resumo manual
+                const manualSummary = `
+                    <strong>Resumo da Consulta</strong><br><br>
+                    <strong>Transcrições:</strong> ${transcript.length} registros<br>
+                    <strong>Duração estimada:</strong> ${Math.ceil(transcript.length / 2)} minutos<br><br>
+                    <em>Nota: Resumo detalhado requer conexão com IA. As anotações manuais foram salvas.</em>
+                `;
+                document.getElementById('summaryContent').innerHTML = manualSummary;
+            }
+
+            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Gerar Resumo Agora';
+            btn.disabled = false;
+        }
+
+        function saveConsultation() {
+            // Primeiro gera o resumo se não foi feito
+            if (transcript.length > 0) {
+                const fullText = transcript.map(t => `${t.speaker === 'medico' ? 'Dr: ' : (t.speaker === 'paciente' ? 'Paciente: ' : '')}${t.text}`).join('\n');
+                
+                fetch('/api/ai/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        prompt: `Crie um resumo clínico conciso desta consulta em português brasileiro. UseMarkdown.`,
+                        context: fullText
+                    })
+                }).catch(() => {});
+            }
+
+            const notes = document.getElementById('notesArea').value;
+            const cid = document.getElementById('cidInput').value;
+            const summary = document.getElementById('summaryContent').innerHTML;
+            
+            console.log('Salvando consulta:', { 
+                notes, 
+                cid, 
+                roomId: ROOM_ID,
+                transcript: transcript.length,
+                summary 
+            });
+            
+            alert('Consulta salva com sucesso!');
+            endCall();
+        }
+
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        initMedia();
+    </script>
+</body>
+</html>

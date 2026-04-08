@@ -1,0 +1,2065 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#000000" />
+  <title>Holozonic — Clínica de Longevidade</title>
+  <meta name="description" content="Tecnologia inteligente, Medicina Chinesa e terapias bioenergéticas." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css" />
+  <link rel="manifest" href="manifest.json" />
+
+  <style>
+    @font-face { font-family: 'Inter'; src: local('Inter'), local('Segoe UI'), local('Arial'), sans-serif; }
+    @font-face { font-family: 'Plus Jakarta Sans'; src: local('Plus Jakarta Sans'), local('Arial'), sans-serif; }
+
+    :root {
+      --mint1: #7DE6BE;
+      --mint2: #4DBE94;
+      --mint3: #31A77F;
+      --dark: #000000;
+      --ink: #0f172a;
+      --muted: #475569;
+      --sono: #3b82f6;
+      --hospedagem: #dc2626;
+      --duvida: #8b5cf6;
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      color: var(--ink);
+      padding-bottom: 80px;
+      overscroll-behavior: none;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 8px 12px;
+      position: relative;
+    }
+
+    .nav-item i {
+      font-size: 20px;
+    }
+
+    .nav-item.active {
+      color: var(--mint3);
+    }
+
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      width: 20px;
+      height: 3px;
+      background: var(--mint3);
+      border-radius: 999px;
+    }
+
+    .mobile-header {
+      position: sticky;
+      top: 0;
+      background: var(--dark);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .mobile-header .logo {
+      height: 32px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .header-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .hero-mobile {
+      background: linear-gradient(180deg, var(--dark) 0%, #0f172a 100%);
+      padding: 24px 16px 32px;
+      color: white;
+    }
+
+    .hero-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 900;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    .hero-highlight {
+      color: var(--mint2);
+    }
+
+    .hero-subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 15px;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    .cta-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s;
+    }
+
+    .cta-btn:active {
+      transform: scale(0.96);
+    }
+
+    .cta-primary {
+      background: linear-gradient(135deg, var(--mint2), var(--mint3));
+      color: white;
+      box-shadow: 0 8px 20px rgba(49, 167, 127, 0.3);
+    }
+
+    .cta-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .quick-action-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .quick-action-card:active {
+      transform: scale(0.98);
+    }
+
+    .quick-action-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+
+    .quick-action-icon.green { background: rgba(49, 167, 127, 0.1); color: var(--mint3); }
+    .quick-action-icon.blue { background: rgba(59, 130, 246, 0.1); color: var(--sono); }
+    .quick-action-icon.purple { background: rgba(139, 92, 246, 0.1); color: var(--duvida); }
+    .quick-action-icon.red { background: rgba(220, 38, 38, 0.1); color: var(--hospedagem); }
+
+    .quick-action-text {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .quick-action-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .section-card {
+      background: white;
+      border-radius: 20px;
+      margin: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .section-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .service-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .service-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .service-card {
+      min-width: 160px;
+      background: linear-gradient(135deg, var(--mint1), var(--mint2));
+      border-radius: 16px;
+      padding: 16px;
+      color: white;
+      scroll-snap-align: start;
+      cursor: pointer;
+    }
+
+    .service-card i {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .service-card h4 {
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .service-card p {
+      font-size: 11px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    .plan-card-mobile {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 2px solid #e2e8f0;
+    }
+
+    .plan-card-mobile.featured {
+      border-color: var(--mint3);
+      background: linear-gradient(180deg, rgba(49, 167, 127, 0.03) 0%, white 100%);
+    }
+
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .plan-name {
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .plan-price {
+      text-align: right;
+    }
+
+    .plan-price strong {
+      font-size: 20px;
+      color: var(--mint3);
+    }
+
+    .plan-price span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .plan-features {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .plan-feature-tag {
+      background: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .feature-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .feature-pill {
+      background: rgba(49, 167, 127, 0.1);
+      color: var(--mint3);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      z-index: 2000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 24px 20px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #f1f5f9;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .fab {
+      position: fixed;
+      bottom: 84px;
+      right: 16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #25D366;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+      border: 3px solid white;
+      cursor: pointer;
+      z-index: 999;
+    }
+
+    .fab i {
+      font-size: 26px;
+      color: white;
+    }
+
+    .mobile-tabs {
+      display: flex;
+      gap: 4px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 12px;
+      margin: 0 16px 16px;
+    }
+
+    .mobile-tab {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .mobile-tab.active {
+      background: white;
+      color: var(--mint3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .contact-card {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .contact-card:active {
+      transform: scale(0.98);
+    }
+
+    .contact-card i {
+      font-size: 24px;
+      color: var(--mint3);
+      margin-bottom: 8px;
+    }
+
+    .contact-card span {
+      font-weight: 700;
+      font-size: 13px;
+      display: block;
+    }
+
+    .mobile-footer {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .mobile-footer a {
+      color: var(--mint3);
+      text-decoration: none;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 16px;
+      right: 16px;
+      background: var(--ink);
+      color: white;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 3000;
+      transform: translateY(-100px);
+      transition: transform 0.3s ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      background: #f1f5f9;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .login-input:focus {
+      outline: none;
+      border-color: var(--mint3);
+    }
+
+    .patient-action-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .patient-action-card:active {
+      transform: scale(0.98);
+    }
+
+    .patient-action-card i {
+      width: 48px;
+      height: 48px;
+      background: rgba(49, 167, 127, 0.1);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      margin-bottom: 8px;
+    }
+
+    .patient-appointment-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      border-left: 4px solid var(--mint3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .patient-appointment-card.tele {
+      border-left-color: var(--sono);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="toast" class="toast"></div>
+
+  <header class="mobile-header">
+    <img src="https://i.imgur.com/PeN4mJL.png" alt="Holozonic" class="logo">
+    <div class="header-actions">
+      <button class="header-btn" onclick="openModal('notificationsModal')">
+        <i class="fa-regular fa-bell"></i>
+      </button>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    <section class="hero-mobile">
+      <h1 class="hero-title">
+        Holozonic<br>
+        <span class="hero-highlight">Clínica de Longevidade</span>
+      </h1>
+      <p class="hero-subtitle">
+        Compreender o corpo antes que a doença apareça.<br>
+        Reequilibrar o organismo antes que ele adoeça.
+      </p>
+
+      <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+        <button class="cta-btn cta-primary" onclick="openModal('agendamentoModal')">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          Agendar Consulta
+        </button>
+        <button class="cta-btn cta-secondary" onclick="openModal('duvidasModal')">
+          <i class="fa-brands fa-whatsapp"></i>
+          Falar com Cecília
+        </button>
+      </div>
+
+      <div class="feature-pills">
+        <span class="feature-pill"><i class="fa-solid fa-check"></i> Diagnóstico integral</span>
+        <span class="feature-pill"><i class="fa-solid fa-check"></i> Monitoramento inteligente</span>
+      </div>
+    </section>
+
+    <div class="quick-actions">
+      <div class="quick-action-card" onclick="openModal('agendamentoModal')">
+        <div class="quick-action-icon green">
+          <i class="fa-solid fa-calendar-plus"></i>
+        </div>
+        <div>
+          <div class="quick-action-text">Agendar</div>
+          <div class="quick-action-sub">Consulta ou exame</div>
+        </div>
+      </div>
+
+      <div class="quick-action-card" onclick="openModal('sonoModal')">
+        <div class="quick-action-icon blue">
+          <i class="fa-solid fa-moon"></i>
+        </div>
+        <div>
+          <div class="quick-action-text">Teste do Sono</div>
+          <div class="quick-action-sub">Avaliação gratuita</div>
+        </div>
+      </div>
+
+      <div class="quick-action-card" onclick="openModal('duvidasModal')">
+        <div class="quick-action-icon purple">
+          <i class="fa-solid fa-headset"></i>
+        </div>
+        <div>
+          <div class="quick-action-text">Cecília</div>
+          <div class="quick-action-sub">Tire suas dúvidas</div>
+        </div>
+      </div>
+
+      <div class="quick-action-card" onclick="openModal('hospedagemModal')">
+        <div class="quick-action-icon red">
+          <i class="fa-solid fa-tree"></i>
+        </div>
+        <div>
+          <div class="quick-action-text">Hospedagem</div>
+          <div class="quick-action-sub">Imersão terapêutica</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h2 class="section-title">Nossos Serviços</h2>
+      <div class="service-scroll">
+        <div class="service-card" onclick="showProcedureInfo('mib')">
+          <i class="fa-solid fa-heart-pulse"></i>
+          <h4>Consulta MIB</h4>
+          <p>Diagnóstico integral</p>
+        </div>
+        <div class="service-card" onclick="showProcedureInfo('sono')">
+          <i class="fa-solid fa-moon"></i>
+          <h4>Consulta do Sono</h4>
+          <p>Ronco e insônia</p>
+        </div>
+        <div class="service-card" onclick="showProcedureInfo('polisso')">
+          <i class="fa-solid fa-bed"></i>
+          <h4>Polissonografia</h4>
+          <p>Exame domiciliar</p>
+        </div>
+        <div class="service-card" onclick="showProcedureInfo('ozonio')">
+          <i class="fa-solid fa-wind"></i>
+          <h4>Ozonioterapia</h4>
+          <p>Regeneração</p>
+        </div>
+        <div class="service-card" onclick="showProcedureInfo('feridas')">
+          <i class="fa-solid fa-bandage"></i>
+          <h4>Feridas</h4>
+          <p>Tratamento especializado</p>
+        </div>
+        <div class="service-card" onclick="openModal('hospedagemModal')">
+          <i class="fa-solid fa-tree"></i>
+          <h4>Hospedagem</h4>
+          <p>Imersão natureza</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-tabs">
+      <button class="mobile-tab active" data-tab="planos" onclick="switchTab('planos')">Planos</button>
+      <button class="mobile-tab" data-tab="medicina" onclick="switchTab('medicina')">Medicina Chinesa</button>
+      <button class="mobile-tab" data-tab="sobre" onclick="switchTab('sobre')">Sobre</button>
+    </div>
+
+    <div id="tab-planos" class="tab-content">
+      <div class="section-card">
+        <div class="plan-card-mobile featured">
+          <div class="plan-header">
+            <div>
+              <div class="plan-name">Programa Saúde Inteligente</div>
+              <p style="font-size: 12px; color: var(--muted); margin-top: 4px;">Mais escolhido</p>
+            </div>
+            <div class="plan-price">
+              <strong>R$ 597</strong><br><span>/mês</span>
+            </div>
+          </div>
+          <div class="plan-features">
+            <span class="plan-feature-tag">Avaliação metabólica</span>
+            <span class="plan-feature-tag">Canal ativo dúvidas</span>
+            <span class="plan-feature-tag">Prescrição WhatsApp</span>
+            <span class="plan-feature-tag">01 sessão/mês moxabustão</span>
+          </div>
+        </div>
+
+        <div class="plan-card-mobile">
+          <div class="plan-header">
+            <div>
+              <div class="plan-name">Programa Base de Saúde</div>
+            </div>
+            <div class="plan-price">
+              <strong>R$ 297</strong><br><span>/mês</span>
+            </div>
+          </div>
+          <div class="plan-features">
+            <span class="plan-feature-tag">Consulta trimestral</span>
+            <span class="plan-feature-tag">Mapa da Saúde</span>
+            <span class="plan-feature-tag">01 sessão/mês ventosa</span>
+          </div>
+        </div>
+
+        <div class="plan-card-mobile">
+          <div class="plan-header">
+            <div>
+              <div class="plan-name">Programa Holozonic Longevidade</div>
+              <p style="font-size: 12px; color: var(--muted); margin-top: 4px;">VIP</p>
+            </div>
+            <div class="plan-price">
+              <strong>R$ 897</strong><br><span>/mês</span>
+            </div>
+          </div>
+          <div class="plan-features">
+            <span class="plan-feature-tag">Agenda VIP</span>
+            <span class="plan-feature-tag">Análise biomarcadores</span>
+            <span class="plan-feature-tag">Biofeedback wearables</span>
+            <span class="plan-feature-tag">01 sessão/mês laseracupuntura</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-medicina" class="tab-content" style="display: none;">
+      <div class="section-card">
+        <h3 style="font-weight: 800; font-size: 16px; margin-bottom: 12px;">☯️ Medicina Chinesa</h3>
+        <p style="font-size: 14px; color: var(--muted); line-height: 1.6;">
+          Utilizamos os quatro pilares diagnósticos clássicos da Medicina Chinesa para uma visão clínica completa.
+        </p>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <i class="fa-solid fa-eye" style="color: var(--mint3); margin-top: 2px;"></i>
+            <div>
+              <p style="font-weight: 700; font-size: 14px;">Observação (望 – Wàng)</p>
+              <p style="font-size: 13px; color: var(--muted);">Face, língua, postura e vitalidade</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <i class="fa-solid fa-ear-listen" style="color: var(--mint3); margin-top: 2px;"></i>
+            <div>
+              <p style="font-weight: 700; font-size: 14px;">Audição e Olfação (闻 – Wén)</p>
+              <p style="font-size: 13px; color: var(--muted);">Respiração, voz e sinais sutis</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <i class="fa-solid fa-comments" style="color: var(--mint3); margin-top: 2px;"></i>
+            <div>
+              <p style="font-weight: 700; font-size: 14px;">Interrogação (问 – Wèn)</p>
+              <p style="font-size: 13px; color: var(--muted);">Investigação clínica aprofundada</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <i class="fa-solid fa-heart-pulse" style="color: var(--mint3); margin-top: 2px;"></i>
+            <div>
+              <p style="font-weight: 700; font-size: 14px;">Pulsologia (切 – Qiè)</p>
+              <p style="font-size: 13px; color: var(--muted);">Leitura refinada dos pulsos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3 style="font-weight: 800; font-size: 16px; margin-bottom: 12px;">Terapias Integrativas</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center;">
+            <i class="fa-solid fa-wind" style="color: var(--mint3); font-size: 20px;"></i>
+            <p style="font-size: 12px; font-weight: 700; margin-top: 6px;">Ozonioterapia</p>
+          </div>
+          <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center;">
+            <i class="fa-solid fa-fire" style="color: var(--mint3); font-size: 20px;"></i>
+            <p style="font-size: 12px; font-weight: 700; margin-top: 6px;">Moxabustão</p>
+          </div>
+          <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center;">
+            <i class="fa-solid fa-spa" style="color: var(--mint3); font-size: 20px;"></i>
+            <p style="font-size: 12px; font-weight: 700; margin-top: 6px;">Ventosaterapia</p>
+          </div>
+          <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; text-align: center;">
+            <i class="fa-solid fa-bolt" style="color: var(--mint3); font-size: 20px;"></i>
+            <p style="font-size: 12px; font-weight: 700; margin-top: 6px;">Laserterapia</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-sobre" class="tab-content" style="display: none;">
+      <div class="section-card">
+        <div style="display: flex; gap: 16px; align-items: center;">
+          <img src="https://ui-avatars.com/api/?name=Hamilton+Souza&background=0f172a&color=fff&size=80" style="width: 64px; height: 64px; border-radius: 50%;">
+          <div>
+            <h3 style="font-weight: 800; font-size: 16px;">Dr. Hamilton Souza</h3>
+            <p style="font-size: 13px; color: var(--mint3);">CEO & Founder</p>
+            <p style="font-size: 12px; color: var(--muted); margin-top: 4px;">Especialista em Medicina Chinesa</p>
+          </div>
+        </div>
+        <p style="font-size: 13px; color: var(--muted); margin-top: 16px; line-height: 1.6;">
+          "Tratar o ser humano em sua totalidade — não apenas suas partes."
+        </p>
+      </div>
+
+      <div class="section-card">
+        <h3 style="font-weight: 800; font-size: 16px; margin-bottom: 12px;">Unidades</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: #f8fafc; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between;">
+            <span style="font-weight: 700; font-size: 13px;">Lages/SC</span>
+            <i class="fa-solid fa-location-dot" style="color: var(--mint3);"></i>
+          </div>
+          <div style="background: #f8fafc; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between;">
+            <span style="font-weight: 700; font-size: 13px;">Balneário Camboriú/SC</span>
+            <i class="fa-solid fa-location-dot" style="color: var(--mint3);"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3 style="font-weight: 800; font-size: 16px; margin-bottom: 12px;">Fale Conosco</h3>
+        <div class="contact-grid">
+          <div class="contact-card" onclick="window.open('https://wa.me/554899128212', '_blank')">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>WhatsApp</span>
+          </div>
+          <div class="contact-card" onclick="window.location.href='tel:+554899128212'">
+            <i class="fa-solid fa-phone"></i>
+            <span>Ligar</span>
+          </div>
+          <div class="contact-card" onclick="window.location.href='mailto:holozonic@gmail.com'">
+            <i class="fa-regular fa-envelope"></i>
+            <span>E-mail</span>
+          </div>
+          <div class="contact-card" onclick="openModal('agendamentoModal')">
+            <i class="fa-solid fa-calendar"></i>
+            <span>Agendar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-footer">
+      <p>© 2026 Holozonic. Todos os direitos reservados.</p>
+      <p style="margin-top: 8px;"><a href="#">Termos de Uso</a> · <a href="#">Privacidade</a></p>
+    </div>
+  </main>
+
+  <button class="fab" onclick="openModal('duvidasModal')">
+    <i class="fa-brands fa-whatsapp"></i>
+  </button>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchNav(this, 'home')">
+      <i class="fa-solid fa-house"></i>
+      <span>Início</span>
+    </button>
+    <button class="nav-item" onclick="switchNav(this, 'agenda')">
+      <i class="fa-solid fa-calendar"></i>
+      <span>Agenda</span>
+    </button>
+    <button class="nav-item" onclick="switchNav(this, 'paciente')">
+      <i class="fa-solid fa-user"></i>
+      <span id="navPacienteLabel">Paciente</span>
+    </button>
+    <button class="nav-item" onclick="switchNav(this, 'ajuda')">
+      <i class="fa-solid fa-headset"></i>
+      <span>Ajuda</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: Login/Cadastro Paciente -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('loginModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div id="loginTabs" style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <button onclick="showLoginTab('login')" id="tabLoginBtn" class="flex-1 py-2 rounded-lg font-bold text-sm bg-emerald-500 text-white">Entrar</button>
+        <button onclick="showLoginTab('register')" id="tabRegisterBtn" class="flex-1 py-2 rounded-lg font-bold text-sm bg-slate-200 text-slate-600">Cadastrar</button>
+      </div>
+
+      <!-- Form Login -->
+      <div id="loginForm">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="width: 60px; height: 60px; background: var(--mint2); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;">
+            <i class="fa-solid fa-user-lock" style="font-size: 28px; color: white;"></i>
+          </div>
+          <h3 style="font-weight: 800; font-size: 18px;">Área do Paciente</h3>
+          <p style="font-size: 14px; color: var(--muted);">Faça login para acessar seus dados</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="tel" id="loginPhone" placeholder="WhatsApp (00) 00000-0000" class="login-input">
+          <input type="password" id="loginPassword" placeholder="Senha" class="login-input">
+        </div>
+
+        <button class="cta-btn cta-primary" style="margin-top: 16px;" onclick="doLogin()">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Entrar
+        </button>
+      </div>
+
+      <!-- Form Cadastro -->
+      <div id="registerForm" style="display: none;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="width: 60px; height: 60px; background: var(--mint2); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;">
+            <i class="fa-solid fa-user-plus" style="font-size: 28px; color: white;"></i>
+          </div>
+          <h3 style="font-weight: 800; font-size: 18px;">Novo Paciente</h3>
+          <p style="font-size: 14px; color: var(--muted);">Crie sua conta para acessar a área do paciente</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="text" id="regName" placeholder="Nome completo" class="login-input">
+          <input type="tel" id="regPhone" placeholder="WhatsApp (00) 00000-0000" class="login-input">
+          <input type="email" id="regEmail" placeholder="E-mail" class="login-input">
+          <input type="date" id="regBirth" class="login-input">
+          <input type="password" id="regPassword" placeholder="Criar senha" class="login-input">
+        </div>
+
+        <button class="cta-btn cta-primary" style="margin-top: 16px;" onclick="doRegister()">
+          <i class="fa-solid fa-user-plus"></i>
+          Criar Conta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Dashboard Paciente -->
+  <div id="pacienteDashboardModal" class="modal-overlay">
+    <div class="modal-content" style="padding-bottom: 80px;">
+      <button class="modal-close" onclick="closeModal('pacienteDashboardModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div id="patientDashboardContent">
+        <!-- Header com dados do paciente -->
+        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0;">
+          <img id="patientAvatar" src="https://ui-avatars.com/api/?name=Paciente&background=4DBE94&color=fff" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 12px;">
+          <h3 id="patientNameDisplay" style="font-weight: 800; font-size: 20px;">Olá, Paciente!</h3>
+          <p style="font-size: 14px; color: var(--muted);" id="patientEmailDisplay">email@ex.com</p>
+          <button onclick="doLogout()" style="margin-top: 8px; font-size: 12px; color: var(--hospedagem); background: none; border: none; cursor: pointer;">
+            <i class="fa-solid fa-right-from-bracket"></i> Sair
+          </button>
+        </div>
+
+        <!-- Quick Actions do Paciente -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+          <div class="patient-action-card" onclick="showPatientAgenda()">
+            <i class="fa-solid fa-calendar-check" style="font-size: 24px; color: var(--mint3);"></i>
+            <span style="font-weight: 700; font-size: 13px;">Minhas Consultas</span>
+            <span style="font-size: 11px; color: var(--muted);">Ver agenda</span>
+          </div>
+          <div class="patient-action-card" onclick="showPatientRecords()">
+            <i class="fa-solid fa-file-medical" style="font-size: 24px; color: var(--mint3);"></i>
+            <span style="font-weight: 700; font-size: 13px;">Meus Prontuários</span>
+            <span style="font-size: 11px; color: var(--muted);">Histórico</span>
+          </div>
+          <div class="patient-action-card" onclick="showPatientPlan()">
+            <i class="fa-solid fa-heart-pulse" style="font-size: 24px; color: var(--mint3);"></i>
+            <span style="font-weight: 700; font-size: 13px;">Meu Plano</span>
+            <span style="font-size: 11px; color: var(--muted);">Assinatura</span>
+          </div>
+          <div class="patient-action-card" onclick="showPatientTeleconsulta()">
+            <i class="fa-solid fa-video" style="font-size: 24px; color: var(--mint3);"></i>
+            <span style="font-weight: 700; font-size: 13px;">Teleconsulta</span>
+            <span style="font-size: 11px; color: var(--muted);">Entrar na sala</span>
+          </div>
+        </div>
+
+        <!-- Próxima Consulta -->
+        <div style="background: linear-gradient(135deg, var(--mint1), var(--mint2)); border-radius: 16px; padding: 16px; color: white; margin-bottom: 20px;">
+          <h4 style="font-weight: 800; font-size: 14px; margin-bottom: 12px;">Próxima Consulta</h4>
+          <div id="nextAppointmentInfo">
+            <p style="font-size: 13px; opacity: 0.9;">Nenhuma consulta agendada</p>
+          </div>
+        </div>
+
+        <!-- Contatos Rápidos -->
+        <div style="background: #f8fafc; border-radius: 16px; padding: 16px;">
+          <h4 style="font-weight: 700; font-size: 14px; margin-bottom: 12px;">Contatos Úteis</h4>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button onclick="openWhatsApp('')" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 10px;">
+              <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+              <span style="font-size: 13px;">Falar com a clínica</span>
+            </button>
+            <button onclick="openModal('duvidasModal'); closeModal('pacienteDashboardModal');" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 10px;">
+              <i class="fa-solid fa-robot" style="color: var(--duvida);"></i>
+              <span style="font-size: 13px;">Cecília (IA)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Agenda do Paciente -->
+  <div id="pacienteAgendaModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('pacienteAgendaModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h3 style="font-weight: 800; font-size: 18px;">Minhas Consultas</h3>
+      </div>
+
+      <div id="patientAppointmentsList" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Appointments serão carregados via API -->
+        <div style="text-align: center; padding: 40px; color: var(--muted);">
+          <i class="fa-solid fa-calendar-xmark" style="font-size: 40px; margin-bottom: 12px; opacity: 0.5;"></i>
+          <p>Carregando suas consultas...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Agendamento Completo -->
+  <div id="agendamentoModal" class="modal-overlay">
+    <div class="modal-content" style="padding-bottom: 80px;">
+      <button class="modal-close" onclick="closeModal('agendamentoModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Step Indicator -->
+      <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 20px;">
+        <div id="stepDot1" class="step-dot active"></div>
+        <div id="stepDot2" class="step-dot"></div>
+        <div id="stepDot3" class="step-dot"></div>
+      </div>
+
+      <!-- Step 1: Selecionar Procedimento -->
+      <div id="agendaStep1">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 12px;">
+          <h3 style="font-weight: 800; font-size: 18px;">Olá! Sou a Inêz</h3>
+          <p style="font-size: 14px; color: var(--muted);">Selecione o procedimento desejado</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="proc-option" onclick="showProcedureInfo('mib')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <p style="font-weight: 700; font-size: 15px;">Consulta Integrada MIB</p>
+                <p style="font-size: 12px; color: var(--muted);">Diagnóstico integral</p>
+              </div>
+              <strong style="color: var(--mint3);">R$ 297</strong>
+            </div>
+          </div>
+
+          <div class="proc-option" onclick="showProcedureInfo('sono')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <p style="font-weight: 700; font-size: 15px;">Consulta do Sono</p>
+                <p style="font-size: 12px; color: var(--muted);">Ronco, insônia, apneia</p>
+              </div>
+              <strong style="color: var(--mint3);">R$ 297</strong>
+            </div>
+          </div>
+
+          <div class="proc-option" onclick="showProcedureInfo('polisso')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <p style="font-weight: 700; font-size: 15px;">Polissonografia</p>
+                <p style="font-size: 12px; color: var(--muted);">Exame domiciliar</p>
+              </div>
+              <strong style="color: var(--mint3);">R$ 450</strong>
+            </div>
+          </div>
+
+          <div class="proc-option" onclick="showProcedureInfo('ozonio')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <p style="font-weight: 700; font-size: 15px;">Ozonioterapia</p>
+                <p style="font-size: 12px; color: var(--muted);">Regeneração e equilíbrio</p>
+              </div>
+              <strong style="color: var(--mint3);">R$ 150</strong>
+            </div>
+          </div>
+
+          <div class="proc-option" onclick="showProcedureInfo('tele')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <p style="font-weight: 700; font-size: 15px;">Telemedicina</p>
+                <p style="font-size: 12px; color: var(--muted);">Consulta online</p>
+              </div>
+              <strong style="color: var(--mint3);">R$ 197</strong>
+            </div>
+          </div>
+
+          <div class="proc-option" onclick="showProcedureInfo('feridas')">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <p style="font-weight: 700; font-size: 15px;">Protocolo Feridas</p>
+                <p style="font-size: 12px; color: var(--muted);">Tratamento especializado</p>
+              </div>
+              <strong style="color: var(--mint3);">Sob avaliação</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Dados do Cliente -->
+      <div id="agendaStep2" style="display: none;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h3 style="font-weight: 800; font-size: 18px;">Seus Dados</h3>
+          <p style="font-size: 14px; color: var(--muted);" id="selectedProcName">Procedimento: -</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="text" id="mobileNome" placeholder="Seu nome completo" class="login-input">
+          <input type="tel" id="mobileTelefone" placeholder="WhatsApp (00) 00000-0000" class="login-input">
+          <textarea id="mobileMotivo" placeholder="Qual sintoma ou motivo da consulta?" rows="3" class="login-input" style="resize: none;"></textarea>
+        </div>
+
+        <button class="cta-btn cta-primary" style="margin-top: 16px;" onclick="goToAgendaStep3()">
+          <i class="fa-solid fa-arrow-right"></i>
+          Ver Horários Disponíveis
+        </button>
+      </div>
+
+      <!-- Step 3: Escolher Data/Hora -->
+      <div id="agendaStep3" style="display: none;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h3 style="font-weight: 800; font-size: 18px;">Escolha o Horário</h3>
+          <p style="font-size: 14px; color: var(--muted);">Datas disponíveis esta semana</p>
+        </div>
+
+        <!-- Calendário -->
+        <div id="mobileCalendar" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px;">
+        </div>
+
+        <!-- Horários -->
+        <div id="mobileTimeSlots" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        </div>
+
+        <button class="cta-btn cta-primary" style="margin-top: 16px;" onclick="confirmMobileAgendamento()">
+          <i class="fa-solid fa-check"></i>
+          Confirmar Agendamento
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Info Procedimento -->
+  <div id="procInfoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('procInfoModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div id="procInfoIcon" style="width: 60px; height: 60px; background: var(--mint2); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;">
+          <i id="procIcon" class="fa-solid fa-heart-pulse" style="font-size: 28px; color: white;"></i>
+        </div>
+        <h3 id="procInfoTitle" style="font-weight: 800; font-size: 18px;">Procedimento</h3>
+        <p id="procInfoPrice" style="font-size: 24px; font-weight: 800; color: var(--mint3); margin-top: 8px;">R$ 297</p>
+      </div>
+
+      <p id="procInfoDesc" style="font-size: 14px; color: var(--muted); line-height: 1.6; text-align: center; margin-bottom: 20px;">
+        Descrição do procedimento aqui.
+      </p>
+
+      <div id="procInfoBenefits" style="margin-bottom: 20px;">
+      </div>
+
+      <button class="cta-btn cta-primary" onclick="selectProcedureAndContinue()">
+        <i class="fa-solid fa-calendar-plus"></i>
+        Agendar Este
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Dúvidas (Menu com popups) -->
+  <div id="duvidasModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('duvidasModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="https://randomuser.me/api/portraits/women/68.jpg" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 12px;">
+        <h3 style="font-weight: 800; font-size: 18px;">Cecília</h3>
+        <p style="font-size: 14px; color: var(--muted);">Como posso ajudar você hoje?</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="cta-btn cta-secondary" style="justify-content: flex-start; color: var(--ink); background: #f1f5f9; border: none;" onclick="showTratamentosInfo()">
+          <i class="fa-solid fa-stethoscope"></i>
+          Tratamentos
+        </button>
+        <button class="cta-btn cta-secondary" style="justify-content: flex-start; color: var(--ink); background: #f1f5f9; border: none;" onclick="showValoresInfo()">
+          <i class="fa-solid fa-tag"></i>
+          Valores
+        </button>
+        <button class="cta-btn cta-secondary" style="justify-content: flex-start; color: var(--ink); background: #f1f5f9; border: none;" onclick="openModal('agendamentoModal'); closeModal('duvidasModal');">
+          <i class="fa-solid fa-calendar"></i>
+          Agendamento
+        </button>
+        <button class="cta-btn cta-secondary" style="justify-content: flex-start; color: var(--ink); background: #f1f5f9; border: none;" onclick="showLocalizacaoInfo()">
+          <i class="fa-solid fa-location-dot"></i>
+          Localização
+        </button>
+      </div>
+
+      <button class="cta-btn cta-primary" style="margin-top: 16px;" onclick="openWhatsApp('')">
+        <i class="fa-brands fa-whatsapp"></i>
+        Falar no WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Valores -->
+  <div id="valoresModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('valoresModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 60px; height: 60px; background: var(--mint2); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;">
+          <i class="fa-solid fa-tag" style="font-size: 28px; color: white;"></i>
+        </div>
+        <h3 style="font-weight: 800; font-size: 18px;">Nossos Valores</h3>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="valor-item">
+          <span>Consulta Integrada MIB</span>
+          <strong>R$ 297</strong>
+        </div>
+        <div class="valor-item">
+          <span>Consulta do Sono</span>
+          <strong>R$ 297</strong>
+        </div>
+        <div class="valor-item">
+          <span>Polissonografia Domiciliar</span>
+          <strong>R$ 450</strong>
+        </div>
+        <div class="valor-item">
+          <span>Sessão de Ozonioterapia</span>
+          <strong>R$ 150</strong>
+        </div>
+        <div class="valor-item">
+          <span>Telemedicina (Online)</span>
+          <strong>R$ 197</strong>
+        </div>
+        <div class="valor-item">
+          <span>Protocolo Feridas</span>
+          <strong>Sob avaliação</strong>
+        </div>
+      </div>
+
+      <button class="cta-btn cta-primary" style="margin-top: 16px;" onclick="openModal('agendamentoModal'); closeModal('valoresModal');">
+        <i class="fa-solid fa-calendar-plus"></i>
+        Agendar Consulta
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Localização -->
+  <div id="localizacaoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('localizacaoModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 60px; height: 60px; background: var(--mint2); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;">
+          <i class="fa-solid fa-location-dot" style="font-size: 28px; color: white;"></i>
+        </div>
+        <h3 style="font-weight: 800; font-size: 18px;">Nossas Unidades</h3>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="location-card" onclick="openMaps('lages')">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-hospital" style="font-size: 24px; color: var(--mint3);"></i>
+            <div>
+              <p style="font-weight: 700; font-size: 15px;">Lages/SC</p>
+              <p style="font-size: 12px; color: var(--muted);">Matriz - Centro</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color: var(--muted);"></i>
+        </div>
+
+        <div class="location-card" onclick="openMaps('bc')">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-hospital" style="font-size: 24px; color: var(--mint3);"></i>
+            <div>
+              <p style="font-weight: 700; font-size: 15px;">Balneário Camboriú/SC</p>
+              <p style="font-size: 12px; color: var(--muted);">Filial - Centro</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color: var(--muted);"></i>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding: 12px; background: #f1f5f9; border-radius: 12px; text-align: center;">
+        <p style="font-size: 13px; color: var(--muted);">
+          <i class="fa-solid fa-tree" style="color: var(--mint3);"></i>
+          <br>Hospedagem Integrativa<br>
+          <strong>Área rural de Lages/SC</strong>
+        </p>
+      </div>
+
+      <button class="cta-btn cta-primary" style="margin-top: 16px;" onclick="openWhatsApp('Quero saber a localização')">
+        <i class="fa-brands fa-whatsapp"></i>
+        Tirar Dúvidas
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Tratamentos -->
+  <div id="tratamentosModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('tratamentosModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 60px; height: 60px; background: var(--mint2); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;">
+          <i class="fa-solid fa-stethoscope" style="font-size: 28px; color: white;"></i>
+        </div>
+        <h3 style="font-weight: 800; font-size: 18px;">Nossos Tratamentos</h3>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; max-height: 300px; overflow-y: auto;">
+        <div class="tratamento-item" onclick="showProcedureInfo('mib')">
+          <i class="fa-solid fa-heart-pulse"></i>
+          <div>
+            <p style="font-weight: 700;">Medicina Integrativa Bioenergética (MIB)</p>
+            <p style="font-size: 12px; color: var(--muted);">Diagnóstico integral - físico, emocional, energético</p>
+          </div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+
+        <div class="tratamento-item" onclick="showProcedureInfo('sono')">
+          <i class="fa-solid fa-moon"></i>
+          <div>
+            <p style="font-weight: 700;">Medicina do Sono</p>
+            <p style="font-size: 12px; color: var(--muted);">Ronco, insônia, apneia, polissonografia</p>
+          </div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+
+        <div class="tratamento-item" onclick="showProcedureInfo('ozonio')">
+          <i class="fa-solid fa-wind"></i>
+          <div>
+            <p style="font-weight: 700;">Ozonioterapia</p>
+            <p style="font-size: 12px; color: var(--muted);">Regeneração, equilíbrio, antimicrobiano</p>
+          </div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+
+        <div class="tratamento-item" onclick="showProcedureInfo('tele')">
+          <i class="fa-solid fa-video"></i>
+          <div>
+            <p style="font-weight: 700;">Telemedicina</p>
+            <p style="font-size: 12px; color: var(--muted);">Consulta online com receita digital</p>
+          </div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+
+        <div class="tratamento-item" onclick="showProcedureInfo('feridas')">
+          <i class="fa-solid fa-bandage"></i>
+          <div>
+            <p style="font-weight: 700;">Protocolo para Feridas</p>
+            <p style="font-size: 12px; color: var(--muted);">Prevenção, tratamento e acompanhamento</p>
+          </div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+
+        <div class="tratamento-item" onclick="openModal('hospedagemModal'); closeModal('tratamentosModal');">
+          <i class="fa-solid fa-tree"></i>
+          <div>
+            <p style="font-weight: 700;">Hospedagem Integrativa</p>
+            <p style="font-size: 12px; color: var(--muted);">Imersão terapêutica na natureza</p>
+          </div>
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
+      </div>
+
+      <button class="cta-btn cta-primary" style="margin-top: 16px;" onclick="openWhatsApp('Quero saber mais sobre tratamentos')">
+        <i class="fa-brands fa-whatsapp"></i>
+        Falar com Cecília
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Sono -->
+  <div id="sonoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('sonoModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 60px; height: 60px; background: var(--sono); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;">
+          <i class="fa-solid fa-moon" style="font-size: 28px; color: white;"></i>
+        </div>
+        <h3 style="font-weight: 800; font-size: 18px;">Avaliação do Sono</h3>
+        <p style="font-size: 14px; color: var(--muted);">Teste gratuito para entender sua qualidade de sono</p>
+      </div>
+
+      <button class="cta-btn cta-primary" style="background: var(--sono);" onclick="openWhatsApp('Quero fazer o teste do sono')">
+        <i class="fa-solid fa-play"></i>
+        Iniciar Avaliação
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Hospedagem -->
+  <div id="hospedagemModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('hospedagemModal')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 60px; height: 60px; background: var(--hospedagem); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;">
+          <i class="fa-solid fa-tree" style="font-size: 28px; color: white;"></i>
+        </div>
+        <h3 style="font-weight: 800; font-size: 18px;">Hospedagem Integrativa</h3>
+        <p style="font-size: 14px; color: var(--muted);">Imersão terapêutica na natureza — Área rural de Lages/SC</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between;">
+          <span>Programa 2-3 dias</span>
+          <strong style="color: var(--hospedagem);">R$ 1.497</strong>
+        </div>
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between;">
+          <span>Programa 5 dias</span>
+          <strong style="color: var(--hospedagem);">R$ 2.497</strong>
+        </div>
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between;">
+          <span>Programa 7 dias</span>
+          <strong style="color: var(--hospedagem);">R$ 3.497</strong>
+        </div>
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; display: flex; justify-content: space-between;">
+          <span>Programa 10-14 dias</span>
+          <strong style="color: var(--hospedagem);">R$ 5.997</strong>
+        </div>
+      </div>
+
+      <button class="cta-btn cta-primary" style="background: var(--hospedagem);" onclick="openWhatsApp('Quero saber mais sobre a Hospedagem Integrativa')">
+        <i class="fa-solid fa-arrow-right"></i>
+        Saber Mais
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const PHONE = '554899128212';
+    const WPP = `https://wa.me/${PHONE}`;
+
+    const procedures = {
+      mib: { 
+        name: "Consulta Integrada MIB", 
+        price: "R$ 297", 
+        description: "Consulta clínica completa para avaliação profunda do seu estado físico, emocional, funcional e energético. Inclui análise de causa raiz e plano terapêutico personalizado.",
+        icon: "fa-heart-pulse",
+        benefits: ["Avaliação inicial completa", "Plano terapêutico personalizado", "Mapa de saúde individual"]
+      },
+      sono: { 
+        name: "Consulta do Sono", 
+        price: "R$ 297", 
+        description: "Consulta especializada para investigar ronco, insônia, apneia e fadiga. Anamnese completa do sono com avaliação clínica.",
+        icon: "fa-moon",
+        benefits: ["Anamnese do sono", "Avaliação clínica", "Encaminhamento estratégico"]
+      },
+      polisso: { 
+        name: "Polissonografia Domiciliar", 
+        price: "R$ 450", 
+        description: "Exame completo do sono no conforto da sua casa com análise especializada. Monitora respiratory, cardiac e cerebral durante o sono.",
+        icon: "fa-bed",
+        benefits: ["Exame domiciliar", "Relatório detalhado", "Acompanhamento remoto"]
+      },
+      ozonio: { 
+        name: "Sessão de Ozonioterapia", 
+        price: "R$ 150", 
+        description: "Atendimento voltado para equilíbrio, regeneração e apoio terapêutico individualizado. Ação antimicrobiana e estímulo à oxigenação tecidual.",
+        icon: "fa-wind",
+        benefits: ["Aplicação segura", "Avaliação prévia", "Suporte integrativo"]
+      },
+      tele: { 
+        name: "Telemedicina (Online)", 
+        price: "R$ 197", 
+        description: "Atendimento clínico via vídeo via Google Meet com envio de prescrições digitais. Sem sair de casa.",
+        icon: "fa-video",
+        benefits: ["Sem sair de casa", "Link do Meet automático", "Receita digital"]
+      },
+      feridas: { 
+        name: "Protocolo para Feridas", 
+        price: "Sob avaliação", 
+        description: "Atendimento especializado para prevenção, tratamento e acompanhamento de feridas. Presencial ou domiciliar.",
+        icon: "fa-bandage",
+        benefits: ["Atendimento especializado", "Plano individualizado", "Suporte domiciliar"]
+      }
+    };
+
+    let selectedProcedure = { key: "", name: "", price: "", description: "", icon: "", benefits: [] };
+    let agendaStep = 1;
+    let selectedDate = "";
+    let selectedTime = "";
+
+    const timeSlots = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
+    let occupiedSlots = [];
+
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function showProcedureInfo(procKey) {
+      const proc = procedures[procKey];
+      if (!proc) return;
+      
+      selectedProcedure = { key: procKey, ...proc };
+      
+      document.getElementById('procInfoTitle').textContent = proc.name;
+      document.getElementById('procInfoPrice').textContent = proc.price;
+      document.getElementById('procInfoDesc').textContent = proc.description;
+      
+      document.getElementById('procIcon').className = `fa-solid ${proc.icon}`;
+      
+      const benefitsContainer = document.getElementById('procInfoBenefits');
+      benefitsContainer.innerHTML = proc.benefits.map(b => 
+        `<div class="info-benefit"><i class="fa-solid fa-check-circle"></i><span>${b}</span></div>`
+      ).join('');
+      
+      openModal('procInfoModal');
+    }
+
+    function selectProcedureAndContinue() {
+      closeModal('procInfoModal');
+      goToAgendaStep2();
+    }
+
+    function goToAgendaStep2() {
+      agendaStep = 2;
+      updateStepDots();
+      
+      const step1 = document.getElementById('agendaStep1');
+      const step2 = document.getElementById('agendaStep2');
+      const step3 = document.getElementById('agendaStep3');
+      const procName = document.getElementById('selectedProcName');
+      
+      if (step1) step1.style.display = 'none';
+      if (step2) step2.style.display = 'block';
+      if (step3) step3.style.display = 'none';
+      if (procName) procName.textContent = `Procedimento: ${selectedProcedure.name}`;
+    }
+
+    function goToAgendaStep3() {
+      const nome = document.getElementById('mobileNome')?.value.trim();
+      const telefone = document.getElementById('mobileTelefone')?.value.trim();
+      const motivo = document.getElementById('mobileMotivo')?.value.trim();
+
+      if (!nome || !telefone) {
+        showToast('Por favor, preencha nome e WhatsApp');
+        return;
+      }
+
+      agendaStep = 3;
+      updateStepDots();
+      
+      const step1 = document.getElementById('agendaStep1');
+      const step2 = document.getElementById('agendaStep2');
+      const step3 = document.getElementById('agendaStep3');
+      
+      if (step1) step1.style.display = 'none';
+      if (step2) step2.style.display = 'none';
+      if (step3) step3.style.display = 'block';
+      
+      renderMobileCalendar();
+      loadOccupiedSlots();
+    }
+
+    function updateStepDots() {
+      const dot1 = document.getElementById('stepDot1');
+      const dot2 = document.getElementById('stepDot2');
+      const dot3 = document.getElementById('stepDot3');
+      
+      if (dot1) dot1.classList.toggle('active', agendaStep >= 1);
+      if (dot2) dot2.classList.toggle('active', agendaStep >= 2);
+      if (dot3) dot3.classList.toggle('active', agendaStep >= 3);
+    }
+
+    async function loadOccupiedSlots() {
+      occupiedSlots = [];
+      try {
+        const res = await fetch('api/agenda/occupied');
+        if (res.ok) occupiedSlots = await res.json();
+      } catch (e) {
+        console.log('Agenda offline');
+      }
+      renderTimeSlots();
+    }
+
+    function renderMobileCalendar() {
+      const calendar = document.getElementById('mobileCalendar');
+      if (!calendar) return;
+      
+      const today = new Date();
+      calendar.innerHTML = '';
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        const dayName = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
+        
+        const btn = document.createElement('button');
+        btn.className = `calendar-day ${selectedDate === iso ? 'active' : ''}`;
+        btn.innerHTML = `<small>${dayName}</small><strong>${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}</strong>`;
+        btn.onclick = () => selectMobileDate(iso);
+        calendar.appendChild(btn);
+      }
+    }
+
+    function selectMobileDate(dateValue) {
+      selectedDate = dateValue;
+      selectedTime = "";
+      renderMobileCalendar();
+      renderTimeSlots();
+    }
+
+    function renderTimeSlots() {
+      const slotsContainer = document.getElementById('mobileTimeSlots');
+      if (!slotsContainer) return;
+      
+      if (!selectedDate) {
+        slotsContainer.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--muted);">Selecione uma data primeiro</p>';
+        return;
+      }
+
+      slotsContainer.innerHTML = timeSlots.map(hour => {
+        const isBusy = occupiedSlots.some(slot => {
+          const s = String(slot).trim();
+          return s === `${selectedDate} ${hour}` || s === `${selectedDate}T${hour}`;
+        });
+        
+        return `<button class="time-slot ${selectedTime === hour ? 'active' : ''} ${isBusy ? 'busy' : ''}" 
+          onclick="selectMobileTime('${hour}')" ${isBusy ? 'disabled' : ''}>
+          ${hour}
+        </button>`;
+      }).join('');
+    }
+
+    function selectMobileTime(hourValue) {
+      selectedTime = hourValue;
+      renderTimeSlots();
+    }
+
+    function confirmMobileAgendamento() {
+      if (!selectedDate || !selectedTime) {
+        showToast('Selecione data e horário');
+        return;
+      }
+
+      const nome = document.getElementById('mobileNome').value.trim();
+      const telefone = document.getElementById('mobileTelefone').value.trim();
+      const motivo = document.getElementById('mobileMotivo').value.trim();
+
+      const dataToSync = {
+        name: nome,
+        phone: telefone,
+        source: 'MOBILE_APP',
+        step: 8,
+        data: {
+          selectedProcedure: {
+            name: selectedProcedure.name,
+            price: selectedProcedure.price
+          },
+          inezData: {
+            motivo: motivo
+          },
+          data: selectedDate,
+          hora: selectedTime
+        }
+      };
+
+      fetch('/api/leads/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSync)
+      })
+      .then(res => {
+        if (res.ok) {
+          showToast('Agendamento enviado com sucesso!');
+          resetAgendaFlow();
+          closeModal('agendamentoModal');
+        } else {
+          throw new Error('Sync failed');
+        }
+      })
+      .catch(() => {
+        sendToWhatsAppFallback(nome, telefone, motivo);
+      });
+    }
+
+    function sendToWhatsAppFallback(nome, telefone, motivo) {
+      const dataFormatada = new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-BR');
+
+      const mensagem = `Olá! Gostaria de agendar uma consulta.
+
+*Procedimento:* ${selectedProcedure.name}
+*Valor:* ${selectedProcedure.price}
+
+*Nome:* ${nome}
+*WhatsApp:* ${telefone}
+*Sintoma:* ${motivo || 'Não informado'}
+
+*Data:* ${dataFormatada}
+*Horário:* ${selectedTime}
+
+✅ *Status:* Aguardando confirmação`;
+
+      window.open(`${WPP}?text=${encodeURIComponent(mensagem)}`, '_blank');
+      closeModal('agendamentoModal');
+      showToast('Agendamento enviado com sucesso!');
+      resetAgendaFlow();
+    }
+
+    function resetAgendaFlow() {
+      agendaStep = 1;
+      selectedProcedure = { key: "", name: "", price: "", description: "", icon: "", benefits: [] };
+      selectedDate = "";
+      selectedTime = "";
+      
+      document.getElementById('mobileNome').value = '';
+      document.getElementById('mobileTelefone').value = '';
+      document.getElementById('mobileMotivo').value = '';
+      
+      document.getElementById('agendaStep1').style.display = 'block';
+      document.getElementById('agendaStep2').style.display = 'none';
+      document.getElementById('agendaStep3').style.display = 'none';
+      
+      updateStepDots();
+    }
+
+    function switchNav(btn, tab) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (tab === 'home') {
+        document.getElementById('mainContent').scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'agenda') {
+        // Verificar se está logado
+        const patient = getPatientSession();
+        if (patient) {
+          showPatientAgenda();
+        } else {
+          // Se não logado, pede login primeiro
+          openModal('loginModal');
+        }
+      } else if (tab === 'paciente') {
+        showPatientDashboard();
+      } else if (tab === 'ajuda') {
+        openModal('duvidasModal');
+      }
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.mobile-tab[data-tab="${tabName}"]`).classList.add('active');
+
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      document.getElementById(`tab-${tabName}`).style.display = 'block';
+    }
+
+    function openWhatsApp(msg) {
+      const mensagem = msg || "Olá! Vim pelo app da Holozonic e gostaria de informações.";
+      window.open(`${WPP}?text=${encodeURIComponent(mensagem)}`, '_blank');
+      closeModal('duvidasModal');
+    }
+
+    function showValoresInfo() {
+      closeModal('duvidasModal');
+      openModal('valoresModal');
+    }
+
+    function showLocalizacaoInfo() {
+      closeModal('duvidasModal');
+      openModal('localizacaoModal');
+    }
+
+    function showTratamentosInfo() {
+      closeModal('duvidasModal');
+      openModal('tratamentosModal');
+    }
+
+    function openMaps(cidade) {
+      if (cidade === 'lages') {
+        window.open('https://maps.google.com/?q=Rua+Marechal+Deodoro,+Lages+SC', '_blank');
+      } else if (cidade === 'bc') {
+        window.open('https://maps.google.com/?q=Balneario+Camboriu+SC', '_blank');
+      }
+    }
+
+    // ====== SISTEMA DE LOGIN/PACIENTE ======
+    
+    // Verificar sessão ao carregar
+    document.addEventListener('DOMContentLoaded', function() {
+      checkPatientSession();
+    });
+
+    function checkPatientSession() {
+      const session = localStorage.getItem('holozonic_patient_session');
+      if (session) {
+        try {
+          const patient = JSON.parse(session);
+          // Verificar se elementos existem antes de atualizar
+          const navLabel = document.getElementById('navPacienteLabel');
+          if (navLabel) {
+            updatePatientUI(patient);
+          }
+        } catch (e) {
+          localStorage.removeItem('holozonic_patient_session');
+        }
+      }
+    }
+
+    function updatePatientUI(patient) {
+      // Atualizar label do nav - verificar se existe
+      const navLabel = document.getElementById('navPacienteLabel');
+      if (navLabel) {
+        navLabel.textContent = patient.name.split(' ')[0];
+      }
+      
+      // Atualizar dashboard - verificar se elementos existem
+      const nameDisplay = document.getElementById('patientNameDisplay');
+      const emailDisplay = document.getElementById('patientEmailDisplay');
+      const avatar = document.getElementById('patientAvatar');
+      
+      if (nameDisplay) nameDisplay.textContent = `Olá, ${patient.name.split(' ')[0]}!`;
+      if (emailDisplay) emailDisplay.textContent = patient.email || patient.phone;
+      if (avatar) avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(patient.name)}&background=4DBE94&color=fff`;
+    }
+
+    function showLoginTab(tab) {
+      const loginBtn = document.getElementById('tabLoginBtn');
+      const registerBtn = document.getElementById('tabRegisterBtn');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+
+      if (tab === 'login') {
+        loginBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-emerald-500 text-white';
+        registerBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-slate-200 text-slate-600';
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+      } else {
+        registerBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-emerald-500 text-white';
+        loginBtn.className = 'flex-1 py-2 rounded-lg font-bold text-sm bg-slate-200 text-slate-600';
+        registerForm.style.display = 'block';
+        loginForm.style.display = 'none';
+      }
+    }
+
+    function doLogin() {
+      const phone = document.getElementById('loginPhone').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      if (!phone || !password) {
+        showToast('Preencha WhatsApp e senha');
+        return;
+      }
+
+      // Simular login (substituir por API real)
+      const mockPatient = {
+        id: '1',
+        name: 'Paciente Demo',
+        phone: phone,
+        email: 'paciente@ex.com',
+        plan: 'Saúde Inteligente'
+      };
+
+      localStorage.setItem('holozonic_patient_session', JSON.stringify(mockPatient));
+      closeModal('loginModal');
+      updatePatientUI(mockPatient);
+      showToast('Login realizado com sucesso!');
+      loadPatientData();
+    }
+
+    function doRegister() {
+      const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const birth = document.getElementById('regBirth').value;
+      const password = document.getElementById('regPassword').value.trim();
+
+      if (!name || !phone || !password) {
+        showToast('Preencha nome, WhatsApp e senha');
+        return;
+      }
+
+      // Simular cadastro (substituir por API real)
+      const newPatient = {
+        id: Date.now().toString(),
+        name: name,
+        phone: phone,
+        email: email,
+        birthDate: birth,
+        plan: null
+      };
+
+      localStorage.setItem('holozonic_patient_session', JSON.stringify(newPatient));
+      closeModal('loginModal');
+      updatePatientUI(newPatient);
+      showToast('Cadastro realizado! Bem-vindo!');
+      loadPatientData();
+    }
+
+    function doLogout() {
+      if (confirm('Sair da área do paciente?')) {
+        localStorage.removeItem('holozonic_patient_session');
+        document.getElementById('navPacienteLabel').textContent = 'Paciente';
+        closeModal('pacienteDashboardModal');
+        showToast('Logout realizado');
+      }
+    }
+
+    function getPatientSession() {
+      const session = localStorage.getItem('holozonic_patient_session');
+      return session ? JSON.parse(session) : null;
+    }
+
+    function loadPatientData() {
+      const patient = getPatientSession();
+      if (!patient) return;
+
+      // Carregar appointments (mock)
+      const appointmentsList = document.getElementById('patientAppointmentsList');
+      if (!appointmentsList) return;
+      
+      // Simular dados - substituir por API real
+      const mockAppointments = [
+        { date: '2026-04-15', time: '14:00', type: 'Consulta MIB', status: 'AGENDADO' },
+        { date: '2026-03-20', time: '10:00', type: 'Ozonioterapia', status: 'REALIZADO' }
+      ];
+
+      if (mockAppointments.length === 0) {
+        appointmentsList.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: var(--muted);">
+            <i class="fa-solid fa-calendar-xmark" style="font-size: 40px; margin-bottom: 12px; opacity: 0.5;"></i>
+            <p>Nenhuma consulta agendada</p>
+          </div>
+        `;
+      } else {
+        appointmentsList.innerHTML = mockAppointments.map(apt => `
+          <div class="patient-appointment-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <p style="font-weight: 700; font-size: 15px;">${apt.type}</p>
+                <p style="font-size: 13px; color: var(--muted);">${formatDate(apt.date)} às ${apt.time}</p>
+              </div>
+              <span class="plan-feature-tag" style="${apt.status === 'AGENDADO' ? 'background: #dcfce7; color: #166534;' : 'background: #f1f5f9; color: #475569;'}">${apt.status}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Próxima consulta no header
+      const nextApt = mockAppointments.find(a => a.status === 'AGENDADO');
+      const nextInfo = document.getElementById('nextAppointmentInfo');
+      if (nextInfo && nextApt) {
+        nextInfo.innerHTML = `
+          <p style="font-weight: 700; font-size: 16px;">${nextApt.type}</p>
+          <p style="font-size: 14px; opacity: 0.9;">${formatDate(nextApt.date)} às ${nextApt.time}</p>
+        `;
+      }
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR');
+    }
+
+    // Mostrar dashboard do paciente
+    function showPatientDashboard() {
+      const patient = getPatientSession();
+      if (!patient) {
+        openModal('loginModal');
+        return;
+      }
+      loadPatientData();
+      openModal('pacienteDashboardModal');
+    }
+
+    //Mostrar agenda do paciente
+    function showPatientAgenda() {
+      const patient = getPatientSession();
+      if (!patient) {
+        openModal('loginModal');
+        return;
+      }
+      loadPatientData();
+      closeModal('pacienteDashboardModal');
+      openModal('pacienteAgendaModal');
+    }
+
+    function showPatientRecords() {
+      showToast('Em breve: Prontuários');
+    }
+
+    function showPatientPlan() {
+      const patient = getPatientSession();
+      showToast(patient?.plan ? `Seu plano: ${patient.plan}` : 'Nenhum plano ativo');
+    }
+
+    function showPatientTeleconsulta() {
+      const patient = getPatientSession();
+      if (!patient) {
+        openModal('loginModal');
+        return;
+      }
+      // Redirecionar para videochamada
+      const room = 'patient-' + patient.id + '-' + Date.now();
+      window.open(`/video-paciente.html?room=${room}`, '_blank');
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal(overlay.id);
+      });
+    });
+  </script>
+</body>
+
+</html>

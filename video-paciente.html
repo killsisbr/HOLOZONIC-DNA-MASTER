@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Holozonic — Video Consulta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { 
+            background: #0f172a; 
+            font-family: 'Inter', sans-serif;
+            padding-bottom: 80px;
+        }
+        .video-container {
+            position: relative;
+            background: #1e293b;
+            border-radius: 16px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .control-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .control-btn.active { background: #4DBE94; }
+        .control-btn.muted { background: #ef4444; }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #1e293b;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body>
+    <div class="p-4">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4">
+            <img src="https://i.imgur.com/PeN4mJL.png" alt="Holozonic" class="h-8">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-emerald-400 text-sm">Conectado</span>
+            </div>
+        </div>
+
+        <!-- Video -->
+        <div class="video-container mb-4 relative">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div class="video-local absolute bottom-4 right-4 w-24 aspect-video rounded-lg overflow-hidden border-2 border-emerald-500">
+                <video id="localVideo" autoplay playsinline muted class="w-full h-full object-cover bg-slate-800"></video>
+            </div>
+            <div id="videoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 bg-slate-900">
+                <i class="fa-solid fa-user-astronaut text-5xl mb-3"></i>
+                <p class="text-sm">Aguardando médico...</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-center gap-4 mb-6">
+            <button id="btnMic" onclick="toggleMic()" class="control-btn bg-slate-700 text-white">
+                <i class="fa-solid fa-microphone"></i>
+            </button>
+            <button id="btnVideo" onclick="toggleVideo()" class="control-btn bg-slate-700 text-white">
+                <i class="fa-solid fa-video"></i>
+            </button>
+            <button onclick="endCall()" class="control-btn bg-red-600 text-white">
+                <i class="fa-solid fa-phone-slash"></i>
+            </button>
+        </div>
+
+        <!-- Info -->
+        <div class="bg-slate-800 rounded-xl p-4 mb-4">
+            <h3 class="text-white font-bold">Video Consulta</h3>
+            <p class="text-slate-400 text-sm">Dr. Hamilton Souza</p>
+            <p id="roomInfo" class="text-slate-500 text-xs mt-2">Sala: --</p>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <button onclick="endCall()" class="text-red-500 flex flex-col items-center gap-1">
+            <i class="fa-solid fa-phone-slash text-xl"></i>
+            <span class="text-xs">Encerrar</span>
+        </button>
+        <button onclick="toggleChat()" class="text-slate-400 flex flex-col items-center gap-1">
+            <i class="fa-solid fa-comments text-xl"></i>
+            <span class="text-xs">Chat</span>
+        </button>
+        <button onclick="toggleVideo()" class="text-slate-400 flex flex-col items-center gap-1">
+            <i class="fa-solid fa-video text-xl"></i>
+            <span class="text-xs">Video</span>
+        </button>
+    </nav>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const ROOM_ID = new URLSearchParams(window.location.search).get('room') || 'test-room';
+        const USER_NAME = 'Paciente';
+        
+        let socket = io();
+        let localStream = null;
+        let peerConnection = null;
+        let isAudioEnabled = true;
+        let isVideoEnabled = true;
+
+        document.getElementById('roomInfo').textContent = `Sala: ${ROOM_ID}`;
+
+        async function initMedia() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+                document.getElementById('localVideo').srcObject = localStream;
+            } catch (e) {
+                console.error('Erro mídia:', e);
+            }
+        }
+
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+
+            peerConnection.ontrack = (event) => {
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
+                document.getElementById('videoPlaceholder').classList.add('hidden');
+            };
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('webrtc:ice-candidate', { roomId: ROOM_ID, candidate: event.candidate });
+                }
+            };
+        }
+
+        socket.on('connect', () => {
+            socket.emit('webrtc:join-room', { roomId: ROOM_ID, userId: USER_NAME, userName: USER_NAME });
+        });
+
+        socket.on('webrtc:room-joined', async ({ participants }) => {
+            if (participants.length > 0) {
+                createPeerConnection();
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                socket.emit('webrtc:offer', { roomId: ROOM_ID, targetSocketId: participants[0].socketId, offer: peerConnection.localDescription });
+            }
+        });
+
+        socket.on('webrtc:participant-joined', () => {
+            document.getElementById('videoPlaceholder').innerHTML = '<i class="fa-solid fa-user-astronaut text-5xl mb-3"></i><p class="text-sm">Conectado!</p>';
+        });
+
+        socket.on('webrtc:offer', async ({ senderSocketId, offer }) => {
+            createPeerConnection();
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.emit('webrtc:answer', { roomId: ROOM_ID, targetSocketId: senderSocketId, answer: peerConnection.localDescription });
+        });
+
+        socket.on('webrtc:answer', async ({ answer }) => {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+
+        socket.on('webrtc:ice-candidate', async ({ candidate }) => {
+            if (peerConnection) await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+
+        function toggleMic() {
+            isAudioEnabled = !isAudioEnabled;
+            localStream.getAudioTracks()[0].enabled = isAudioEnabled;
+            document.getElementById('btnMic').classList.toggle('muted', !isAudioEnabled);
+        }
+
+        function toggleVideo() {
+            isVideoEnabled = !isVideoEnabled;
+            localStream.getVideoTracks()[0].enabled = isVideoEnabled;
+            document.getElementById('btnVideo').classList.toggle('muted', !isVideoEnabled);
+        }
+
+        function toggleChat() { alert('Chat em breve'); }
+
+        function endCall() {
+            if (confirm('Encerrar chamada?')) {
+                if (localStream) localStream.getTracks().forEach(t => t.stop());
+                window.location.href = '/';
+            }
+        }
+
+        initMedia();
+    </script>
+</body>
+</html>
